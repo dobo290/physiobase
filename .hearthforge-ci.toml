@@ -1,5 +1,6 @@
 # Checks and build. Runs on every push to master and on every tag.
-image = "docker.io/golang:1.27"
+# Docker Hub mirror: same official image, no anonymous pull limit
+image = "mirror.gcr.io/library/golang:1.27"
 work_dir = "/ci/build"
 clone_project_to = "/ci/build/project"
 shell_setup = "set -euo pipefail"
