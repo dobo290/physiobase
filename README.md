@@ -185,17 +185,21 @@ The same checks, plus `go mod tidy` and `govulncheck`, run in CI on every push
 ## Use of AI
 
 This project was written with an AI coding assistant: Claude by Anthropic, a
-large language model, working through the pi coding agent.
-The maintainer chose the features, gave direction and decided what went in;
-the model wrote most of the code, the tests, this README, and the clinical
+large language model, working through the pi coding agent. The model wrote
+most of the code, the tests and this README, and drafted the clinical
 content.
+
+The maintainer is a state-certified masseur and physiotherapist trained in
+Germany. They chose the features, set the clinical direction (for example an
+ICF-oriented, evidence-based assessment with red/yellow flag screening and
+outcome measures) and are responsible for the clinical content.
 
 That clinical content includes the structure and wording of the assessment
 form, the red/yellow flag lists, the suggested assessment instruments, the
 sample knowledge entries and the patient summary templates. It was drafted
-by the model from general physiotherapy knowledge, **not** from a reviewed
-clinical source, and has not been checked by an independent clinician.
-Check it against current guidelines before you rely on it. The software
+by the model from general physiotherapy knowledge, not taken from a specific
+guideline or textbook. If you use PhysioBase in your own practice, check it
+against current guidelines and your own professional judgement. The software
 supports documentation; it does not make clinical decisions.
 
 The code is checked by automated tests, `go vet`, golangci-lint (including
