@@ -152,3 +152,11 @@ gofumpt -l -extra .
 
 The same checks, plus `go mod tidy` and `govulncheck`, run in CI on every push
 (see [`.hearthforge-ci.toml`](.hearthforge-ci.toml)).
+
+## License
+
+[GNU Affero General Public License v3.0](LICENSE.md). If you run a modified
+version as a network service, its users are entitled to the source code.
+
+Bundled third-party files keep their own licenses:
+[Pico CSS](https://picocss.com) (`web/static/pico.min.css`) is MIT-licensed.
