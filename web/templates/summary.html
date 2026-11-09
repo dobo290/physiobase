@@ -1,0 +1,55 @@
+{{define "title"}}{{.S.Title}} – {{.P.Name}}{{end}}
+{{define "content"}}
+<nav aria-label="breadcrumb"><ul>
+  <li><a href="/patienten">Patienten</a></li>
+  <li><a href="/patient/{{.P.ID}}#zusammenfassungen">{{.P.Name}}</a></li>
+  <li>{{.S.Title}}</li>
+</ul></nav>
+{{if .Saved}}<p class="ok" role="status">Gespeichert.</p>{{end}}
+<article>
+  <form method="post" action="/zusammenfassung/{{.S.ID}}">
+    <div class="grid">
+      <label>Titel <input name="title" value="{{.S.Title}}" required></label>
+      <label>Datum <input type="date" name="date" value="{{.S.Date}}"></label>
+    </div>
+    <label>Text für den Patienten
+      <textarea name="body" rows="22" class="mono">{{.S.Body}}</textarea>
+      <small>Markdown: <code>## Überschrift</code>, <code>- Punkt</code>, <code>**fett**</code>.
+        Zeilen mit <code>✎</code> sind Hinweise für dich und werden nicht gedruckt, ebenso leere Abschnitte.</small>
+    </label>
+    <div class="actions">
+      <button type="submit">Speichern</button>
+      <button type="submit" name="next" value="druck" class="secondary">Speichern &amp; Druckansicht</button>
+    </div>
+  </form>
+</article>
+
+<article id="senden">
+  <h3>Per E-Mail senden</h3>
+  {{if .Sent}}<p class="ok" role="status">Gesendet an {{.P.Email}}.</p>{{end}}
+  {{with .MailError}}<p class="error" role="alert">{{.}}</p>{{end}}
+  {{if .MailBlock}}
+    <p class="muted">{{.MailBlock}} <a href="/patient/{{.P.ID}}">Zu den Stammdaten</a></p>
+  {{else}}
+    <form method="post" action="/zusammenfassung/{{.S.ID}}/senden" class="inline">
+      <button type="submit">Jetzt senden an {{.P.Email}}</button>
+    </form>
+    <small class="muted">Gesendet wird der <strong>gespeicherte</strong> Stand – vorher speichern.</small>
+  {{end}}
+  {{if .MailLog}}
+  <ul class="maillog">{{range .MailLog}}
+    <li>{{if .OK}}✓{{else}}✗{{end}} {{date .Sent}} {{.Sent.Local.Format "15:04"}} an {{.Recipient}}{{with .Error}} – <span class="error">{{.}}</span>{{end}}</li>
+  {{end}}</ul>
+  {{end}}
+</article>
+
+<article class="summary-preview">
+  <h3>Vorschau (gespeicherter Stand, ohne Hinweise)</h3>
+  <div class="prose">{{md .Preview}}</div>
+</article>
+
+<details class="danger">
+  <summary>Zusammenfassung löschen …</summary>
+  <form method="post" action="/zusammenfassung/{{.S.ID}}/loeschen"><button type="submit" class="danger">Endgültig löschen</button></form>
+</details>
+{{end}}

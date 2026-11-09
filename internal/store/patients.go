@@ -11,6 +11,8 @@ import (
 type Patient struct {
 	ID                      int64
 	Name, Dob, Phone, Notes string
+	Email                   string
+	EmailConsent            bool // Einwilligung in den Versand von Gesundheitsinformationen per E-Mail
 	Archived                bool
 	Created, Updated        time.Time
 	Befunde, Sessions       int
@@ -32,7 +34,7 @@ type Session struct {
 // ---------- Patienten ----------
 
 func (s *Store) Patients(ctx context.Context, q string, archived bool) ([]Patient, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT p.id, p.name, p.dob, p.phone, p.notes, p.archived, p.created_at, p.updated_at,
+	rows, err := s.db.QueryContext(ctx, `SELECT p.id, p.name, p.dob, p.phone, p.notes, p.email, p.email_consent, p.archived, p.created_at, p.updated_at,
 		(SELECT count(*) FROM befunde b WHERE b.patient_id = p.id),
 		(SELECT count(*) FROM sessions x WHERE x.patient_id = p.id),
 		COALESCE(max((SELECT max(date) FROM befunde b WHERE b.patient_id = p.id),
@@ -59,7 +61,7 @@ func scanPatient(sc scanner, withStats bool) (Patient, error) {
 	var p Patient
 	var c, u int64
 	var last sql.NullString
-	dest := []any{&p.ID, &p.Name, &p.Dob, &p.Phone, &p.Notes, &p.Archived, &c, &u}
+	dest := []any{&p.ID, &p.Name, &p.Dob, &p.Phone, &p.Notes, &p.Email, &p.EmailConsent, &p.Archived, &c, &u}
 	if withStats {
 		dest = append(dest, &p.Befunde, &p.Sessions, &last)
 	}
@@ -69,13 +71,14 @@ func scanPatient(sc scanner, withStats bool) (Patient, error) {
 }
 
 func (s *Store) Patient(ctx context.Context, id int64) (Patient, error) {
-	p, err := scanPatient(s.db.QueryRowContext(ctx, `SELECT id, name, dob, phone, notes, archived, created_at, updated_at
+	p, err := scanPatient(s.db.QueryRowContext(ctx, `SELECT id, name, dob, phone, notes, email, email_consent, archived, created_at, updated_at
 		FROM patients WHERE id = ?`, id), false)
 	return p, notFound(err)
 }
 
 func (s *Store) CreatePatient(ctx context.Context, p Patient) (int64, error) {
-	res, err := s.db.ExecContext(ctx, `INSERT INTO patients (name, dob, phone, notes) VALUES (?, ?, ?, ?)`, p.Name, p.Dob, p.Phone, p.Notes)
+	res, err := s.db.ExecContext(ctx, `INSERT INTO patients (name, dob, phone, notes, email, email_consent) VALUES (?, ?, ?, ?, ?, ?)`,
+		p.Name, p.Dob, p.Phone, p.Notes, p.Email, p.EmailConsent)
 	if err != nil {
 		return 0, err
 	}
@@ -83,8 +86,8 @@ func (s *Store) CreatePatient(ctx context.Context, p Patient) (int64, error) {
 }
 
 func (s *Store) UpdatePatient(ctx context.Context, p Patient) error {
-	res, err := s.db.ExecContext(ctx, `UPDATE patients SET name=?, dob=?, phone=?, notes=?, updated_at=unixepoch() WHERE id=?`,
-		p.Name, p.Dob, p.Phone, p.Notes, p.ID)
+	res, err := s.db.ExecContext(ctx, `UPDATE patients SET name=?, dob=?, phone=?, notes=?, email=?, email_consent=?,
+		updated_at=unixepoch() WHERE id=?`, p.Name, p.Dob, p.Phone, p.Notes, p.Email, p.EmailConsent, p.ID)
 	if err != nil {
 		return err
 	}

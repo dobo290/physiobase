@@ -20,8 +20,13 @@ conveniences; everything else works without it.
   folding: `knie` finds *Kniegelenk*, `ubung` finds *Übung*.
 - **Exercise handouts**: pick exercises, set dosage and a personal note,
   reorder, copy as a template, print or save as PDF (A4 print view).
-- **Patients**: assessments, treatment log, linked knowledge entries and home
-  programmes on one page.
+- **Patients**: assessments, treatment log, documents, linked knowledge
+  entries, home programmes and summaries on one page.
+- **Patient documents**: scanned PDFs and photos (doctor's letters,
+  prescriptions, imaging, progress photos) with title, category and date.
+  Several files per upload; phones and tablets can take the photo directly.
+  Files are only served to a logged-in user, never cached, and deleted
+  together with the patient.
 - **Assessment form (Befund)**: ICF-oriented and evidence-based, including
   red/yellow flag screening, NRS and pain mechanism, a body chart with symbol
   stamps, ROM/strength/girth tables, special tests, PROMs and performance tests,
@@ -34,6 +39,14 @@ conveniences; everything else works without it.
   Neutral-Null notation (`0-5-100` → `0-0-125` gives `-5 / +25`).
 - **Print view**: only filled fields, body chart with legend, optional
   treatment log, signature lines.
+- **Summaries for patients**: an overall summary (complaint, findings, goals,
+  plan, home exercises, progress, when to get in touch) and one per treatment
+  session. Both start as a draft built from the recorded data and are edited
+  in plain language before they go out. Lines starting with `✎` are notes for
+  the therapist and never appear in print or email.
+- **Email**: send a summary to the patient over SMTP (text and HTML).
+  Requires an address and recorded consent in the patient record; every
+  attempt is logged with time, recipient and result.
 - **Import**: JSON exports of the previous standalone assessment page
   (`Befund_*.json`) and of PhysioBase itself.
 - **Backups**: consistent SQLite snapshots (`VACUUM INTO`) at start and every
@@ -98,11 +111,18 @@ are embedded in the binary.
 | `PHYSIOBASE_PORT` | `8080` | Listen port |
 | `PHYSIOBASE_DATA_DIR` | `./data` | Root for everything below |
 | `PHYSIOBASE_DB_PATH` | `<data>/physiobase.db` | SQLite database |
-| `PHYSIOBASE_MEDIA_DIR` | `<data>/medien` | Uploaded images, videos, PDFs |
+| `PHYSIOBASE_MEDIA_DIR` | `<data>/medien` | Uploads of the knowledge base |
+| `PHYSIOBASE_DOCS_DIR` | `<data>/patienten` | Patient documents (scans, photos) |
 | `PHYSIOBASE_BACKUP_DIR` | `<data>/backup` | Daily database backups |
 | `PHYSIOBASE_BACKUP_KEEP` | `14` | Backups to keep; `0` turns them off |
 | `PHYSIOBASE_PRACTICE_NAME` | `PhysioBase` | Shown in the header and on printouts |
 | `PHYSIOBASE_BASE_URL` | — | External URL; an `https://` value makes cookies `Secure` and enables HSTS |
+| `PHYSIOBASE_SMTP_HOST` | — | SMTP server; empty turns email off |
+| `PHYSIOBASE_SMTP_PORT` | `587` | SMTP port |
+| `PHYSIOBASE_SMTP_SECURITY` | `starttls` | `ssl` (implicit TLS, usually 465), `starttls` (587) or `none` (tests only) |
+| `PHYSIOBASE_SMTP_USER` | — | SMTP login |
+| `PHYSIOBASE_SMTP_PASSWORD` | — | SMTP password |
+| `PHYSIOBASE_SMTP_FROM` | `$PHYSIOBASE_SMTP_USER` | Sender address; the practice name is the display name |
 | `PHYSIOBASE_SEED` | `1` | Insert sample entries into an empty database |
 | `PHYSIOBASE_LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error` |
 | `PHYSIOBASE_LOG_FORMAT` | `text` | `text` or `json`; logs go to stderr |
@@ -121,6 +141,10 @@ mode without login.
   `script-src 'self'`.
 - Cross-site POSTs are rejected through Go's `http.CrossOriginProtection`.
 - Uploaded files are only served if they belong to an entry in the database.
+- Email goes only to the single address stored for the patient, only with
+  recorded consent, and addresses are validated against header injection.
+  Sending health information by email needs the patient's explicit consent
+  (Art. 9 GDPR); keep the signed consent, for example as a patient document.
 
 **Health data:** once real patient data is stored, run it behind HTTPS with
 access limited to people who need it. Encryption at rest is not built in
@@ -131,9 +155,14 @@ yet; put the data directory on an encrypted volume.
 ```
 data/
 ├── physiobase.db        SQLite (WAL mode)
-├── medien/              uploads
+├── medien/              uploads of the knowledge base
+├── patienten/           patient documents
 └── backup/              physiobase-YYYY-MM-DD_HHMMSS.db
 ```
+
+The backups cover the database only. Uploads and patient documents are plain
+files that never change after upload; back up `medien/` and `patienten/`
+with your usual file backup or snapshots.
 
 Do not copy `physiobase.db` while the server runs. In WAL mode, recent writes can
 still be in `physiobase.db-wal`. Use the files in `backup/`; each one is a
@@ -152,6 +181,26 @@ gofumpt -l -extra .
 
 The same checks, plus `go mod tidy` and `govulncheck`, run in CI on every push
 (see [`.hearthforge-ci.toml`](.hearthforge-ci.toml)).
+
+## Use of AI
+
+This project was written with an AI coding assistant: Claude by Anthropic, a
+large language model, working through the pi coding agent.
+The maintainer chose the features, gave direction and decided what went in;
+the model wrote most of the code, the tests, this README, and the clinical
+content.
+
+That clinical content includes the structure and wording of the assessment
+form, the red/yellow flag lists, the suggested assessment instruments, the
+sample knowledge entries and the patient summary templates. It was drafted
+by the model from general physiotherapy knowledge, **not** from a reviewed
+clinical source, and has not been checked by an independent clinician.
+Check it against current guidelines before you rely on it. The software
+supports documentation; it does not make clinical decisions.
+
+The code is checked by automated tests, `go vet`, golangci-lint (including
+gosec), gofumpt and govulncheck on every push. That catches many mistakes,
+but not all. Review it before you trust it with patient data.
 
 ## License
 

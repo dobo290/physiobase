@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"forge.gpl-nas.de/physiobase/internal/befund"
+	"forge.gpl-nas.de/physiobase/internal/mailer"
 	"forge.gpl-nas.de/physiobase/internal/store"
 )
 
@@ -41,9 +42,16 @@ func (s *Server) createPatient(w http.ResponseWriter, r *http.Request) {
 	if !limitForm(w, r) {
 		return
 	}
-	p := store.Patient{Name: formText(r, "name"), Dob: formText(r, "dob"), Phone: formText(r, "phone")}
+	p := store.Patient{
+		Name: formText(r, "name"), Dob: formText(r, "dob"), Phone: formText(r, "phone"),
+		Email: formText(r, "email"), EmailConsent: r.FormValue("email_consent") == "1",
+	}
 	if p.Name == "" {
 		http.Error(w, "Name fehlt", http.StatusBadRequest)
+		return
+	}
+	if p.Email != "" && !mailer.ValidAddress(p.Email) {
+		http.Error(w, "Ungültige E-Mail-Adresse", http.StatusBadRequest)
 		return
 	}
 	id, err := s.st.CreatePatient(r.Context(), p)
@@ -93,6 +101,16 @@ func (s *Server) showPatient(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
+	docs, err := s.st.Docs(ctx, id)
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
+	summaries, err := s.st.Summaries(ctx, id)
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
 	// Verlauf der Kernwerte über alle Befunde (älteste zuerst)
 	type trendRow struct {
 		Date, Title             string
@@ -111,6 +129,7 @@ func (s *Server) showPatient(w http.ResponseWriter, r *http.Request) {
 	s.render(w, r, "patient", http.StatusOK, map[string]any{
 		"P": p, "Befunde": bs, "Sessions": sessions, "Linked": linked, "Linkable": linkable,
 		"Handouts": handouts, "Trend": trend, "Today": time.Now().Format("2006-01-02"),
+		"Docs": docs, "DocCategories": store.DocCategories, "Summaries": summaries,
 	})
 }
 
@@ -123,9 +142,16 @@ func (s *Server) updatePatient(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	p := store.Patient{ID: id, Name: formText(r, "name"), Dob: formText(r, "dob"), Phone: formText(r, "phone"), Notes: formText(r, "notes")}
+	p := store.Patient{
+		ID: id, Name: formText(r, "name"), Dob: formText(r, "dob"), Phone: formText(r, "phone"), Notes: formText(r, "notes"),
+		Email: formText(r, "email"), EmailConsent: r.FormValue("email_consent") == "1",
+	}
 	if p.Name == "" {
 		http.Error(w, "Name fehlt", http.StatusBadRequest)
+		return
+	}
+	if p.Email != "" && !mailer.ValidAddress(p.Email) {
+		http.Error(w, "Ungültige E-Mail-Adresse", http.StatusBadRequest)
 		return
 	}
 	if err := s.st.UpdatePatient(r.Context(), p); err != nil {
@@ -154,9 +180,17 @@ func (s *Server) deletePatient(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+	files, err := s.st.DocFiles(r.Context(), id)
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
 	if err := s.st.DeletePatient(r.Context(), id); err != nil {
 		s.fail(w, r, err)
 		return
+	}
+	for _, f := range files {
+		s.removeDocFile(f)
 	}
 	redirect(w, r, "/patienten")
 }

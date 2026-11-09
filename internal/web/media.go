@@ -54,7 +54,7 @@ func (s *Server) uploadMedia(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		name := fmt.Sprintf("%d-%s%s", id, randomHex(8), extOf(fh.Filename))
-		if err := s.saveUpload(fh.Open, name); err != nil {
+		if err := saveUpload(s.cfg.MediaDir, fh.Open, name); err != nil {
 			s.fail(w, r, err)
 			return
 		}
@@ -73,13 +73,16 @@ func (s *Server) uploadMedia(w http.ResponseWriter, r *http.Request) {
 
 // saveUpload schreibt erst in eine Temp-Datei und benennt dann um, damit nie
 // halbe Dateien unter dem endgültigen Namen liegen.
-func (s *Server) saveUpload(open func() (multipart.File, error), name string) error {
+func saveUpload(dir string, open func() (multipart.File, error), name string) error {
 	src, err := open()
 	if err != nil {
 		return err
 	}
 	defer func() { _ = src.Close() }()
-	tmp, err := os.CreateTemp(s.cfg.MediaDir, ".upload-*")
+	if err := os.MkdirAll(dir, 0o750); err != nil {
+		return err
+	}
+	tmp, err := os.CreateTemp(dir, ".upload-*")
 	if err != nil {
 		return err
 	}
@@ -93,7 +96,7 @@ func (s *Server) saveUpload(open func() (multipart.File, error), name string) er
 		return err
 	}
 	// CreateTemp legt die Datei mit 0600 an; ausgeliefert wird sie nur über die App.
-	return os.Rename(tmp.Name(), filepath.Join(s.cfg.MediaDir, name)) //nolint:gosec // G703: Name vom Server erzeugt
+	return os.Rename(tmp.Name(), filepath.Join(dir, name)) //nolint:gosec // G703: Name vom Server erzeugt
 }
 
 func (s *Server) deleteMedia(w http.ResponseWriter, r *http.Request) {

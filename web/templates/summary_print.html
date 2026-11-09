@@ -1,0 +1,22 @@
+{{define "summary_print"}}<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.S.Title}} – {{.P.Name}}</title>
+<link rel="stylesheet" href="/static/print.css">
+</head>
+<body class="summary">
+<p class="hint">Drucken oder als PDF speichern: <kbd>Strg</kbd>+<kbd>P</kbd> (Tablet/Handy: Teilen → Drucken). ·
+  <a href="/zusammenfassung/{{.S.ID}}">zurück zum Bearbeiten</a></p>
+<header>
+  <div>
+    <h1>{{.S.Title}}</h1>
+    <p class="for">für {{.P.Name}}</p>
+  </div>
+  <div class="meta"><img src="/static/logo.webp" alt="" class="logo"><br>{{.Practice}}<br>{{de .S.Date}}</div>
+</header>
+<main class="summary-body">{{md .Body}}</main>
+<footer>Bei Fragen sprechen Sie mich gern beim nächsten Termin an.</footer>
+</body>
+</html>{{end}}

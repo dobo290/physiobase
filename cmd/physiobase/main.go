@@ -56,8 +56,10 @@ func run() error {
 	log := slog.New(h)
 	slog.SetDefault(log)
 
-	if err := os.MkdirAll(cfg.MediaDir, 0o750); err != nil {
-		return fmt.Errorf("medienordner: %w", err)
+	for _, dir := range []string{cfg.MediaDir, cfg.DocsDir} {
+		if err := os.MkdirAll(dir, 0o750); err != nil {
+			return fmt.Errorf("ordner %s: %w", dir, err)
+		}
 	}
 	db, err := database.Open(cfg.DBPath)
 	if err != nil {

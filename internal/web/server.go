@@ -10,6 +10,7 @@ import (
 	"io/fs"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"sync"
@@ -40,14 +41,14 @@ func New(ctx context.Context, cfg *config.Config, st *store.Store, log *slog.Log
 	if err := s.loadSessionSecret(ctx); err != nil {
 		return nil, err
 	}
-	for _, p := range []string{"index", "entry", "edit", "handouts", "handout", "login", "patients", "patient", "befund", "compare"} {
+	for _, p := range []string{"index", "entry", "edit", "handouts", "handout", "login", "patients", "patient", "befund", "compare", "summary"} {
 		t, err := template.New("").Funcs(funcs).ParseFS(physiobase.TemplatesFS, "web/templates/layout.html", "web/templates/"+p+".html")
 		if err != nil {
 			return nil, fmt.Errorf("template %s: %w", p, err)
 		}
 		s.pages[p] = t
 	}
-	for _, p := range []string{"print", "befund_print"} {
+	for _, p := range []string{"print", "befund_print", "summary_print"} {
 		t, err := template.New("").Funcs(funcs).ParseFS(physiobase.TemplatesFS, "web/templates/"+p+".html")
 		if err != nil {
 			return nil, fmt.Errorf("template %s: %w", p, err)
@@ -109,6 +110,16 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /patient/{id}/wissen/{eid}/loeschen", s.unlinkPatientEntry)
 	mux.HandleFunc("POST /patient/{id}/handout", s.createPatientHandout)
 	mux.HandleFunc("GET /patient/{id}/vergleich", s.compareBefunde)
+	mux.HandleFunc("POST /patient/{id}/dokumente", s.uploadDocs)
+	mux.HandleFunc("POST /dokument/{id}/loeschen", s.deleteDoc)
+	mux.HandleFunc("GET /dokumente/{file}", s.serveDoc)
+	mux.HandleFunc("POST /patient/{id}/zusammenfassung", s.createGeneralSummary)
+	mux.HandleFunc("POST /verlauf/{id}/zusammenfassung", s.createSessionSummary)
+	mux.HandleFunc("GET /zusammenfassung/{id}", s.showSummary)
+	mux.HandleFunc("POST /zusammenfassung/{id}", s.saveSummary)
+	mux.HandleFunc("POST /zusammenfassung/{id}/loeschen", s.deleteSummary)
+	mux.HandleFunc("GET /zusammenfassung/{id}/druck", s.printSummary)
+	mux.HandleFunc("POST /zusammenfassung/{id}/senden", s.sendSummary)
 	mux.HandleFunc("GET /befund/{id}", s.showBefund)
 	mux.HandleFunc("POST /befund/{id}", s.saveBefund)
 	mux.HandleFunc("POST /befund/{id}/loeschen", s.deleteBefund)
@@ -199,6 +210,15 @@ var funcs = template.FuncMap{
 	"isImage": isImage,
 	"isVideo": isVideo,
 	"isPDF":   func(f string) bool { return strings.EqualFold(extOf(f), ".pdf") },
+	"size": func(n int64) string {
+		switch {
+		case n >= 1<<20:
+			return strings.ReplaceAll(strconv.FormatFloat(float64(n)/(1<<20), 'f', 1, 64), ".", ",") + " MB"
+		case n >= 1<<10:
+			return strconv.FormatInt(n>>10, 10) + " KB"
+		}
+		return strconv.FormatInt(n, 10) + " B"
+	},
 	"tags": func(s string) []string {
 		var out []string
 		for _, p := range strings.Split(s, ",") {
@@ -230,7 +250,7 @@ func (s *Server) render(w http.ResponseWriter, r *http.Request, page string, sta
 	data["Kinds"] = store.Kinds
 	data["Path"] = r.URL.Path
 	name := "layout"
-	if page == "print" || page == "befund_print" {
+	if page == "print" || page == "befund_print" || page == "summary_print" {
 		name = page
 	}
 	var buf bytes.Buffer
@@ -256,6 +276,9 @@ func redirect(w http.ResponseWriter, r *http.Request, format string, args ...any
 	// Ziele sind immer feste, interne Pfade mit numerischen IDs.
 	http.Redirect(w, r, fmt.Sprintf(format, args...), http.StatusSeeOther) //nolint:gosec // G710
 }
+
+// urlPathEscape für Dateinamen in Content-Disposition (RFC 5987).
+func urlPathEscape(s string) string { return url.PathEscape(s) }
 
 func pathID(r *http.Request, name string) (int64, bool) {
 	id, err := strconv.ParseInt(r.PathValue(name), 10, 64)

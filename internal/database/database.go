@@ -187,6 +187,52 @@ CREATE TABLE patient_entries (
 ALTER TABLE handouts ADD COLUMN patient_id INTEGER REFERENCES patients(id) ON DELETE SET NULL;
 CREATE INDEX idx_handouts_patient ON handouts(patient_id);
 `},
+	{3, `
+-- Eingescannte/fotografierte Unterlagen je Patient (Arztbrief, Verordnung, Bildgebung …)
+CREATE TABLE patient_docs (
+    id         INTEGER PRIMARY KEY,
+    patient_id INTEGER NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+    filename   TEXT NOT NULL UNIQUE,
+    original   TEXT NOT NULL DEFAULT '',
+    title      TEXT NOT NULL DEFAULT '',
+    category   TEXT NOT NULL DEFAULT '',
+    date       TEXT NOT NULL,
+    size       INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch())
+);
+CREATE INDEX idx_patient_docs_patient ON patient_docs(patient_id, date);
+`},
+	{4, `
+-- Zusammenfassungen für Patienten: gesamt oder zu einer Behandlung
+CREATE TABLE summaries (
+    id         INTEGER PRIMARY KEY,
+    patient_id INTEGER NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+    session_id INTEGER REFERENCES sessions(id) ON DELETE SET NULL,
+    kind       TEXT NOT NULL CHECK (kind IN ('gesamt', 'sitzung')),
+    date       TEXT NOT NULL,
+    title      TEXT NOT NULL,
+    body       TEXT NOT NULL DEFAULT '',
+    created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+    updated_at INTEGER NOT NULL DEFAULT (unixepoch())
+);
+CREATE INDEX idx_summaries_patient ON summaries(patient_id, date);
+`},
+	{5, `
+ALTER TABLE patients ADD COLUMN email TEXT NOT NULL DEFAULT '';
+ALTER TABLE patients ADD COLUMN email_consent INTEGER NOT NULL DEFAULT 0;
+-- Versandprotokoll (auch Fehlversuche)
+CREATE TABLE mail_log (
+    id         INTEGER PRIMARY KEY,
+    summary_id INTEGER REFERENCES summaries(id) ON DELETE SET NULL,
+    patient_id INTEGER REFERENCES patients(id) ON DELETE CASCADE,
+    recipient  TEXT NOT NULL,
+    subject    TEXT NOT NULL,
+    ok         INTEGER NOT NULL,
+    error      TEXT NOT NULL DEFAULT '',
+    sent_at    INTEGER NOT NULL DEFAULT (unixepoch())
+);
+CREATE INDEX idx_mail_log_summary ON mail_log(summary_id);
+`},
 }
 
 func migrate(db *sql.DB) error {

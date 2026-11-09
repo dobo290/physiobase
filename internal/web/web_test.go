@@ -21,6 +21,11 @@ import (
 
 func newServer(t *testing.T) (*httptest.Server, *http.Client) {
 	t.Helper()
+	return newServerCfg(t, nil)
+}
+
+func newServerCfg(t *testing.T, mod func(*config.Config)) (*httptest.Server, *http.Client) {
+	t.Helper()
 	dir := t.TempDir()
 	db, err := database.Open(filepath.Join(dir, "t.db"))
 	if err != nil {
@@ -28,7 +33,10 @@ func newServer(t *testing.T) (*httptest.Server, *http.Client) {
 	}
 	t.Cleanup(func() { database.Close(db) })
 	hash, _ := HashPassword("geheim123")
-	cfg := &config.Config{Username: "admin", PasswordHash: hash, PracticeName: "Test", MediaDir: dir}
+	cfg := &config.Config{Username: "admin", PasswordHash: hash, PracticeName: "Test", MediaDir: dir, DocsDir: filepath.Join(dir, "docs")}
+	if mod != nil {
+		mod(cfg)
+	}
 	st := store.New(db)
 	if _, err := st.Seed(context.Background()); err != nil {
 		t.Fatal(err)

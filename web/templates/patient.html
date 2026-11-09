@@ -4,7 +4,7 @@
 <nav aria-label="breadcrumb"><ul><li><a href="/patienten">Patienten</a></li><li>{{$p.Name}}</li></ul></nav>
 <header class="patient-head">
   <h1>{{$p.Name}}{{if $p.Archived}} <small class="muted">(archiviert)</small>{{end}}</h1>
-  <p class="muted">{{with $p.Dob}}geb. {{.}}{{end}}{{with $p.Phone}} · {{.}}{{end}}</p>
+  <p class="muted">{{with $p.Dob}}geb. {{.}}{{end}}{{with $p.Phone}} · {{.}}{{end}}{{with $p.Email}} · {{.}}{{if not $p.EmailConsent}} (keine E-Mail-Einwilligung){{end}}{{end}}</p>
 </header>
 
 <article id="befunde">
@@ -58,11 +58,57 @@
   {{range .Sessions}}
   <div class="session">
     <div class="session-head"><strong>{{de .Date}}</strong> {{.Goal}}
-      <form method="post" action="/verlauf/{{.ID}}/loeschen" class="inline"><button type="submit" class="link" title="Löschen">✕</button></form>
+      <span class="session-actions">
+        <form method="post" action="/verlauf/{{.ID}}/zusammenfassung" class="inline"><button type="submit" class="link small-link" title="Zusammenfassung dieser Behandlung für den Patienten">📝 Für Patient</button></form>
+        <form method="post" action="/verlauf/{{.ID}}/loeschen" class="inline"><button type="submit" class="link" title="Löschen">✕</button></form>
+      </span>
     </div>
     {{with .Note}}<div class="session-note">{{.}}</div>{{end}}
   </div>
   {{else}}<p class="muted">Noch keine Behandlungen dokumentiert.</p>{{end}}
+</article>
+
+<article id="zusammenfassungen">
+  <h3>Zusammenfassungen für den Patienten</h3>
+  {{if .Summaries}}
+  <ul class="summaries">{{range .Summaries}}
+    <li><a href="/zusammenfassung/{{.ID}}"><strong>{{.Title}}</strong></a>
+      <small class="muted">{{de .Date}} · {{if eq .Kind "gesamt"}}Gesamt{{else}}Behandlung{{end}}</small>
+      <a href="/zusammenfassung/{{.ID}}/druck" target="_blank" class="small-link">Druck</a></li>
+  {{end}}</ul>
+  {{else}}<p class="muted">Zum Mitgeben: eine Gesamtzusammenfassung (Beschwerden, Ziele, Plan, Übungen, Fortschritt) oder nach jeder Behandlung über „📝 Für Patient“ im Behandlungsverlauf.</p>{{end}}
+  <form method="post" action="/patient/{{$p.ID}}/zusammenfassung" class="inline"><button type="submit" class="secondary">+ Gesamtzusammenfassung</button></form>
+</article>
+
+<article id="dokumente">
+  <h3>Dokumente</h3>
+  {{if .Docs}}
+  <div class="docs">
+    {{range .Docs}}
+    <figure class="doc">
+      <a href="/dokumente/{{.Filename}}" target="_blank" class="doc-preview">
+        {{if isImage .Filename}}<img src="/dokumente/{{.Filename}}" alt="{{.Title}}" loading="lazy">
+        {{else if isPDF .Filename}}<span class="doc-icon">PDF</span>
+        {{else}}<span class="doc-icon">{{.Original}}</span>{{end}}
+      </a>
+      <figcaption>
+        <a href="/dokumente/{{.Filename}}" target="_blank"><strong>{{.Title}}</strong></a>
+        <small class="muted">{{de .Date}}{{with .Category}} · {{.}}{{end}} · {{size .Size}}</small>
+        <form method="post" action="/dokument/{{.ID}}/loeschen" class="inline"><button type="submit" class="link" title="Dokument löschen">✕</button></form>
+      </figcaption>
+    </figure>
+    {{end}}
+  </div>
+  {{else}}<p class="muted">Noch keine Dokumente. Verordnungen, Arztbriefe, Bildgebung oder Fotos hier ablegen.</p>{{end}}
+  <form method="post" action="/patient/{{$p.ID}}/dokumente" enctype="multipart/form-data" class="doc-form">
+    <input type="file" name="files" accept="application/pdf,image/*,.heic,.heif,.tif,.tiff" multiple required aria-label="Dateien (PDF oder Foto)">
+    <input name="title" placeholder="Titel (optional, sonst Dateiname)" aria-label="Titel">
+    <input name="category" list="dl-doccat" placeholder="Kategorie" aria-label="Kategorie">
+    <datalist id="dl-doccat">{{range .DocCategories}}<option value="{{.}}">{{end}}</datalist>
+    <input type="date" name="date" value="{{.Today}}" aria-label="Datum des Dokuments">
+    <button type="submit">Hochladen</button>
+  </form>
+  <small class="muted">Mehrere Dateien auf einmal möglich. Auf Handy/Tablet kann direkt fotografiert werden.</small>
 </article>
 
 <div class="grid">
@@ -100,6 +146,10 @@
       <label>Geburtsdatum/Alter <input name="dob" value="{{$p.Dob}}"></label>
       <label>Telefon <input name="phone" value="{{$p.Phone}}"></label>
     </div>
+    <label>E-Mail <input type="email" name="email" value="{{$p.Email}}" autocomplete="off"></label>
+    <label class="consent"><input type="checkbox" name="email_consent" value="1"{{if $p.EmailConsent}} checked{{end}}>
+      Patient ist einverstanden, Zusammenfassungen mit Gesundheitsinformationen per E-Mail zu erhalten
+      (Einwilligung nach Art. 9 DSGVO, schriftlich dokumentieren – z. B. unter „Dokumente“).</label>
     <label>Notizen <textarea name="notes" rows="3">{{$p.Notes}}</textarea></label>
     <button type="submit">Speichern</button>
   </form>
