@@ -1,0 +1,199 @@
+/* Ergänzungen zu Pico CSS – kein Inline-CSS (CSP style-src 'self') */
+:root { --pico-font-size: 106.25%; }
+@media (max-width: 576px) { :root { --pico-font-size: 100%; } }
+.brand { text-decoration: none; }
+.muted { color: var(--pico-muted-color); }
+.error { color: var(--pico-del-color); font-weight: 600; }
+.ok { color: var(--pico-ins-color); font-weight: 600; }
+.narrow { max-width: 26rem; margin: 3rem auto; }
+.mono { font-family: var(--pico-font-family-monospace); font-size: .9em; }
+form.inline { display: inline; margin: 0; }
+form.inline button { margin: 0; }
+button.small { padding: .25rem .6rem; font-size: .85em; margin: 0; }
+button.link { background: none; border: none; padding: 0 .3rem; margin: 0; width: auto; color: var(--pico-muted-color); cursor: pointer; }
+button.link:hover { color: var(--pico-del-color); }
+
+/* Formularzeilen: auf breiten Bildschirmen nebeneinander */
+.row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: flex-start; }
+.row > * { margin-bottom: .5rem; }
+.row > input, .row > select { flex: 1 1 12rem; }
+.row > button { flex: 0 0 auto; width: auto; }
+.actions { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+.actions > * { margin-bottom: 0; }
+.spaced { margin-top: 2rem; }
+
+.search { display: flex; gap: .5rem; }
+.search input { flex: 1; margin: 0; }
+.search button { width: auto; margin: 0; }
+
+/* Filter-Chips */
+.chips { display: flex; flex-wrap: wrap; gap: .4rem; margin: 1rem 0 .5rem; }
+.chips a { padding: .25rem .75rem; border-radius: 999px; border: 1px solid var(--pico-muted-border-color); text-decoration: none; font-size: .9em; }
+.chips a[aria-current] { background: var(--pico-primary-background); color: var(--pico-primary-inverse); border-color: var(--pico-primary-background); }
+.chips small { opacity: .7; }
+.chips.regions a { font-size: .8em; }
+
+/* Karten */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: .9rem; margin-top: 1rem; }
+.card { display: flex; flex-direction: column; gap: .3rem; padding: 1rem; border-radius: var(--pico-border-radius);
+        background: var(--pico-card-background-color); box-shadow: var(--pico-card-box-shadow); text-decoration: none; color: inherit; }
+.card:hover { outline: 2px solid var(--pico-primary-border); }
+.card strong { color: var(--pico-primary); }
+.card .summary { font-size: .88em; color: var(--pico-muted-color); }
+
+/* Art-Kennzeichnung */
+.kind { display: inline-block; font-size: .72em; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+        padding: .1rem .5rem; border-radius: .3rem; color: #fff; background: #607d8b; }
+.kind-krankheitsbild { background: #c0392b; }
+.kind-test { background: #8e44ad; }
+.kind-uebung { background: #16a085; }
+.kind-protokoll { background: #2c6fbb; }
+.kind-notiz { background: #7f8c8d; }
+.region { font-size: .8em; color: var(--pico-muted-color); }
+.lead { font-size: 1.1em; }
+.tags a { font-size: .85em; margin-right: .3rem; }
+.dosage { padding: .6rem 1rem; border-left: 4px solid #16a085; background: var(--pico-code-background-color); }
+.patient { border-top: 1px dashed var(--pico-muted-border-color); margin-top: 1.5rem; padding-top: 1rem; }
+.prose table { font-size: .92em; }
+.links li { list-style: none; }
+.links { padding-left: 0; }
+.new-linked a { margin-right: .6rem; font-size: .9em; }
+fieldset.exercise { border: 1px dashed var(--pico-muted-border-color); padding: 1rem; border-radius: var(--pico-border-radius); }
+
+/* Medien */
+.media { display: grid; grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr)); gap: .8rem; margin-bottom: 1rem; }
+.media figure { margin: 0; }
+.media img, .media video { width: 100%; max-height: 14rem; object-fit: cover; border-radius: var(--pico-border-radius); }
+.media .file { display: block; padding: 2rem 1rem; text-align: center; border: 1px dashed var(--pico-muted-border-color); border-radius: var(--pico-border-radius); }
+.media figcaption { font-size: .85em; }
+
+/* Handout-Editor */
+.item { padding: .8rem 1rem; margin-bottom: .6rem; }
+.item-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: .4rem; }
+
+/* Löschen */
+details.danger summary { color: var(--pico-del-color); font-size: .9em; }
+button.danger { background: var(--pico-del-color); border-color: var(--pico-del-color); width: auto; }
+
+/* ---------- JS-abhängige Elemente ---------- */
+.js-only { display: none !important; }
+.js .js-only { display: inline-flex !important; }
+.js .nojs-only { display: none; }
+
+/* ---------- Patienten ---------- */
+table.list td, table.list th { vertical-align: top; }
+.nowrap { white-space: nowrap; }
+.tablewrap { overflow-x: auto; }
+.patient-head h1 { margin-bottom: .2rem; }
+.session-form { display: grid; grid-template-columns: 10rem 1fr; gap: .5rem; }
+.session-form textarea { grid-column: 1 / -1; margin: 0; }
+.session-form input { margin: 0; }
+.session-form button { grid-column: 1 / -1; width: auto; justify-self: start; }
+@media (max-width: 576px) { .session-form { grid-template-columns: 1fr; } }
+.session { border-left: 3px solid var(--pico-primary-border); padding: .3rem .8rem; margin: .6rem 0; }
+.session-note { white-space: pre-wrap; color: var(--pico-muted-color); font-size: .92em; }
+td.pre { white-space: pre-wrap; }
+td.delta { font-weight: 700; white-space: nowrap; }
+
+/* ---------- Befund ---------- */
+.befund-head { display: grid; grid-template-columns: 1fr 14rem 11rem; gap: .8rem; align-items: end; }
+@media (max-width: 768px) { .befund-head { grid-template-columns: 1fr 1fr; } .befund-head > div { grid-column: 1 / -1; } }
+.toc { display: flex; flex-wrap: wrap; gap: .3rem; margin: .5rem 0 1rem; font-size: .8em; }
+.toc a { padding: .15rem .55rem; border-radius: 999px; border: 1px solid var(--pico-muted-border-color); text-decoration: none; }
+.toc a.filled { border-color: var(--pico-primary-border); background: var(--pico-primary-focus); }
+.sec { margin: 1.4rem 0; padding: 1rem 1.2rem; border-radius: var(--pico-border-radius);
+       background: var(--pico-card-background-color); box-shadow: var(--pico-card-box-shadow); scroll-margin-top: 1rem; }
+.sec > h2, .sec > summary { font-size: 1.25rem; margin-bottom: .6rem; }
+details.specialty > summary { font-weight: 700; }
+.part { margin: .6rem 0 1rem; }
+.part h4, details.part > summary { font-size: 1rem; color: var(--pico-primary); margin: .6rem 0 .4rem; }
+.fgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 0 1rem; }
+.fld.wide { grid-column: 1 / -1; }
+.fld label { font-size: .88em; margin-bottom: .15rem; }
+.fld textarea, .fld input, .fld select { margin-bottom: .7rem; }
+.fld.chk label { font-size: .95em; }
+.fld.chk { padding: .2rem 0; }
+.fgrid:has(.chk) { grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr)); }
+table.etable { margin-bottom: .3rem; }
+table.etable td { padding: .15rem; }
+table.etable input, table.etable select { margin: 0; padding: .35rem .5rem; height: auto; font-size: .92em; }
+table.etable th { font-size: .82em; padding: .3rem; }
+.savebar { position: sticky; bottom: 0; z-index: 5; display: flex; gap: .7rem; align-items: center; flex-wrap: wrap;
+           padding: .6rem 1rem; margin-top: 1rem; background: var(--pico-background-color);
+           border-top: 1px solid var(--pico-muted-border-color); }
+.savebar button { width: auto; margin: 0; }
+
+/* Körperschema */
+.body-tools { flex-wrap: wrap; gap: .35rem; align-items: center; margin-bottom: .6rem; }
+.body-tools .sym { width: auto; min-width: 2.6rem; padding: .25rem .5rem; margin: 0; background: transparent;
+                   color: var(--pico-h2-color); border: 1px solid var(--pico-muted-border-color); font-size: 1.05rem; }
+.body-tools .sym.active { color: var(--pico-h1-color); }
+.body-tools .sym.active { border-color: var(--pico-primary); background: var(--pico-primary-focus); }
+.body-tools input[type=color] { width: 2.6rem; height: 2.3rem; padding: 0; margin: 0; }
+.body-tools select { width: auto; margin: 0; padding: .3rem 2rem .3rem .6rem; }
+.body-tools button { margin: 0; width: auto; }
+.bodies { display: flex; gap: 1.2rem; flex-wrap: wrap; }
+.body { margin: 0; width: 9.5rem; text-align: center; }
+.body-canvas { position: relative; background: #fff; border-radius: .4rem; }
+.body-canvas img { display: block; width: 100%; height: auto; }
+.body-canvas svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; cursor: crosshair; touch-action: manipulation; }
+.legend { font-size: .82em; color: var(--pico-muted-color); display: flex; flex-wrap: wrap; gap: .3rem 1rem; margin-top: .4rem; }
+
+/* ---------- Smartphone ---------- */
+.site-footer { padding-top: 0; padding-bottom: 5rem; text-align: right; font-size: .85em; }
+@media (max-width: 576px) {
+  :root { --pico-spacing: .75rem; }
+  body > header.container { padding-top: .25rem; padding-bottom: 0; }
+  body > header nav { flex-wrap: wrap; }
+  body > header nav > ul:first-child { width: 100%; }
+  body > header nav > ul:last-child { width: 100%; justify-content: space-between; margin: 0; }
+  body > header nav > ul:last-child > li { padding: .35rem .2rem; font-size: .95em; }
+  body > header nav details.dropdown summary { padding: .3rem .6rem; height: auto; }
+}
+
+/* Checkbox-Text neben der Box, Folgezeilen eingerückt */
+.fld.chk label { display: flex; gap: .5rem; align-items: flex-start; }
+.fld.chk input[type=checkbox] { flex: 0 0 auto; margin-top: .15rem; }
+
+@media (max-width: 576px) {
+  .hide-sm { display: none !important; }
+  h1 { font-size: 1.6rem; }
+  nav[aria-label=breadcrumb] li:last-child { display: none; }
+  nav[aria-label=breadcrumb] { font-size: .9em; margin-bottom: .3rem; }
+  article, .sec { padding: .8rem .75rem; margin-bottom: 1rem; }
+  table.list { font-size: .88em; }
+  table.list th, table.list td { padding: .35rem .3rem; }
+
+  /* Formularzeilen: Eingaben volle Breite, Knöpfe darunter */
+  .row > input, .row > select { flex-basis: 100%; }
+  .row > button { flex: 1 1 auto; }
+  .actions > * { flex: 1 1 auto; }
+  .actions > form.inline button, .actions > a[role=button] { width: 100%; }
+  .compare-pick .arrow { display: none; }
+
+  /* Befund kompakter */
+  .befund-head { gap: 0 .6rem; }
+  .befund input:not([type=checkbox]):not([type=color]), .befund select, .befund textarea {
+    padding: .45rem .6rem; font-size: .95rem; margin-bottom: .5rem; }
+  .befund select { padding-right: 2rem; }
+  .befund textarea { min-height: 3.2rem; }
+  .fld label { margin-bottom: .1rem; }
+  /* Abschnitts-Sprungmarken als eine wischbare Zeile */
+  .toc { flex-wrap: nowrap; overflow-x: auto; padding-bottom: .4rem; margin: .2rem 0 .6rem; scrollbar-width: thin; }
+  .toc a { white-space: nowrap; flex: 0 0 auto; }
+  /* Kleine Zahlenfelder (NRS) zu dritt nebeneinander */
+  .fgrid { grid-template-columns: repeat(6, 1fr); }
+  .fgrid > .fld { grid-column: span 6; }
+  .fgrid > .fld.small { grid-column: span 2; }
+  .fgrid:has(.chk) { grid-template-columns: 1fr; }
+  .fgrid:has(.chk) > .fld { grid-column: auto; }
+  .fld.small label { font-size: .78em; min-height: 2.1em; }
+  /* Körperschema: drei Ansichten nebeneinander */
+  .bodies { flex-wrap: nowrap; gap: .5rem; justify-content: space-between; }
+  .body { width: auto; flex: 1 1 0; }
+  .body-tools .sym { min-width: 2.3rem; padding: .2rem .35rem; }
+  /* Speicherleiste schmal */
+  .savebar { padding: .4rem .5rem; gap: .4rem; margin: 1rem -.75rem 0; }
+  .savebar button { flex: 1 1 auto; padding: .5rem .6rem; font-size: .95rem; }
+  .etable input, .etable select { min-width: 6.5rem; }
+}

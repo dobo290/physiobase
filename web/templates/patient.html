@@ -1,0 +1,120 @@
+{{define "title"}}{{.P.Name}}{{end}}
+{{define "content"}}
+{{$p := .P}}
+<nav aria-label="breadcrumb"><ul><li><a href="/patienten">Patienten</a></li><li>{{$p.Name}}</li></ul></nav>
+<header class="patient-head">
+  <h1>{{$p.Name}}{{if $p.Archived}} <small class="muted">(archiviert)</small>{{end}}</h1>
+  <p class="muted">{{with $p.Dob}}geb. {{.}}{{end}}{{with $p.Phone}} · {{.}}{{end}}</p>
+</header>
+
+<article id="befunde">
+  <h3>Befunde</h3>
+  {{if .Befunde}}
+  <div class="tablewrap">
+  <table class="list">
+    <thead><tr><th>Datum</th><th>Befund</th><th class="hide-sm">Diagnose</th><th></th></tr></thead>
+    <tbody>
+    {{range .Befunde}}
+      <tr><td>{{de .Date}}</td><td><a href="/befund/{{.ID}}"><strong>{{.Title}}</strong></a></td><td class="muted hide-sm">{{diag .Data}}</td>
+      <td class="nowrap"><a href="/befund/{{.ID}}/druck" target="_blank">Druck</a></td></tr>
+    {{end}}
+    </tbody>
+  </table>
+  </div>
+  {{else}}<p class="muted">Noch kein Befund.</p>{{end}}
+  <div class="actions">
+    <form method="post" action="/patient/{{$p.ID}}/befund" class="inline"><button type="submit">+ Erstbefund (leer)</button></form>
+    {{with .Befunde}}{{$last := index . 0}}
+    <form method="post" action="/patient/{{$p.ID}}/befund" class="inline">
+      <input type="hidden" name="kopie" value="{{$last.ID}}">
+      <button type="submit" class="secondary" title="Übernimmt alle Angaben aus dem letzten Befund – nur Veränderungen neu erfassen">+ Wiederbefund (Kopie vom {{de $last.Date}})</button>
+    </form>
+    {{if gt (len .) 1}}<a role="button" class="outline" href="/patient/{{$p.ID}}/vergleich">Befunde vergleichen</a>{{end}}
+    {{end}}
+  </div>
+</article>
+
+{{if gt (len .Trend) 1}}
+<article id="trend">
+  <h3>Verlauf der Kernwerte</h3>
+  <div class="tablewrap">
+  <table class="list">
+    <thead><tr><th>Datum</th><th class="hide-sm">Befund</th><th>NRS jetzt</th><th>NRS max</th><th>PSFS Ø</th></tr></thead>
+    <tbody>{{range .Trend}}<tr><td>{{de .Date}}</td><td class="hide-sm"><a href="/befund/{{.ID}}">{{.Title}}</a></td><td>{{.Now}}</td><td>{{.Worst}}</td><td>{{.PSFS}}</td></tr>{{end}}</tbody>
+  </table>
+  </div>
+  <small class="muted">Orientierung: Änderungen um etwa 2 Punkte auf NRS bzw. PSFS gelten in Studien häufig als klinisch relevant. Details im Vergleich.</small>
+</article>
+{{end}}
+
+<article id="verlauf">
+  <h3>Behandlungsverlauf</h3>
+  <form method="post" action="/patient/{{$p.ID}}/verlauf" class="session-form">
+    <input type="date" name="date" value="{{.Today}}" aria-label="Datum">
+    <input name="goal" placeholder="Ziel + Maßnahme(n)" aria-label="Ziel und Maßnahmen">
+    <textarea name="note" rows="2" placeholder="Reaktion, Re-Test, Bemerkung" aria-label="Bemerkung"></textarea>
+    <button type="submit">+ Eintrag</button>
+  </form>
+  {{range .Sessions}}
+  <div class="session">
+    <div class="session-head"><strong>{{de .Date}}</strong> {{.Goal}}
+      <form method="post" action="/verlauf/{{.ID}}/loeschen" class="inline"><button type="submit" class="link" title="Löschen">✕</button></form>
+    </div>
+    {{with .Note}}<div class="session-note">{{.}}</div>{{end}}
+  </div>
+  {{else}}<p class="muted">Noch keine Behandlungen dokumentiert.</p>{{end}}
+</article>
+
+<div class="grid">
+<article id="wissen">
+  <h3>Wissen zum Fall</h3>
+  {{if .Linked}}<ul class="links">{{range .Linked}}
+    <li><span class="kind kind-{{.Kind}}">{{kindLabel .Kind}}</span> <a href="/eintrag/{{.ID}}">{{.Title}}</a>
+      <form method="post" action="/patient/{{$p.ID}}/wissen/{{.ID}}/loeschen" class="inline"><button type="submit" class="link" title="Entfernen">✕</button></form></li>
+  {{end}}</ul>{{else}}<p class="muted">Krankheitsbild oder Protokoll verknüpfen – dann sind Tests, Übungen und Quellen einen Klick entfernt.</p>{{end}}
+  {{if .Linkable}}
+  <form method="post" action="/patient/{{$p.ID}}/wissen" class="row">
+    <select name="entry" aria-label="Eintrag" required><option value="">Eintrag wählen …</option>
+      {{range .Linkable}}<option value="{{.ID}}">{{kindLabel .Kind}}: {{.Title}}</option>{{end}}
+    </select>
+    <button type="submit" class="secondary">Verknüpfen</button>
+  </form>
+  {{end}}
+</article>
+
+<article id="handouts">
+  <h3>Heimprogramme</h3>
+  {{if .Handouts}}<ul>{{range .Handouts}}<li><a href="/handout/{{.ID}}">{{.Title}}</a> <small class="muted">{{.Count}} Übung(en) · {{date .Updated}}</small></li>{{end}}</ul>{{end}}
+  <form method="post" action="/patient/{{$p.ID}}/handout" class="row">
+    <input name="title" placeholder="Titel, z. B. Woche 1" aria-label="Titel">
+    <button type="submit" class="secondary">+ Handout</button>
+  </form>
+</article>
+</div>
+
+<details>
+  <summary>Stammdaten bearbeiten</summary>
+  <form method="post" action="/patient/{{$p.ID}}">
+    <div class="grid">
+      <label>Name <input name="name" value="{{$p.Name}}" required></label>
+      <label>Geburtsdatum/Alter <input name="dob" value="{{$p.Dob}}"></label>
+      <label>Telefon <input name="phone" value="{{$p.Phone}}"></label>
+    </div>
+    <label>Notizen <textarea name="notes" rows="3">{{$p.Notes}}</textarea></label>
+    <button type="submit">Speichern</button>
+  </form>
+  <div class="actions">
+    <form method="post" action="/patient/{{$p.ID}}/archiv" class="inline">
+      <input type="hidden" name="archiv" value="{{if $p.Archived}}0{{else}}1{{end}}">
+      <button type="submit" class="secondary outline">{{if $p.Archived}}Aus Archiv holen{{else}}Archivieren (Behandlung abgeschlossen){{end}}</button>
+    </form>
+    <details class="danger">
+      <summary>Patient löschen …</summary>
+      <form method="post" action="/patient/{{$p.ID}}/loeschen">
+        <p>Alle Befunde, Behandlungen und Verknüpfungen von „{{$p.Name}}“ werden endgültig gelöscht.</p>
+        <button type="submit" class="danger">Endgültig löschen</button>
+      </form>
+    </details>
+  </div>
+</details>
+{{end}}

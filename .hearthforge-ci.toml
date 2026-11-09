@@ -1,0 +1,51 @@
+# Checks and build. Runs on every push to master and on every tag.
+image = "docker.io/golang:1.27"
+work_dir = "/ci/build"
+clone_project_to = "/ci/build/project"
+shell_setup = "set -euo pipefail"
+timeout = 1800
+memory_limit = "3g"
+
+cache = [
+  { path = "/go/pkg/mod", max_size = "1g" },
+  { path = "/root/.cache/go-build", max_size = "1g" },
+]
+
+[on]
+push = ["master", "main"]
+tag = true
+
+[[steps]]
+name = "tools"
+run_sh = """
+go install mvdan.cc/gofumpt@latest
+go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+go install golang.org/x/vuln/cmd/govulncheck@latest
+"""
+
+[[steps]]
+name = "tidy"
+# The checkout has no .git, so compare copies instead of using git diff.
+run_sh = "cd project && cp go.mod /tmp/go.mod && cp go.sum /tmp/go.sum && go mod tidy && diff /tmp/go.mod go.mod && diff /tmp/go.sum go.sum"
+
+[[steps]]
+name = "format"
+run_sh = "cd project && test -z \"$(gofumpt -l -extra .)\" || (gofumpt -l -extra . && exit 1)"
+
+[[steps]]
+name = "lint"
+run_sh = "cd project && golangci-lint run ./..."
+
+[[steps]]
+name = "vulncheck"
+warn_on_fail = true
+run_sh = "cd project && govulncheck ./..."
+
+[[steps]]
+name = "test"
+run_sh = "cd project && go test -race -count=1 ./..."
+
+[[steps]]
+name = "build"
+run_sh = "cd project && CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o physiobase ./cmd/physiobase"
+publish_file = ["/ci/build/project/physiobase"]

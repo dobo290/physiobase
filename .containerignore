@@ -1,0 +1,8 @@
+/physiobase
+/data
+/data-test*
+/.git
+/.env
+/docs
+/.idea
+*.db*

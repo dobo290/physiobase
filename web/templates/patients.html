@@ -1,0 +1,48 @@
+{{define "title"}}Patienten{{end}}
+{{define "content"}}
+<h2>Patienten{{if .Archived}} – Archiv{{end}}</h2>
+{{with .Imported}}<p class="ok" role="status">{{.}} Befund(e) importiert.</p>{{end}}
+{{with .ImportErrors}}<div class="error" role="alert"><p>Nicht importiert:</p><ul>{{range .}}<li>{{.}}</li>{{end}}</ul></div>{{end}}
+
+<form method="get" action="/patienten" role="search" class="search">
+  <input type="search" name="q" value="{{.Q}}" placeholder="Name oder Geburtsdatum" aria-label="Patient suchen">
+  {{if .Archived}}<input type="hidden" name="archiv" value="1">{{end}}
+  <button type="submit">Suchen</button>
+</form>
+
+{{if .Patients}}
+<div class="tablewrap">
+<table class="list">
+  <thead><tr><th>Name</th><th>Geburtsdatum</th><th>Befunde</th><th>Behandlungen</th><th>Zuletzt</th></tr></thead>
+  <tbody>
+  {{range .Patients}}
+    <tr><td><a href="/patient/{{.ID}}"><strong>{{.Name}}</strong></a></td><td>{{.Dob}}</td><td>{{.Befunde}}</td><td>{{.Sessions}}</td><td>{{de .LastDate}}</td></tr>
+  {{end}}
+  </tbody>
+</table>
+</div>
+{{else}}<p class="muted">Keine Patienten gefunden.</p>{{end}}
+<p>{{if .Archived}}<a href="/patienten">← Aktive Patienten</a>{{else}}<a href="/patienten?archiv=1">Archiv anzeigen</a>{{end}}</p>
+
+<div class="grid">
+  <article>
+    <h3>Neuer Patient</h3>
+    <form method="post" action="/patienten">
+      <input name="name" placeholder="Name" aria-label="Name" required>
+      <div class="grid">
+        <input name="dob" placeholder="Geburtsdatum / Alter" aria-label="Geburtsdatum">
+        <input name="phone" placeholder="Telefon (optional)" aria-label="Telefon">
+      </div>
+      <button type="submit">Anlegen</button>
+    </form>
+  </article>
+  <article>
+    <h3>Alte Befunde importieren</h3>
+    <p class="muted">JSON-Dateien der bisherigen Befundseite (<code>Befund_*.json</code>) oder Exporte von hier. Patienten werden über den Namen zugeordnet oder neu angelegt; der Behandlungsverlauf wird übernommen.</p>
+    <form method="post" action="/patienten/import" enctype="multipart/form-data">
+      <input type="file" name="files" accept="application/json,.json" multiple required aria-label="JSON-Dateien">
+      <button type="submit" class="secondary">Importieren</button>
+    </form>
+  </article>
+</div>
+{{end}}

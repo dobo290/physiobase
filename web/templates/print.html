@@ -1,0 +1,35 @@
+{{define "print"}}<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.H.Title}}</title>
+<link rel="stylesheet" href="/static/print.css">
+</head>
+<body>
+<p class="hint">Drucken oder als PDF speichern: <kbd>Strg</kbd>+<kbd>P</kbd> (Tablet/Handy: Teilen → Drucken). Dieser Hinweis erscheint nicht im Ausdruck.</p>
+<header>
+  <div>
+    <h1>{{.H.Title}}</h1>
+    {{with .H.Recipient}}<p class="for">für {{.}}</p>{{end}}
+  </div>
+  <div class="meta">{{.Practice}}<br>{{date .Today}}</div>
+</header>
+{{with .H.Notes}}<section class="notes">{{md .}}</section>{{end}}
+
+{{range $i, $it := .Items}}
+<section class="ex">
+  <h2><span class="num">{{add1 $i}}</span> {{$it.Entry.Title}}</h2>
+  <div class="ex-body">
+    {{with images $it.Media}}<div class="pics">{{range .}}<img src="/medien/{{.Filename}}" alt="{{.Caption}}">{{end}}</div>{{end}}
+    <div class="text">
+      {{if $it.Entry.PatientText}}{{md $it.Entry.PatientText}}{{else}}<p>{{$it.Entry.Summary}}</p>{{end}}
+      {{with $it.Dosage}}<p class="dose">{{.}}</p>{{end}}
+      {{with $it.Note}}<p class="note">{{.}}</p>{{end}}
+    </div>
+  </div>
+</section>
+{{end}}
+<footer>Bei starken oder zunehmenden Beschwerden die Übung pausieren und Rücksprache halten.</footer>
+</body>
+</html>{{end}}

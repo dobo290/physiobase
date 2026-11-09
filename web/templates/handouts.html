@@ -1,0 +1,21 @@
+{{define "title"}}Handouts{{end}}
+{{define "content"}}
+<h2>Übungs-Handouts</h2>
+<form method="post" action="/handouts" class="row">
+  <input name="title" placeholder="Titel, z. B. Schulter – Woche 1" aria-label="Titel" required>
+  <input name="recipient" placeholder="Für (optional)" aria-label="Für">
+  <button type="submit">Neues Handout</button>
+</form>
+{{if .Handouts}}
+<div class="cards">
+{{range .Handouts}}
+  <a class="card" href="/handout/{{.ID}}">
+    <strong>{{.Title}}</strong>
+    <span class="summary">{{with .Recipient}}Für {{.}} · {{end}}{{.Count}} Übung(en) · {{date .Updated}}</span>
+  </a>
+{{end}}
+</div>
+{{else}}
+<p class="muted">Noch keine Handouts.</p>
+{{end}}
+{{end}}

@@ -1,0 +1,60 @@
+{{define "title"}}{{.H.Title}}{{end}}
+{{define "content"}}
+{{$h := .H}}
+{{if .PatientID}}<nav aria-label="breadcrumb"><ul><li><a href="/patienten">Patienten</a></li><li><a href="/patient/{{.PatientID}}">{{.PatientName}}</a></li><li>{{$h.Title}}</li></ul></nav>{{end}}
+<article>
+  <form method="post" action="/handout/{{$h.ID}}">
+    <div class="grid">
+      <label>Titel <input name="title" value="{{$h.Title}}" required></label>
+      <label>Für <input name="recipient" value="{{$h.Recipient}}" placeholder="Name (optional)"></label>
+    </div>
+    <label>Hinweise oben im Handout
+      <textarea name="notes" rows="3" placeholder="z. B. Übungen 1× täglich, Schmerz bis 3/10 ist in Ordnung">{{$h.Notes}}</textarea>
+    </label>
+    <div class="actions">
+      <button type="submit" class="secondary">Speichern</button>
+      <a role="button" href="/handout/{{$h.ID}}/druck" target="_blank">Druckansicht / PDF</a>
+    </div>
+  </form>
+</article>
+
+<h3>Übungen</h3>
+{{range $i, $it := .Items}}
+<article class="item" id="u{{$it.Entry.ID}}">
+  <div class="item-head">
+    <strong>{{add1 $i}}. <a href="/eintrag/{{$it.Entry.ID}}">{{$it.Entry.Title}}</a></strong>
+    <span class="item-actions">
+      {{if $i}}<form method="post" action="/handout/{{$h.ID}}/uebung/{{$it.Entry.ID}}/hoch" class="inline"><button type="submit" class="link" title="Nach oben">▲</button></form>{{end}}
+      <form method="post" action="/handout/{{$h.ID}}/uebung/{{$it.Entry.ID}}/loeschen" class="inline"><button type="submit" class="link" title="Entfernen">✕</button></form>
+    </span>
+  </div>
+  <form method="post" action="/handout/{{$h.ID}}/uebung/{{$it.Entry.ID}}" class="row">
+    <input name="dosage" value="{{$it.Dosage}}" placeholder="Dosierung" aria-label="Dosierung">
+    <input name="note" value="{{$it.Note}}" placeholder="Persönlicher Hinweis (optional)" aria-label="Hinweis">
+    <button type="submit" class="secondary outline">Übernehmen</button>
+  </form>
+</article>
+{{else}}
+<p class="muted">Noch keine Übungen.</p>
+{{end}}
+
+{{if .Exercises}}
+<form method="post" action="/handout/{{$h.ID}}/uebung" class="row">
+  <select name="entry" aria-label="Übung" required>
+    <option value="">Übung hinzufügen …</option>
+    {{range .Exercises}}<option value="{{.ID}}">{{with .Region}}{{.}}: {{end}}{{.Title}}</option>{{end}}
+  </select>
+  <button type="submit">Hinzufügen</button>
+</form>
+{{else}}
+<p class="muted">Alle Übungen sind bereits drin – <a href="/eintrag/neu?art=uebung">neue Übung anlegen</a>.</p>
+{{end}}
+
+<div class="actions spaced">
+  <form method="post" action="/handout/{{$h.ID}}/kopieren" class="inline"><button type="submit" class="secondary outline">Als Vorlage kopieren</button></form>
+  <details class="danger">
+    <summary>Handout löschen …</summary>
+    <form method="post" action="/handout/{{$h.ID}}/loeschen"><button type="submit" class="danger">Endgültig löschen</button></form>
+  </details>
+</div>
+{{end}}

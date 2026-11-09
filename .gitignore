@@ -1,0 +1,8 @@
+/physiobase
+/data
+data-test*
+.env
+*.db
+*.db-wal
+*.db-shm
+.idea

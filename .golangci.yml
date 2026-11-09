@@ -1,0 +1,39 @@
+version: "2"
+
+linters:
+  default: standard        # errcheck, govet, ineffassign, staticcheck, unused
+  enable:
+    - bodyclose
+    - errorlint
+    - gosec
+    - nilerr
+    - revive
+    - sqlclosecheck
+    - unconvert
+    - usestdlibvars
+  settings:
+    errcheck:
+      exclude-functions:
+        - (*database/sql.Tx).Rollback   # nach Commit ein No-op
+        - (*database/sql.DB).Close
+        - (net/http.ResponseWriter).Write
+        - (*bytes.Buffer).WriteTo
+        - os.Remove
+        - (*database/sql.Rows).Close    # Fehler kommen über rows.Err()
+    gosec:
+      excludes:
+        - G104   # doppelt zu errcheck
+        - G304   # Dateipfade kommen aus der Datenbank, nicht vom Benutzer
+    revive:
+      rules:
+        - name: exported
+          disabled: true   # interne Pakete, deutsche Kommentare
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters: [ gosec, errcheck, bodyclose ]
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports

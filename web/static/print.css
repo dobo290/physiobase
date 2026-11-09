@@ -1,0 +1,24 @@
+/* Handout: A4, schlicht, gut lesbar für Patienten */
+@page { size: A4; margin: 15mm 14mm; }
+* { box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 12pt; line-height: 1.45;
+       color: #111; max-width: 190mm; margin: 0 auto; padding: 1rem; background: #fff; }
+.hint { background: #fff8d6; border: 1px solid #e6d27a; padding: .5rem .8rem; border-radius: 6px; font-size: 10pt; }
+header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #16a085; padding-bottom: .4rem; margin-bottom: .8rem; }
+h1 { font-size: 20pt; margin: 0; }
+.for { margin: .2rem 0 0; font-size: 13pt; }
+.meta { text-align: right; font-size: 10pt; color: #555; }
+.notes { background: #f2f7f6; border-left: 4px solid #16a085; padding: .3rem .8rem; margin-bottom: .8rem; }
+.ex { break-inside: avoid; page-break-inside: avoid; border: 1px solid #ccc; border-radius: 8px; padding: .6rem .9rem; margin-bottom: .7rem; }
+.ex h2 { font-size: 14pt; margin: 0 0 .4rem; display: flex; align-items: center; gap: .5rem; }
+.num { display: inline-flex; align-items: center; justify-content: center; width: 1.6em; height: 1.6em; border-radius: 50%;
+       background: #16a085; color: #fff; font-size: 11pt; }
+.ex-body { display: flex; gap: .9rem; }
+.pics { flex: 0 0 38%; display: flex; flex-direction: column; gap: .4rem; }
+.pics img { width: 100%; max-height: 55mm; object-fit: contain; border-radius: 4px; }
+.text { flex: 1; }
+.text p, .text ul, .text ol { margin: .2rem 0 .4rem; }
+.dose { font-weight: 700; font-size: 13pt; margin-top: .5rem; padding: .3rem .6rem; background: #f2f7f6; border-radius: 4px; display: inline-block; }
+.note { font-style: italic; }
+footer { margin-top: 1rem; font-size: 9.5pt; color: #555; border-top: 1px solid #ccc; padding-top: .4rem; }
+@media print { .hint { display: none; } body { padding: 0; } }

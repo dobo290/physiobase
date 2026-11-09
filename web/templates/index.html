@@ -1,0 +1,34 @@
+{{define "title"}}Wissen{{end}}
+{{define "content"}}
+<form method="get" action="/" role="search" class="search">
+  <input type="search" name="q" value="{{.Q}}" placeholder="Suchen: Knie, Sehne, Lachman …" aria-label="Suche" autofocus>
+  {{if .Art}}<input type="hidden" name="art" value="{{.Art}}">{{end}}
+  {{if .Region}}<input type="hidden" name="region" value="{{.Region}}">{{end}}
+  <button type="submit">Suchen</button>
+</form>
+
+<nav class="chips" aria-label="Art">
+  <a href="/?q={{.Q}}&amp;region={{.Region}}" {{if not .Art}}aria-current="true"{{end}}>Alle <small>{{.Total}}</small></a>
+  {{range .Kinds}}<a href="/?q={{$.Q}}&amp;art={{.Key}}&amp;region={{$.Region}}" {{if eq $.Art .Key}}aria-current="true"{{end}}>{{.Plural}} <small>{{index $.Counts .Key}}</small></a>{{end}}
+</nav>
+{{if .Regions}}
+<nav class="chips regions" aria-label="Körperregion">
+  <a href="/?q={{.Q}}&amp;art={{.Art}}" {{if not .Region}}aria-current="true"{{end}}>Alle Regionen</a>
+  {{range .Regions}}<a href="/?q={{$.Q}}&amp;art={{$.Art}}&amp;region={{.}}" {{if eq $.Region .}}aria-current="true"{{end}}>{{.}}</a>{{end}}
+</nav>
+{{end}}
+
+{{if .Entries}}
+<div class="cards">
+{{range .Entries}}
+  <a class="card" href="/eintrag/{{.ID}}">
+    <span class="kind kind-{{.Kind}}">{{kindLabel .Kind}}</span>{{with .Region}} <span class="region">{{.}}</span>{{end}}
+    <strong>{{.Title}}</strong>
+    {{with .Summary}}<span class="summary">{{.}}</span>{{end}}
+  </a>
+{{end}}
+</div>
+{{else}}
+<p class="muted">Keine Einträge gefunden.{{if .Q}} <a href="/eintrag/neu?art={{if .Art}}{{.Art}}{{else}}krankheitsbild{{end}}">Neuen Eintrag anlegen?</a>{{end}}</p>
+{{end}}
+{{end}}

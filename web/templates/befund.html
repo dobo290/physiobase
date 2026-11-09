@@ -1,0 +1,113 @@
+{{define "title"}}{{.B.Title}} – {{.P.Name}}{{end}}
+{{define "content"}}
+{{$d := .D}}
+<nav aria-label="breadcrumb"><ul>
+  <li><a href="/patienten">Patienten</a></li>
+  <li><a href="/patient/{{.P.ID}}">{{.P.Name}}</a></li>
+  <li>{{.B.Title}} {{de .B.Date}}</li>
+</ul></nav>
+{{if .Saved}}<p class="ok" role="status">Gespeichert.</p>{{end}}
+
+<form method="post" action="/befund/{{.B.ID}}" id="befund-form" class="befund">
+  <div class="befund-head">
+    <div><strong>{{.P.Name}}</strong>{{with .P.Dob}} · geb. {{.}}{{end}}</div>
+    <label>Titel <input name="title" value="{{.B.Title}}" list="dl-titles"></label>
+    <label>Datum <input type="date" name="date" value="{{.B.Date}}"></label>
+  </div>
+  <datalist id="dl-titles"><option value="Erstbefund"><option value="Wiederbefund"><option value="Zwischenbefund"><option value="Abschlussbefund"></datalist>
+  <datalist id="dl-tests">{{range .Tests}}<option value="{{.Title}}">{{end}}</datalist>
+  <datalist id="dl-measures">{{range .Measures}}<option value="{{.}}">{{end}}</datalist>
+
+  <nav class="toc" aria-label="Abschnitte – springen zu">
+    {{range .Sections}}<a href="#s-{{.ID}}"{{if $d.HasSection .}} class="filled"{{end}}>{{.Title}}</a>{{end}}
+  </nav>
+
+  {{range $s := .Sections}}
+  {{if $s.Specialty}}<details class="sec specialty" id="s-{{$s.ID}}"{{if $d.HasSection $s}} open{{end}}><summary>Fachbereich: {{$s.Title}}</summary>
+  {{else}}<section class="sec" id="s-{{$s.ID}}"><h2>{{$s.Title}}</h2>{{end}}
+
+    {{range $p := $s.Parts}}
+    {{if $p.Collapsible}}<details class="part"{{if $d.HasPart $p}} open{{end}}><summary>{{$p.Title}}</summary>
+    {{else}}<div class="part">{{with $p.Title}}<h4>{{.}}</h4>{{end}}{{end}}
+
+      {{if $p.Body}}
+      <div class="body-tools js-only">
+        {{range $i, $y := $.Symbols}}<button type="button" class="sym{{if eq $i 0}} active{{end}}" data-sym="{{$y.Key}}" title="{{$y.Name}}">{{$y.Char}}</button>{{end}}
+        <input type="color" id="stamp-color" value="#d32f2f" aria-label="Farbe">
+        <select id="stamp-size" aria-label="Größe"><option value="1">klein</option><option value="2" selected>mittel</option><option value="3">groß</option></select>
+        <button type="button" id="stamp-undo" class="secondary outline">↶ Rückgängig</button>
+      </div>
+      <div class="bodies">
+        {{range $vi, $v := $.Views}}
+        <figure class="body">
+          <div class="body-canvas">
+            <img src="{{$v.Image}}" alt="Körperschema {{$v.Name}}">
+            <svg viewBox="0 0 {{$v.W}} {{$v.H}}" data-view="{{$vi}}" data-w="{{$v.W}}" data-h="{{$v.H}}" role="img" aria-label="Markierungen {{$v.Name}}">{{range $d.StampsFor $vi}}<text x="{{fmtNum .X}}" y="{{fmtNum .Y}}" font-size="{{fmtNum .Size}}" fill="{{.Color}}" text-anchor="middle" dominant-baseline="central">{{.Char}}</text>{{end}}</svg>
+          </div>
+          <figcaption>{{$v.Name}}</figcaption>
+        </figure>
+        {{end}}
+      </div>
+      <input type="hidden" name="stamps" id="stamps" value="{{$d.StampsJSON}}">
+      <p class="legend">{{range $.Symbols}}<span>{{.Char}} {{.Name}}</span>{{end}}</p>
+      {{end}}
+
+      {{if $p.Fields}}
+      <div class="fgrid">
+        {{range $f := $p.Fields}}
+        <div class="fld{{if $f.Wide}} wide{{end}}{{if eq $f.Type "check"}} chk{{end}}{{if eq $f.Type "nrs"}} small{{end}}">
+          {{if eq $f.Type "check"}}
+            <label><input type="checkbox" name="f.{{$f.Key}}" value="1"{{if $d.Get $f.Key}} checked{{end}}> {{$f.Label}}</label>
+          {{else}}
+            {{with $f.Label}}<label for="f-{{$f.Key}}">{{.}}</label>{{end}}
+            {{if eq $f.Type "area"}}<textarea id="f-{{$f.Key}}" name="f.{{$f.Key}}" rows="{{if $f.Rows}}{{$f.Rows}}{{else}}2{{end}}" placeholder="{{$f.Placeholder}}" aria-label="{{if $f.Label}}{{$f.Label}}{{else}}{{$s.Title}}{{end}}">{{$d.Get $f.Key}}</textarea>
+            {{else if eq $f.Type "select"}}<select id="f-{{$f.Key}}" name="f.{{$f.Key}}">{{range $f.Options}}<option{{if eq . ($d.Get $f.Key)}} selected{{end}}>{{.}}</option>{{end}}</select>
+            {{else if eq $f.Type "nrs"}}<input id="f-{{$f.Key}}" name="f.{{$f.Key}}" type="number" min="0" max="10" step="1" inputmode="numeric" value="{{$d.Get $f.Key}}">
+            {{else}}<input id="f-{{$f.Key}}" name="f.{{$f.Key}}" value="{{$d.Get $f.Key}}" placeholder="{{$f.Placeholder}}">{{end}}
+          {{end}}
+        </div>
+        {{end}}
+      </div>
+      {{end}}
+
+      {{with $p.Table}}{{$t := .}}{{$rows := $d.TableRows $t 2}}
+      <div class="tablewrap">
+        <table class="etable" data-table="{{$t.Key}}">
+          <thead><tr>{{range $t.Cols}}<th>{{.Label}}</th>{{end}}</tr></thead>
+          <tbody>
+          {{range $i, $row := $rows}}<tr>{{range $c := $t.Cols}}<td>
+            {{if eq $c.Type "select"}}<select name="{{cell $t.Key $c.Key $i}}" aria-label="{{$c.Label}}">{{range $c.Options}}<option{{if eq . (index $row $c.Key)}} selected{{end}}>{{.}}</option>{{end}}</select>
+            {{else if eq $c.Type "number"}}<input name="{{cell $t.Key $c.Key $i}}" value="{{index $row $c.Key}}" type="number" step="any" inputmode="decimal" aria-label="{{$c.Label}}">
+            {{else if eq $c.Type "date"}}<input name="{{cell $t.Key $c.Key $i}}" value="{{index $row $c.Key}}" type="date" aria-label="{{$c.Label}}">
+            {{else}}<input name="{{cell $t.Key $c.Key $i}}" value="{{index $row $c.Key}}" placeholder="{{$c.Placeholder}}" aria-label="{{$c.Label}}"{{if $c.List}} list="{{$c.List}}"{{end}}>{{end}}
+          </td>{{end}}</tr>{{end}}
+          </tbody>
+        </table>
+      </div>
+      <input type="hidden" name="t.{{$t.Key}}.n" value="{{len $rows}}">
+      <button type="button" class="addrow js-only secondary outline small" data-table="{{$t.Key}}">+ Zeile</button>
+      <small class="muted nojs-only">Für weitere Zeilen speichern.</small>
+      {{end}}
+
+    {{if $p.Collapsible}}</details>{{else}}</div>{{end}}
+    {{end}}
+
+  {{if $s.Specialty}}</details>{{else}}</section>{{end}}
+  {{end}}
+
+  <div class="savebar">
+    <button type="submit">Speichern</button>
+    <button type="submit" name="next" value="druck" class="secondary">Speichern &amp; Druck<span class="hide-sm">ansicht</span></button>
+    <a href="/patient/{{.P.ID}}" class="hide-sm">Zurück zum Patienten</a>
+    <small class="muted js-only hide-sm">Strg+S speichert</small>
+  </div>
+</form>
+
+<div class="actions spaced">
+  <a role="button" class="secondary outline" href="/befund/{{.B.ID}}/export">JSON exportieren</a>
+  <details class="danger">
+    <summary>Befund löschen …</summary>
+    <form method="post" action="/befund/{{.B.ID}}/loeschen"><button type="submit" class="danger">Endgültig löschen</button></form>
+  </details>
+</div>
+{{end}}

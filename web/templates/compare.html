@@ -1,0 +1,40 @@
+{{define "title"}}Vergleich – {{.P.Name}}{{end}}
+{{define "content"}}
+<nav aria-label="breadcrumb"><ul><li><a href="/patienten">Patienten</a></li><li><a href="/patient/{{.P.ID}}">{{.P.Name}}</a></li><li>Vergleich</li></ul></nav>
+<h2>Befundvergleich</h2>
+{{if lt (len .Befunde) 2}}<p class="muted">Für einen Vergleich werden mindestens zwei Befunde benötigt.</p>{{else}}
+<form method="get" action="/patient/{{.P.ID}}/vergleich" class="row compare-pick">
+  <select name="a" aria-label="Ausgangsbefund">{{range .Befunde}}<option value="{{.ID}}"{{if and $.A (eq .ID $.A.ID)}} selected{{end}}>{{de .Date}} – {{.Title}}</option>{{end}}</select>
+  <span class="arrow" aria-hidden="true">→</span>
+  <select name="b" aria-label="Vergleichsbefund">{{range .Befunde}}<option value="{{.ID}}"{{if and $.B (eq .ID $.B.ID)}} selected{{end}}>{{de .Date}} – {{.Title}}</option>{{end}}</select>
+  <button type="submit">Vergleichen</button>
+</form>
+
+{{if .A}}
+{{range .Tables}}
+<article>
+  <h3>{{.Title}}</h3>
+  <div class="tablewrap"><table class="list">
+    <thead><tr><th></th><th>Wert</th><th>{{de $.A.Date}}</th><th>{{de $.B.Date}}</th><th>Δ</th></tr></thead>
+    <tbody>
+    {{range .Rows}}{{$k := .Key}}{{range $i, $c := .Cells}}
+      <tr><td>{{if eq $i 0}}<strong>{{$k}}</strong>{{end}}</td><td class="muted">{{$c.Label}}</td><td>{{$c.A}}</td><td>{{$c.B}}</td><td class="delta">{{$c.Delta}}</td></tr>
+    {{end}}{{end}}
+    </tbody>
+  </table></div>
+</article>
+{{end}}
+
+<article>
+  <h3>Geänderte Angaben</h3>
+  {{if .Fields}}
+  <div class="tablewrap"><table class="list cmp">
+    <thead><tr><th>Feld</th><th>{{de .A.Date}} – {{.A.Title}}</th><th>{{de .B.Date}} – {{.B.Title}}</th></tr></thead>
+    <tbody>{{range .Fields}}<tr><td><small class="muted">{{.Section}}</small><br>{{.Label}}</td><td class="pre">{{.A}}</td><td class="pre">{{.B}}</td></tr>{{end}}</tbody>
+  </table></div>
+  {{else}}<p class="muted">Keine Unterschiede in den Textfeldern.</p>{{end}}
+</article>
+<p class="muted"><small>Δ = Differenz der Zahlenwerte (bei Neutral-Null je Position, nur geänderte). Ob eine Änderung klinisch relevant ist, hängt vom Instrument ab (MCID) – bei NRS und PSFS meist ca. 2 Punkte.</small></p>
+{{end}}
+{{end}}
+{{end}}

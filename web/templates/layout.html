@@ -1,0 +1,42 @@
+{{define "layout"}}<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>{{template "title" .}} · {{.Practice}}</title>
+<link rel="stylesheet" href="/static/pico.min.css">
+<link rel="stylesheet" href="/static/style.css">
+<script src="/static/befund.js" defer></script>
+</head>
+<body>
+<header class="container">
+<nav>
+  <ul><li><a href="/" class="brand"><strong>{{.Practice}}</strong></a></li></ul>
+  {{if ne .Path "/login"}}
+  <ul>
+    <li><a href="/"{{if eq .Path "/"}} aria-current="page"{{end}}>Wissen</a></li>
+    <li><a href="/patienten"{{if eq .Path "/patienten"}} aria-current="page"{{end}}>Patienten</a></li>
+    <li><a href="/handouts"{{if eq .Path "/handouts"}} aria-current="page"{{end}}>Handouts</a></li>
+    <li>
+      <details class="dropdown">
+        <summary>+ Neu</summary>
+        <ul dir="rtl">
+          {{range .Kinds}}<li><a href="/eintrag/neu?art={{.Key}}">{{.Label}}</a></li>{{end}}
+        </ul>
+      </details>
+    </li>
+  </ul>
+  {{end}}
+</nav>
+</header>
+<main class="container">
+{{template "content" .}}
+</main>
+{{if ne .Path "/login"}}
+<footer class="container site-footer">
+  <form method="post" action="/logout" class="inline"><button type="submit" class="link">Abmelden</button></form>
+</footer>
+{{end}}
+</body>
+</html>{{end}}

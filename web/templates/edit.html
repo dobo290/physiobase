@@ -1,0 +1,42 @@
+{{define "title"}}{{if .New}}Neu: {{kindLabel .E.Kind}}{{else}}{{.E.Title}} bearbeiten{{end}}{{end}}
+{{define "content"}}
+{{$e := .E}}
+<article>
+  <h2>{{if .New}}Neu: {{kindLabel $e.Kind}}{{else}}Bearbeiten{{end}}</h2>
+  {{with .Error}}<p class="error" role="alert">{{.}}</p>{{end}}
+  <form method="post" action="{{if .New}}/eintrag/neu{{else}}/eintrag/{{$e.ID}}/bearbeiten{{end}}">
+    {{if .LinkFrom}}<input type="hidden" name="link_from" value="{{.LinkFrom}}">{{end}}
+    <div class="grid">
+      <label>Art
+        <select name="kind">
+          {{range .Kinds}}<option value="{{.Key}}"{{if eq .Key $e.Kind}} selected{{end}}>{{.Label}}</option>{{end}}
+        </select>
+      </label>
+      <label>Körperregion
+        <input name="region" value="{{$e.Region}}" list="regions" placeholder="z. B. Knie, LWS, Schulter">
+        <datalist id="regions">{{range .Regions}}<option value="{{.}}">{{end}}</datalist>
+      </label>
+    </div>
+    <label>Titel <input name="title" value="{{$e.Title}}" required{{if .New}} autofocus{{end}}></label>
+    <label>Kurzbeschreibung <textarea name="summary" rows="2" placeholder="Ein, zwei Sätze – erscheint in der Übersicht">{{$e.Summary}}</textarea></label>
+    <label>Schlagworte <input name="tags" value="{{$e.Tags}}" placeholder="durch Komma getrennt: Sehne, Sport, Überlastung"></label>
+    <label>Inhalt
+      <textarea name="body" rows="16" class="mono" placeholder="## Befund&#10;- …&#10;&#10;## Behandlung&#10;1. …">{{$e.Body}}</textarea>
+      <small>Markdown: <code>## Überschrift</code>, <code>- Liste</code>, <code>**fett**</code>, Tabellen mit <code>| a | b |</code></small>
+    </label>
+
+    <fieldset class="exercise">
+      <legend>Nur für Übungen</legend>
+      <label>Standard-Dosierung <input name="dosage" value="{{$e.Dosage}}" placeholder="z. B. 3 × 12 Wdh., 2× täglich"></label>
+      <label>Anleitung für Patienten (Handout)
+        <textarea name="patient_text" rows="6" placeholder="Einfache Sprache, Sie-Form. Wird im Handout gedruckt.">{{$e.PatientText}}</textarea>
+      </label>
+    </fieldset>
+
+    <div class="actions">
+      <button type="submit">Speichern</button>
+      <a role="button" class="secondary outline" href="{{if .New}}/{{else}}/eintrag/{{$e.ID}}{{end}}">Abbrechen</a>
+    </div>
+  </form>
+</article>
+{{end}}

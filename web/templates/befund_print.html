@@ -1,0 +1,70 @@
+{{define "befund_print"}}<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.B.Title}} – {{.P.Name}} – {{de .B.Date}}</title>
+<link rel="stylesheet" href="/static/befund-print.css">
+</head>
+<body>
+{{$d := .D}}
+<p class="hint">Drucken oder als PDF speichern: <kbd>Strg</kbd>+<kbd>P</kbd>. Es erscheinen nur ausgefüllte Felder.
+  {{if .Sessions}}<a href="/befund/{{.B.ID}}/druck">ohne Behandlungsverlauf</a>{{else}}<a href="/befund/{{.B.ID}}/druck?verlauf=1">mit Behandlungsverlauf</a>{{end}} ·
+  <a href="/befund/{{.B.ID}}">zurück zum Befund</a></p>
+<header>
+  <img src="/static/logo.webp" alt="" class="logo">
+  <div class="htext">
+    <h1>Physiotherapeutischer Befund</h1>
+    <p><strong>{{.P.Name}}</strong>{{with .P.Dob}} · geb. {{.}}{{end}}</p>
+  </div>
+  <div class="meta">{{.B.Title}}<br>{{de .B.Date}}<br>{{.Practice}}</div>
+</header>
+
+{{range $s := .Sections}}{{if $d.HasSection $s}}
+<section>
+  <h2>{{$s.Title}}</h2>
+  {{range $p := $s.Parts}}{{if $d.HasPart $p}}
+    {{with $p.Title}}<h3>{{.}}</h3>{{end}}
+
+    {{if and $p.Body $d.Stamps}}
+    <div class="bodies">
+      {{range $vi, $v := $.Views}}
+      <figure><div class="body-canvas"><img src="{{$v.Image}}" alt="{{$v.Name}}"><svg viewBox="0 0 {{$v.W}} {{$v.H}}">{{range $d.StampsFor $vi}}<text x="{{fmtNum .X}}" y="{{fmtNum .Y}}" font-size="{{fmtNum .Size}}" fill="{{.Color}}" text-anchor="middle" dominant-baseline="central">{{.Char}}</text>{{end}}</svg></div><figcaption>{{$v.Name}}</figcaption></figure>
+      {{end}}
+      <ul class="legend">{{range $d.UsedSymbols}}<li><b>{{.Char}}</b> {{.Name}}</li>{{end}}</ul>
+    </div>
+    {{end}}
+
+    <dl>
+    {{range $f := $p.Fields}}{{with $d.Get $f.Key}}
+      {{if eq $f.Type "check"}}<dt class="chk">☑ {{$f.Label}}</dt>
+      {{else}}{{if $f.Label}}<dt>{{$f.Label}}</dt>{{end}}<dd>{{.}}</dd>{{end}}
+    {{end}}{{end}}
+    </dl>
+
+    {{with $p.Table}}{{$t := .}}{{with index $d.Tables $t.Key}}
+    <table>
+      <thead><tr>{{range $t.Cols}}<th>{{.Label}}</th>{{end}}</tr></thead>
+      <tbody>{{range $row := .}}<tr>{{range $c := $t.Cols}}<td>{{if eq $c.Type "date"}}{{de (index $row $c.Key)}}{{else}}{{index $row $c.Key}}{{end}}</td>{{end}}</tr>{{end}}</tbody>
+    </table>
+    {{end}}{{end}}
+  {{end}}{{end}}
+</section>
+{{end}}{{end}}
+
+{{with .Sessions}}
+<section>
+  <h2>Behandlungsverlauf</h2>
+  <table>
+    <thead><tr><th>Datum</th><th>Ziel / Maßnahmen</th><th>Bemerkung / Re-Test</th></tr></thead>
+    <tbody>{{range .}}<tr><td class="nowrap">{{de .Date}}</td><td>{{.Goal}}</td><td>{{.Note}}</td></tr>{{end}}</tbody>
+  </table>
+</section>
+{{end}}
+
+<footer>
+  <div class="sig">Datum, Unterschrift Therapeut*in</div>
+  <div class="sig">Datum, Unterschrift Patient*in</div>
+</footer>
+</body>
+</html>{{end}}

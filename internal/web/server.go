@@ -1,0 +1,283 @@
+// Package web enthält Routen, Handler und Templates-Rendering.
+package web
+
+import (
+	"bytes"
+	"context"
+	"errors"
+	"fmt"
+	"html/template"
+	"io/fs"
+	"log/slog"
+	"net/http"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
+
+	physiobase "forge.gpl-nas.de/physiobase"
+	"forge.gpl-nas.de/physiobase/internal/befund"
+	"forge.gpl-nas.de/physiobase/internal/config"
+	"forge.gpl-nas.de/physiobase/internal/store"
+)
+
+type Server struct {
+	cfg   *config.Config
+	st    *store.Store
+	log   *slog.Logger
+	pages map[string]*template.Template
+
+	sessionMu     sync.RWMutex
+	sessionSecret string
+	loginSem      chan struct{}
+}
+
+func New(ctx context.Context, cfg *config.Config, st *store.Store, log *slog.Logger) (*Server, error) {
+	s := &Server{cfg: cfg, st: st, log: log, pages: map[string]*template.Template{}, loginSem: make(chan struct{}, maxConcurrentLogins)}
+	if err := s.loadSessionSecret(ctx); err != nil {
+		return nil, err
+	}
+	for _, p := range []string{"index", "entry", "edit", "handouts", "handout", "login", "patients", "patient", "befund", "compare"} {
+		t, err := template.New("").Funcs(funcs).ParseFS(physiobase.TemplatesFS, "web/templates/layout.html", "web/templates/"+p+".html")
+		if err != nil {
+			return nil, fmt.Errorf("template %s: %w", p, err)
+		}
+		s.pages[p] = t
+	}
+	for _, p := range []string{"print", "befund_print"} {
+		t, err := template.New("").Funcs(funcs).ParseFS(physiobase.TemplatesFS, "web/templates/"+p+".html")
+		if err != nil {
+			return nil, fmt.Errorf("template %s: %w", p, err)
+		}
+		s.pages[p] = t
+	}
+	return s, nil
+}
+
+// Handler: Auth gilt global, damit neue Routen automatisch geschützt sind.
+func (s *Server) Handler() http.Handler {
+	mux := http.NewServeMux()
+	static, _ := fs.Sub(physiobase.StaticFS, "web/static")
+	mux.Handle("GET /static/", http.StripPrefix("/static/", cacheForever(http.FileServerFS(static))))
+	mux.HandleFunc("GET /healthz", s.health)
+	mux.HandleFunc("GET /login", s.loginForm)
+	mux.HandleFunc("POST /login", s.login)
+	mux.HandleFunc("POST /logout", s.logout)
+
+	mux.HandleFunc("GET /{$}", s.index)
+	mux.HandleFunc("GET /eintrag/neu", s.newEntry)
+	mux.HandleFunc("POST /eintrag/neu", s.saveEntry)
+	mux.HandleFunc("GET /eintrag/{id}", s.showEntry)
+	mux.HandleFunc("GET /eintrag/{id}/bearbeiten", s.editEntry)
+	mux.HandleFunc("POST /eintrag/{id}/bearbeiten", s.saveEntry)
+	mux.HandleFunc("POST /eintrag/{id}/loeschen", s.deleteEntry)
+	mux.HandleFunc("POST /eintrag/{id}/verknuepfen", s.linkEntry)
+	mux.HandleFunc("POST /eintrag/{id}/entknuepfen/{other}", s.unlinkEntry)
+	mux.HandleFunc("POST /eintrag/{id}/quelle", s.addSource)
+	mux.HandleFunc("POST /quelle/{id}/loeschen", s.deleteSource)
+	mux.HandleFunc("POST /eintrag/{id}/medien", s.uploadMedia)
+	mux.HandleFunc("POST /medium/{id}/loeschen", s.deleteMedia)
+	mux.HandleFunc("GET /medien/{file}", s.serveMedia)
+
+	mux.HandleFunc("GET /handouts", s.listHandouts)
+	mux.HandleFunc("POST /handouts", s.createHandout)
+	mux.HandleFunc("POST /handouts/uebung", s.addToHandout)
+	mux.HandleFunc("GET /handout/{id}", s.showHandout)
+	mux.HandleFunc("POST /handout/{id}", s.updateHandout)
+	mux.HandleFunc("POST /handout/{id}/loeschen", s.deleteHandout)
+	mux.HandleFunc("POST /handout/{id}/kopieren", s.copyHandout)
+	mux.HandleFunc("POST /handout/{id}/uebung", s.addHandoutItem)
+	mux.HandleFunc("POST /handout/{id}/uebung/{eid}", s.updateHandoutItem)
+	mux.HandleFunc("POST /handout/{id}/uebung/{eid}/hoch", s.moveHandoutItem)
+	mux.HandleFunc("POST /handout/{id}/uebung/{eid}/loeschen", s.removeHandoutItem)
+	mux.HandleFunc("GET /handout/{id}/druck", s.printHandout)
+
+	mux.HandleFunc("GET /patienten", s.listPatients)
+	mux.HandleFunc("POST /patienten", s.createPatient)
+	mux.HandleFunc("POST /patienten/import", s.importBefunde)
+	mux.HandleFunc("GET /patient/{id}", s.showPatient)
+	mux.HandleFunc("POST /patient/{id}", s.updatePatient)
+	mux.HandleFunc("POST /patient/{id}/archiv", s.archivePatient)
+	mux.HandleFunc("POST /patient/{id}/loeschen", s.deletePatient)
+	mux.HandleFunc("POST /patient/{id}/befund", s.newBefund)
+	mux.HandleFunc("POST /patient/{id}/verlauf", s.addSession)
+	mux.HandleFunc("POST /verlauf/{id}/loeschen", s.deleteSession)
+	mux.HandleFunc("POST /patient/{id}/wissen", s.linkPatientEntry)
+	mux.HandleFunc("POST /patient/{id}/wissen/{eid}/loeschen", s.unlinkPatientEntry)
+	mux.HandleFunc("POST /patient/{id}/handout", s.createPatientHandout)
+	mux.HandleFunc("GET /patient/{id}/vergleich", s.compareBefunde)
+	mux.HandleFunc("GET /befund/{id}", s.showBefund)
+	mux.HandleFunc("POST /befund/{id}", s.saveBefund)
+	mux.HandleFunc("POST /befund/{id}/loeschen", s.deleteBefund)
+	mux.HandleFunc("GET /befund/{id}/druck", s.printBefund)
+	mux.HandleFunc("GET /befund/{id}/export", s.exportBefund)
+
+	// CrossOriginProtection (Go 1.25+) blockt fremde POSTs anhand von Sec-Fetch-Site/Origin – CSRF-Schutz ohne Tokens.
+	return s.securityHeaders(http.NewCrossOriginProtection().Handler(s.requireAuth(s.logRequests(mux))))
+}
+
+func (s *Server) health(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+	defer cancel()
+	if err := s.st.Ping(ctx); err != nil {
+		http.Error(w, "false", http.StatusServiceUnavailable)
+		return
+	}
+	w.Write([]byte("true"))
+}
+
+// ---------- Middleware ----------
+
+func (s *Server) securityHeaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h := w.Header()
+		h.Set("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; media-src 'self'; style-src 'self'; script-src 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; base-uri 'none'")
+		h.Set("X-Content-Type-Options", "nosniff")
+		h.Set("Referrer-Policy", "same-origin")
+		if s.cfg.IsHTTPS() {
+			h.Set("Strict-Transport-Security", "max-age=31536000")
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+type statusWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (w *statusWriter) WriteHeader(c int) { w.status = c; w.ResponseWriter.WriteHeader(c) }
+
+func (s *Server) logRequests(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		sw := &statusWriter{ResponseWriter: w, status: 200}
+		next.ServeHTTP(sw, r)
+		if r.URL.Path != "/healthz" {
+			s.log.Debug("request", "method", r.Method, "path", r.URL.Path, "status", sw.status, "dauer", time.Since(start))
+		}
+	})
+}
+
+func cacheForever(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "public, max-age=86400")
+		next.ServeHTTP(w, r)
+	})
+}
+
+// ---------- Rendering ----------
+
+var md = goldmark.New(goldmark.WithExtensions(extension.GFM)) // ohne WithUnsafe: kein rohes HTML
+
+var funcs = template.FuncMap{
+	"kindLabel": store.KindLabel,
+	"md": func(src string) template.HTML {
+		var b bytes.Buffer
+		if err := md.Convert([]byte(src), &b); err != nil {
+			return template.HTML(template.HTMLEscapeString(src)) //nolint:gosec // G203: bereits escaped
+		}
+		// goldmark ohne WithUnsafe: rohes HTML im Markdown wird verworfen.
+		return template.HTML(b.String()) //nolint:gosec // G203
+	},
+	"date": func(t time.Time) string { return t.Local().Format("02.01.2006") },
+	"add1": func(i int) int { return i + 1 },
+	// Diagnose eines Befunds für Listen
+	"diag":    func(raw string) string { d, _ := befund.Parse(raw); return d.Get("diag") },
+	"cell":    func(t, c string, i int) string { return fmt.Sprintf("t.%s.%d.%s", t, i, c) },
+	"fmtNum":  func(f float64) string { return strconv.FormatFloat(f, 'f', 1, 64) },
+	"isoDate": func(t time.Time) string { return t.Local().Format("2006-01-02") },
+	"de": func(iso string) string { // 2025-03-01 → 01.03.2025
+		if t, err := time.Parse("2006-01-02", iso); err == nil {
+			return t.Format("02.01.2006")
+		}
+		return iso
+	},
+	"isImage": isImage,
+	"isVideo": isVideo,
+	"isPDF":   func(f string) bool { return strings.EqualFold(extOf(f), ".pdf") },
+	"tags": func(s string) []string {
+		var out []string
+		for _, p := range strings.Split(s, ",") {
+			if p = strings.TrimSpace(p); p != "" {
+				out = append(out, p)
+			}
+		}
+		return out
+	},
+	// Für Handouts: höchstens zwei Bilder pro Übung
+	"images": func(m []store.Media) []store.Media {
+		var out []store.Media
+		for _, x := range m {
+			if isImage(x.Filename) {
+				if out = append(out, x); len(out) == 2 {
+					break
+				}
+			}
+		}
+		return out
+	},
+}
+
+func (s *Server) render(w http.ResponseWriter, r *http.Request, page string, status int, data map[string]any) {
+	if data == nil {
+		data = map[string]any{}
+	}
+	data["Practice"] = s.cfg.PracticeName
+	data["Kinds"] = store.Kinds
+	data["Path"] = r.URL.Path
+	name := "layout"
+	if page == "print" || page == "befund_print" {
+		name = page
+	}
+	var buf bytes.Buffer
+	if err := s.pages[page].ExecuteTemplate(&buf, name, data); err != nil {
+		s.fail(w, r, err)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(status)
+	buf.WriteTo(w)
+}
+
+func (s *Server) fail(w http.ResponseWriter, r *http.Request, err error) {
+	if errors.Is(err, store.ErrNotFound) {
+		http.Error(w, "Nicht gefunden", http.StatusNotFound)
+		return
+	}
+	s.log.Error("anfrage fehlgeschlagen", "method", r.Method, "path", r.URL.Path, "err", err)
+	http.Error(w, "Interner Fehler", http.StatusInternalServerError)
+}
+
+func redirect(w http.ResponseWriter, r *http.Request, format string, args ...any) {
+	// Ziele sind immer feste, interne Pfade mit numerischen IDs.
+	http.Redirect(w, r, fmt.Sprintf(format, args...), http.StatusSeeOther) //nolint:gosec // G710
+}
+
+func pathID(r *http.Request, name string) (int64, bool) {
+	id, err := strconv.ParseInt(r.PathValue(name), 10, 64)
+	return id, err == nil && id > 0
+}
+
+func formID(r *http.Request, name string) (int64, bool) {
+	id, err := strconv.ParseInt(r.FormValue(name), 10, 64)
+	return id, err == nil && id > 0
+}
+
+// formText: getrimmt, Zeilenenden vereinheitlicht.
+func formText(r *http.Request, name string) string {
+	return strings.TrimSpace(strings.ReplaceAll(r.FormValue(name), "\r\n", "\n"))
+}
+
+// limitForm begrenzt normale Formulare (nicht Uploads) auf 2 MB.
+func limitForm(w http.ResponseWriter, r *http.Request) bool {
+	r.Body = http.MaxBytesReader(w, r.Body, 2<<20)
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Formular ungültig oder zu groß", http.StatusBadRequest)
+		return false
+	}
+	return true
+}

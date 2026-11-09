@@ -1,0 +1,140 @@
+{{define "title"}}{{.E.Title}}{{end}}
+{{define "content"}}
+{{$e := .E}}
+<article>
+  <header>
+    <span class="kind kind-{{$e.Kind}}">{{kindLabel $e.Kind}}</span>{{with $e.Region}} <a class="region" href="/?region={{.}}">{{.}}</a>{{end}}
+    <h1>{{$e.Title}}</h1>
+    {{with $e.Summary}}<p class="lead">{{.}}</p>{{end}}
+    {{with tags $e.Tags}}<p class="tags">{{range .}}<a href="/?q={{.}}">#{{.}}</a> {{end}}</p>{{end}}
+    <div class="actions">
+      <a role="button" class="outline" href="/eintrag/{{$e.ID}}/bearbeiten">Bearbeiten</a>
+    </div>
+  </header>
+
+  {{if eq $e.Kind "uebung"}}
+    {{with $e.Dosage}}<p class="dosage"><strong>Dosierung:</strong> {{.}}</p>{{end}}
+  {{end}}
+
+  {{with $e.Body}}<section class="prose">{{md .}}</section>{{end}}
+
+  {{if eq $e.Kind "uebung"}}{{with $e.PatientText}}
+  <section class="patient">
+    <h3>Anleitung für Patienten <small class="muted">(erscheint im Handout)</small></h3>
+    <div class="prose">{{md .}}</div>
+  </section>
+  {{end}}{{end}}
+
+  <footer class="muted">Angelegt {{date $e.Created}} · geändert {{date $e.Updated}}</footer>
+</article>
+
+{{if eq $e.Kind "uebung"}}
+<article id="handout">
+  <h3>Zu Handout hinzufügen</h3>
+  {{if .Added}}<p class="ok">Hinzugefügt. <a href="/handout/{{.Added}}">Zum Handout →</a></p>{{end}}
+  <div class="grid">
+    {{if .Handouts}}
+    <form method="post" action="/handouts/uebung" class="row">
+      <select name="handout" aria-label="Handout" required>
+        {{range .Handouts}}<option value="{{.ID}}">{{.Title}}{{with .Recipient}} – {{.}}{{end}} ({{.Count}})</option>{{end}}
+      </select>
+      <input type="hidden" name="entry" value="{{$e.ID}}">
+      <input type="hidden" name="from" value="entry">
+      <button type="submit">Hinzufügen</button>
+    </form>
+    {{end}}
+    <form method="post" action="/handouts" class="row">
+      <input name="title" placeholder="Neues Handout, z. B. Knie Woche 1" aria-label="Titel">
+      <input type="hidden" name="entry" value="{{$e.ID}}">
+      <button type="submit" class="secondary">Neues Handout</button>
+    </form>
+  </div>
+</article>
+{{end}}
+
+<article id="verknuepft">
+  <h3>Verknüpft</h3>
+  {{range .Groups}}
+    <h4>{{.Label}}</h4>
+    <ul class="links">
+    {{range .Entries}}
+      <li>
+        <a href="/eintrag/{{.ID}}">{{.Title}}</a>{{with .Summary}} <small class="muted">– {{.}}</small>{{end}}
+        <form method="post" action="/eintrag/{{$e.ID}}/entknuepfen/{{.ID}}" class="inline"><button type="submit" class="link" title="Verknüpfung lösen">✕</button></form>
+      </li>
+    {{end}}
+    </ul>
+  {{else}}
+    <p class="muted">Noch nichts verknüpft.</p>
+  {{end}}
+  {{if .Linkable}}
+  <form method="post" action="/eintrag/{{$e.ID}}/verknuepfen" class="row">
+    <select name="other" aria-label="Eintrag verknüpfen" required>
+      <option value="">Vorhandenen Eintrag verknüpfen …</option>
+      {{range .Linkable}}<option value="{{.ID}}">{{kindLabel .Kind}}: {{.Title}}</option>{{end}}
+    </select>
+    <button type="submit">Verknüpfen</button>
+  </form>
+  {{end}}
+  <p class="new-linked">Neu anlegen und verknüpfen:
+    {{range .Kinds}}<a href="/eintrag/neu?art={{.Key}}&amp;von={{$e.ID}}&amp;region={{$e.Region}}">{{.Label}}</a> {{end}}
+  </p>
+</article>
+
+<article id="medien">
+  <h3>Bilder, Videos, PDFs</h3>
+  {{if .Media}}
+  <div class="media">
+  {{range .Media}}
+    <figure>
+      {{if isImage .Filename}}<a href="/medien/{{.Filename}}"><img src="/medien/{{.Filename}}" alt="{{.Caption}}" loading="lazy"></a>
+      {{else if isVideo .Filename}}<video src="/medien/{{.Filename}}" controls preload="metadata"></video>
+      {{else}}<a href="/medien/{{.Filename}}" class="file">📄 PDF öffnen</a>{{end}}
+      <figcaption>{{.Caption}}
+        <form method="post" action="/medium/{{.ID}}/loeschen" class="inline"><button type="submit" class="link" title="Löschen">✕</button></form>
+      </figcaption>
+    </figure>
+  {{end}}
+  </div>
+  {{end}}
+  <form method="post" action="/eintrag/{{$e.ID}}/medien" enctype="multipart/form-data" class="row">
+    <input type="file" name="files" accept="image/*,video/*,application/pdf" multiple required aria-label="Dateien">
+    <input name="caption" placeholder="Beschriftung (optional)" aria-label="Beschriftung">
+    <button type="submit">Hochladen</button>
+  </form>
+  <small class="muted">Auf Tablet/Handy kann direkt die Kamera benutzt werden. Erstes Bild erscheint im Handout.</small>
+</article>
+
+<article id="quellen">
+  <h3>Quellen</h3>
+  {{if .Sources}}
+  <ul>
+  {{range .Sources}}
+    <li>
+      {{if .URL}}<a href="{{.URL}}" rel="noopener noreferrer" target="_blank">{{.Ref}}</a>{{else}}{{.Ref}}{{end}}{{with .Page}}, {{.}}{{end}}{{with .Note}} <small class="muted">– {{.}}</small>{{end}}
+      <form method="post" action="/quelle/{{.ID}}/loeschen" class="inline"><button type="submit" class="link" title="Löschen">✕</button></form>
+    </li>
+  {{end}}
+  </ul>
+  {{end}}
+  <form method="post" action="/eintrag/{{$e.ID}}/quelle">
+    <div class="grid">
+      <input name="ref" placeholder="Buch / Artikel / Studie" aria-label="Quelle" required>
+      <input name="page" placeholder="Seite / Kapitel" aria-label="Seite">
+    </div>
+    <div class="grid">
+      <input name="url" placeholder="Link (optional, z. B. Calibre oder DOI)" aria-label="Link">
+      <input name="note" placeholder="Notiz (optional)" aria-label="Notiz">
+    </div>
+    <button type="submit" class="secondary">Quelle hinzufügen</button>
+  </form>
+</article>
+
+<details class="danger">
+  <summary>Eintrag löschen …</summary>
+  <form method="post" action="/eintrag/{{$e.ID}}/loeschen">
+    <p>„{{$e.Title}}“ mit allen Medien, Quellen und Verknüpfungen endgültig löschen?</p>
+    <button type="submit" class="danger">Endgültig löschen</button>
+  </form>
+</details>
+{{end}}

@@ -1,0 +1,30 @@
+services:
+  physiobase:
+    build:
+      context: .
+      dockerfile: Containerfile
+    image: localhost/physiobase:latest
+    container_name: physiobase
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/data
+    env_file:
+      - .env
+    environment:
+      - PHYSIOBASE_PORT=8080
+      - PHYSIOBASE_DATA_DIR=/data
+      - PHYSIOBASE_PRACTICE_NAME=PhysioBase
+      # Keep this many daily database backups in ./data/backup (0 = off)
+      - PHYSIOBASE_BACKUP_KEEP=14
+      # Uncomment when running behind an HTTPS proxy:
+      # - PHYSIOBASE_BASE_URL=https://physio.example.com
+    healthcheck:
+      test: ["CMD", "physiobase", "healthcheck"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    restart: unless-stopped
+    # Time for the WAL checkpoint on shutdown
+    stop_grace_period: 30s
