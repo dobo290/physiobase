@@ -19,6 +19,8 @@ type Config struct {
 	DocsDir      string
 	BackupDir    string
 	SMTP         SMTP
+	PublicURL    string // von außen erreichbare Adresse für Kalender-Links (z. B. https://physio.example.com)
+	Address      string // Praxisadresse, Standard-Ort für Termine
 	BackupKeep   int
 	Username     string
 	PasswordHash string
@@ -57,6 +59,8 @@ func Load() (*Config, error) {
 		PracticeName: get("PRACTICE_NAME", "PhysioBase"),
 		BaseURL:      strings.TrimRight(get("BASE_URL", ""), "/"),
 	}
+	c.PublicURL = strings.TrimRight(get("PUBLIC_URL", c.BaseURL), "/")
+	c.Address = get("PRACTICE_ADDRESS", "")
 	c.DBPath = get("DB_PATH", filepath.Join(c.DataDir, "physiobase.db"))
 	c.MediaDir = get("MEDIA_DIR", filepath.Join(c.DataDir, "medien"))
 	c.DocsDir = get("DOCS_DIR", filepath.Join(c.DataDir, "patienten"))

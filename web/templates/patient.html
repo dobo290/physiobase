@@ -47,6 +47,65 @@
 </article>
 {{end}}
 
+{{with .Error}}<p class="error" role="alert">{{.}}</p>{{end}}
+<article id="termine">
+  <h3>Termine</h3>
+  {{with .Appt.Upcoming}}
+  <div class="appts">
+  {{range .}}
+    <div class="appt{{if .Cancelled}} cancelled{{end}}">
+      <span class="appt-time">{{day .Start}} · {{hm .Start}}–{{hm .End}}</span>
+      <span>{{.Title}}{{with .TherapistName}} · {{.}}{{end}}{{if .Cancelled}} · <strong>abgesagt</strong>{{end}}</span>
+      <span class="appt-actions">
+        <a href="/termin/{{.ID}}" class="small-link">Bearbeiten</a>
+        <form method="post" action="/termin/{{.ID}}/absagen" class="inline"><button type="submit" class="link small-link">{{if .Cancelled}}Wieder zusagen{{else}}Absagen{{end}}</button></form>
+      </span>
+    </div>
+  {{end}}
+  </div>
+  {{else}}<p class="muted">Keine anstehenden Termine.</p>{{end}}
+  {{with .Appt.Past}}<details><summary>Vergangene Termine ({{len .}})</summary>
+    <ul class="past-appts">{{range .}}<li>{{day .Start}} {{hm .Start}} · {{.Title}}{{with .TherapistName}} · {{.}}{{end}}{{if .Cancelled}} · abgesagt{{end}}</li>{{end}}</ul>
+  </details>{{end}}
+
+  <details>
+    <summary>+ Termin / Terminserie anlegen</summary>
+    <form method="post" action="/termine">
+      <input type="hidden" name="patient" value="{{$p.ID}}"><input type="hidden" name="back" value="patient">
+      <div class="appt-fields">
+        <label>Datum <input type="date" name="date" value="{{.Today}}" required></label>
+        <label>Uhrzeit <input type="time" name="time" value="08:00" step="300" required></label>
+        <label>Dauer (Min.) <input type="number" name="duration" value="30" min="5" max="480" step="5"></label>
+        <label>Behandler
+          <select name="therapist"><option value="0">—</option>{{range .Appt.Therapists}}<option value="{{.ID}}">{{.Name}}</option>{{end}}</select>
+        </label>
+        <label>Art <input name="title" value="Physiotherapie"></label>
+        <label>Ort <input name="location" placeholder="{{if .Appt.Address}}{{.Appt.Address}}{{else}}Praxis / Hausbesuch{{end}}"></label>
+        <label class="wide">Hinweis für den Patienten <input name="note" placeholder="z. B. Handtuch mitbringen"></label>
+        <label>Wiederholen <input type="number" name="repeat" value="1" min="1" max="40"></label>
+        <label>alle … Tage <input type="number" name="every" value="7" min="1" max="60"></label>
+      </div>
+      <button type="submit">Anlegen</button>
+      {{if not .Appt.Therapists}}<small class="muted">Behandler werden unter <a href="/termine#behandler">Termine</a> eingetragen.</small>{{end}}
+    </form>
+  </details>
+
+  <div class="cal-share">
+    <img src="/patient/{{$p.ID}}/kalender-qr.svg" alt="QR-Code für das Kalender-Abo" class="qr">
+    <div>
+      <strong>Termine im Kalender des Patienten</strong>
+      <p class="muted">QR-Code scannen lassen oder den Link senden. Neue Termine, Änderungen und Absagen kommen automatisch an. Der Kalender enthält nur Zeiten, Behandler, Ort und Hinweis – keine Diagnosen.</p>
+      {{if not .Appt.CalPublic}}<p class="error">PHYSIOBASE_PUBLIC_URL ist nicht gesetzt: Der Link funktioniert nur im Praxisnetz.</p>{{end}}
+      <p><a href="{{.Appt.Webcal}}">Kalender abonnieren (webcal)</a> · <a href="{{.Appt.CalURL}}">.ics-Datei</a></p>
+      <input readonly value="{{.Appt.CalURL}}" aria-label="Kalender-Link" class="mono">
+      <div class="actions">
+        <a role="button" class="secondary" href="/patient/{{$p.ID}}/termine/druck" target="_blank">Terminliste drucken</a>
+        <form method="post" action="/patient/{{$p.ID}}/kalender-link" class="inline"><button type="submit" class="outline secondary" title="Der alte Link funktioniert danach nicht mehr">Link erneuern</button></form>
+      </div>
+    </div>
+  </div>
+</article>
+
 <article id="verlauf">
   <h3>Behandlungsverlauf</h3>
   <form method="post" action="/patient/{{$p.ID}}/verlauf" class="session-form">

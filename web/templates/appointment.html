@@ -1,0 +1,34 @@
+{{define "title"}}Termin bearbeiten{{end}}
+{{define "content"}}
+{{$a := .A}}
+<nav aria-label="breadcrumb"><ul><li><a href="/termine">Termine</a></li><li><a href="/patient/{{$a.PatientID}}#termine">{{$a.PatientName}}</a></li><li>{{day $a.Start}}</li></ul></nav>
+{{with .Error}}<p class="error" role="alert">{{.}}</p>{{end}}
+<article>
+  <h2>Termin bearbeiten</h2>
+  <form method="post" action="/termin/{{$a.ID}}">
+    <div class="appt-fields">
+      <label>Datum <input type="date" name="date" value="{{ymd $a.Start}}" required></label>
+      <label>Uhrzeit <input type="time" name="time" value="{{hm $a.Start}}" step="300" required></label>
+      <label>Dauer (Min.) <input type="number" name="duration" value="{{$a.Duration}}" min="5" max="480" step="5"></label>
+      <label>Behandler
+        <select name="therapist"><option value="0">—</option>
+          {{range .Therapists}}{{if or .Active (eq .ID $a.TherapistID)}}<option value="{{.ID}}"{{if eq .ID $a.TherapistID}} selected{{end}}>{{.Name}}</option>{{end}}{{end}}
+        </select>
+      </label>
+      <label>Art <input name="title" value="{{$a.Title}}"></label>
+      <label>Ort <input name="location" value="{{$a.Location}}"></label>
+      <label class="wide">Hinweis für den Patienten <input name="note" value="{{$a.Note}}"></label>
+    </div>
+    <label class="consent"><input type="checkbox" name="cancelled" value="1"{{if $a.Cancelled}} checked{{end}}> Abgesagt</label>
+    <div class="actions"><button type="submit">Speichern</button><a href="/patient/{{$a.PatientID}}#termine">Abbrechen</a></div>
+    <small class="muted">Änderungen erscheinen im Kalender des Patienten beim nächsten Abgleich (meist innerhalb einer Stunde).</small>
+  </form>
+</article>
+<details class="danger">
+  <summary>Termin löschen …</summary>
+  <form method="post" action="/termin/{{$a.ID}}/loeschen">
+    <p>Besser „Abgesagt“ anhaken – dann sieht der Patient die Absage im Kalender. Gelöschte Termine verschwinden einfach.</p>
+    <button type="submit" class="danger">Endgültig löschen</button>
+  </form>
+</details>
+{{end}}

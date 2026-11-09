@@ -99,7 +99,8 @@ func (s *Server) hasSession(r *http.Request) bool {
 }
 
 func publicPath(p string) bool {
-	return p == "/login" || p == "/healthz" || strings.HasPrefix(p, "/static/")
+	// /kalender/ ist der Abo-Feed für Kalender-Apps: geschützt durch den geheimen Token im Pfad.
+	return p == "/login" || p == "/healthz" || strings.HasPrefix(p, "/static/") || strings.HasPrefix(p, "/kalender/")
 }
 
 func (s *Server) requireAuth(next http.Handler) http.Handler {

@@ -41,14 +41,14 @@ func New(ctx context.Context, cfg *config.Config, st *store.Store, log *slog.Log
 	if err := s.loadSessionSecret(ctx); err != nil {
 		return nil, err
 	}
-	for _, p := range []string{"index", "entry", "edit", "handouts", "handout", "login", "patients", "patient", "befund", "compare", "summary"} {
+	for _, p := range []string{"index", "entry", "edit", "handouts", "handout", "login", "patients", "patient", "befund", "compare", "summary", "appointments", "appointment"} {
 		t, err := template.New("").Funcs(funcs).ParseFS(physiobase.TemplatesFS, "web/templates/layout.html", "web/templates/"+p+".html")
 		if err != nil {
 			return nil, fmt.Errorf("template %s: %w", p, err)
 		}
 		s.pages[p] = t
 	}
-	for _, p := range []string{"print", "befund_print", "summary_print"} {
+	for _, p := range []string{"print", "befund_print", "summary_print", "appointments_print"} {
 		t, err := template.New("").Funcs(funcs).ParseFS(physiobase.TemplatesFS, "web/templates/"+p+".html")
 		if err != nil {
 			return nil, fmt.Errorf("template %s: %w", p, err)
@@ -120,6 +120,19 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /zusammenfassung/{id}/loeschen", s.deleteSummary)
 	mux.HandleFunc("GET /zusammenfassung/{id}/druck", s.printSummary)
 	mux.HandleFunc("POST /zusammenfassung/{id}/senden", s.sendSummary)
+
+	mux.HandleFunc("GET /termine", s.listAppointments)
+	mux.HandleFunc("POST /termine", s.createAppointment)
+	mux.HandleFunc("GET /termin/{id}", s.showAppointment)
+	mux.HandleFunc("POST /termin/{id}", s.saveAppointment)
+	mux.HandleFunc("POST /termin/{id}/absagen", s.toggleCancel)
+	mux.HandleFunc("POST /termin/{id}/loeschen", s.deleteAppointment)
+	mux.HandleFunc("POST /behandler", s.createTherapist)
+	mux.HandleFunc("POST /behandler/{id}", s.updateTherapist)
+	mux.HandleFunc("GET /patient/{id}/kalender-qr.svg", s.calendarQR)
+	mux.HandleFunc("POST /patient/{id}/kalender-link", s.rotateCalendar)
+	mux.HandleFunc("GET /patient/{id}/termine/druck", s.printAppointments)
+	mux.HandleFunc("GET /kalender/{file}", s.calendarFeed)
 	mux.HandleFunc("GET /befund/{id}", s.showBefund)
 	mux.HandleFunc("POST /befund/{id}", s.saveBefund)
 	mux.HandleFunc("POST /befund/{id}/loeschen", s.deleteBefund)
@@ -196,6 +209,9 @@ var funcs = template.FuncMap{
 	},
 	"date": func(t time.Time) string { return t.Local().Format("02.01.2006") },
 	"add1": func(i int) int { return i + 1 },
+	"day":  dayLabel,
+	"hm":   func(t time.Time) string { return t.Local().Format("15:04") },
+	"ymd":  func(t time.Time) string { return t.Local().Format("2006-01-02") },
 	// Diagnose eines Befunds für Listen
 	"diag":    func(raw string) string { d, _ := befund.Parse(raw); return d.Get("diag") },
 	"cell":    func(t, c string, i int) string { return fmt.Sprintf("t.%s.%d.%s", t, i, c) },
@@ -250,7 +266,7 @@ func (s *Server) render(w http.ResponseWriter, r *http.Request, page string, sta
 	data["Kinds"] = store.Kinds
 	data["Path"] = r.URL.Path
 	name := "layout"
-	if page == "print" || page == "befund_print" || page == "summary_print" {
+	if strings.HasSuffix(page, "print") {
 		name = page
 	}
 	var buf bytes.Buffer

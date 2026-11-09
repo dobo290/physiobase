@@ -233,6 +233,38 @@ CREATE TABLE mail_log (
 );
 CREATE INDEX idx_mail_log_summary ON mail_log(summary_id);
 `},
+	{6, `
+CREATE TABLE therapists (
+    id         INTEGER PRIMARY KEY,
+    name       TEXT NOT NULL,
+    active     INTEGER NOT NULL DEFAULT 1,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch())
+);
+
+-- Termine. uid + sequence für den Kalender-Feed (Änderungen werden von Kalender-Apps erkannt).
+-- note ist ein Hinweis FÜR den Patienten und erscheint im Feed und auf dem Ausdruck.
+CREATE TABLE appointments (
+    id           INTEGER PRIMARY KEY,
+    uid          TEXT NOT NULL UNIQUE,
+    patient_id   INTEGER NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+    therapist_id INTEGER REFERENCES therapists(id) ON DELETE SET NULL,
+    starts_at    INTEGER NOT NULL,
+    duration_min INTEGER NOT NULL DEFAULT 30,
+    title        TEXT NOT NULL DEFAULT 'Physiotherapie',
+    location     TEXT NOT NULL DEFAULT '',
+    note         TEXT NOT NULL DEFAULT '',
+    cancelled    INTEGER NOT NULL DEFAULT 0,
+    sequence     INTEGER NOT NULL DEFAULT 0,
+    created_at   INTEGER NOT NULL DEFAULT (unixepoch()),
+    updated_at   INTEGER NOT NULL DEFAULT (unixepoch())
+);
+CREATE INDEX idx_appointments_patient ON appointments(patient_id, starts_at);
+CREATE INDEX idx_appointments_start ON appointments(starts_at);
+
+-- Geheimer Link für das Kalender-Abo des Patienten (NULL = noch keiner)
+ALTER TABLE patients ADD COLUMN cal_token TEXT;
+CREATE UNIQUE INDEX idx_patients_cal_token ON patients(cal_token) WHERE cal_token IS NOT NULL;
+`},
 }
 
 func migrate(db *sql.DB) error {

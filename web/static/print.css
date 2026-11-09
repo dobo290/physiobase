@@ -30,3 +30,16 @@ footer { margin-top: 1rem; font-size: 9.5pt; color: #555; border-top: 1px solid 
 .summary-body ul { margin: .2rem 0 .5rem; padding-left: 1.3rem; }
 .summary-body li { margin: .15rem 0; }
 .summary-body p { margin: .3rem 0; }
+
+/* Terminliste */
+.appt-print { width: 100%; border-collapse: collapse; font-size: 11.5pt; margin: .5rem 0 1rem; }
+.appt-print th, .appt-print td { border: 1px solid #bbb; padding: .3rem .45rem; text-align: left; vertical-align: top; }
+.appt-print th { background: #f2f7f6; }
+.appt-print tr { break-inside: avoid; }
+.appt-print tr.cancelled td { color: #888; text-decoration: line-through; }
+.appt-print tr.cancelled td strong { text-decoration: none; color: #c0392b; }
+.cal-box { display: flex; gap: 6mm; align-items: center; border: 1px solid #cfe5df; border-radius: 8px; padding: 4mm; break-inside: avoid; }
+.cal-box .qr { width: 38mm; height: 38mm; flex: 0 0 auto; }
+.cal-box h2 { font-size: 13pt; margin: 0 0 .3rem; color: #16a085; }
+.cal-box p { margin: .2rem 0; }
+.cal-box .url { font-family: ui-monospace, monospace; font-size: 8.5pt; color: #555; word-break: break-all; }

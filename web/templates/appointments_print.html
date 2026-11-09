@@ -1,0 +1,41 @@
+{{define "appointments_print"}}<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Termine – {{.P.Name}}</title>
+<link rel="stylesheet" href="/static/print.css">
+</head>
+<body class="summary">
+<p class="hint">Drucken oder als PDF speichern: <kbd>Strg</kbd>+<kbd>P</kbd>. · <a href="/patient/{{.P.ID}}#termine">zurück</a>
+  {{if not .Public}}<br><strong>Achtung:</strong> PHYSIOBASE_PUBLIC_URL ist nicht gesetzt – der Kalender-Link funktioniert nur im Praxisnetz.{{end}}</p>
+<header>
+  <div>
+    <h1>Ihre Termine</h1>
+    <p class="for">für {{.P.Name}}</p>
+  </div>
+  <div class="meta"><img src="/static/logo.webp" alt="" class="logo"><br>{{.Practice}}{{with .Address}}<br>{{.}}{{end}}<br>Stand {{date .Today}}</div>
+</header>
+{{if .Appts}}
+<table class="appt-print">
+  <thead><tr><th>Tag</th><th>Uhrzeit</th><th>Behandlung</th><th>bei</th><th>Hinweis</th></tr></thead>
+  <tbody>
+  {{range .Appts}}
+    <tr{{if .Cancelled}} class="cancelled"{{end}}><td>{{day .Start}}</td><td>{{hm .Start}}–{{hm .End}} Uhr</td>
+      <td>{{.Title}}{{if .Cancelled}} – <strong>abgesagt</strong>{{end}}{{with .Location}}<br><small>{{.}}</small>{{end}}</td>
+      <td>{{.TherapistName}}</td><td>{{.Note}}</td></tr>
+  {{end}}
+  </tbody>
+</table>
+{{else}}<p>Zurzeit sind keine Termine eingetragen.</p>{{end}}
+<section class="cal-box">
+  <img src="/patient/{{.P.ID}}/kalender-qr.svg" alt="QR-Code Kalender-Abo" class="qr">
+  <div>
+    <h2>Termine im Handy-Kalender</h2>
+    <p>QR-Code mit der Kamera scannen und den Kalender abonnieren. Neue Termine, Änderungen und Absagen erscheinen dann automatisch.</p>
+    <p class="url">{{.CalURL}}</p>
+  </div>
+</section>
+<footer>Bitte sagen Sie Termine, die Sie nicht wahrnehmen können, mindestens 24 Stunden vorher ab.</footer>
+</body>
+</html>{{end}}

@@ -196,7 +196,21 @@ func (s *Server) sessionDraft(ctx context.Context, x store.Session) (string, err
 	d.line("- ")
 	d.note("z. B. Belastung dosieren, Schmerz bei Übungen bis 3–4 von 10 ist in Ordnung, am Folgetag nicht schlechter.")
 	d.section("Nächster Termin")
-	d.line("- ")
+	day, _ := time.ParseInLocation("2006-01-02", x.Date, time.Local)
+	next, found, err := s.st.NextAppointment(ctx, x.PatientID, day.Add(24*time.Hour-time.Second))
+	if err != nil {
+		return "", err
+	}
+	if found {
+		with := ""
+		if next.TherapistName != "" {
+			with = " bei " + next.TherapistName
+		}
+		d.line("- %s um %s Uhr%s", dayLabel(next.Start), next.Start.Format("15:04"), with)
+	} else {
+		d.line("- ")
+		d.note("Noch kein Folgetermin eingetragen.")
+	}
 	return d.String(), nil
 }
 

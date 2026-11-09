@@ -111,6 +111,11 @@ func (s *Server) showPatient(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
+	appt, err := s.patientAppointmentData(r, id)
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
 	// Verlauf der Kernwerte über alle Befunde (älteste zuerst)
 	type trendRow struct {
 		Date, Title             string
@@ -129,7 +134,8 @@ func (s *Server) showPatient(w http.ResponseWriter, r *http.Request) {
 	s.render(w, r, "patient", http.StatusOK, map[string]any{
 		"P": p, "Befunde": bs, "Sessions": sessions, "Linked": linked, "Linkable": linkable,
 		"Handouts": handouts, "Trend": trend, "Today": time.Now().Format("2006-01-02"),
-		"Docs": docs, "DocCategories": store.DocCategories, "Summaries": summaries,
+		"Docs": docs, "DocCategories": store.DocCategories, "Summaries": summaries, "Appt": appt,
+		"Error": r.URL.Query().Get("fehler"),
 	})
 }
 

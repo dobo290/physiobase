@@ -224,3 +224,23 @@ label.consent { display: flex; gap: .5rem; align-items: flex-start; font-size: .
 label.consent input { flex: 0 0 auto; margin-top: .2rem; }
 .maillog { font-size: .88em; padding-left: 0; margin-top: .8rem; }
 .maillog li { list-style: none; }
+
+/* ---------- Termine ---------- */
+.appt-filter > input, .appt-filter > select { flex: 1 1 10rem; }
+.appt-nav { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
+.appt-day h4 { margin-bottom: .5rem; }
+.appt-day.today { border-left: 4px solid var(--pico-primary); }
+.appt { display: flex; flex-wrap: wrap; gap: .3rem .8rem; align-items: baseline; padding: .4rem 0; border-bottom: 1px solid var(--pico-muted-border-color); }
+.appt:last-child { border-bottom: 0; }
+.appt-time { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 6.5rem; }
+.appt.cancelled { opacity: .6; }
+.appt.cancelled .appt-time { text-decoration: line-through; }
+.appt-actions { margin-left: auto; display: flex; gap: .6rem; align-items: baseline; }
+.appt-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 0 .8rem; margin-top: .6rem; }
+.appt-fields .wide { grid-column: 1 / -1; }
+.appt-fields label { font-size: .88em; }
+.past-appts { font-size: .88em; }
+.cal-share { display: flex; gap: 1.2rem; align-items: flex-start; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--pico-muted-border-color); }
+.cal-share .qr { width: 9rem; height: 9rem; flex: 0 0 auto; background: #fff; border-radius: .3rem; }
+.cal-share input { font-size: .8em; }
+@media (max-width: 576px) { .cal-share { flex-direction: column; align-items: center; } .appt-time { min-width: 0; } .appt-actions { margin-left: 0; } }
