@@ -287,14 +287,6 @@ func (s *Store) HandoutsForPatient(ctx context.Context, pid int64) ([]Handout, e
 	return out, rows.Err()
 }
 
-func (s *Store) CreateHandoutFor(ctx context.Context, title string, p Patient) (int64, error) {
-	res, err := s.db.ExecContext(ctx, `INSERT INTO handouts (title, recipient, patient_id) VALUES (?, ?, ?)`, title, p.Name, p.ID)
-	if err != nil {
-		return 0, err
-	}
-	return res.LastInsertId()
-}
-
 // HandoutPatient liefert den zugeordneten Patienten eines Handouts (0 = keiner).
 func (s *Store) HandoutPatient(ctx context.Context, hid int64) (int64, string, error) {
 	var pid sql.NullInt64

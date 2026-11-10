@@ -34,6 +34,10 @@ type Server struct {
 	sessionMu     sync.RWMutex
 	sessionSecret string
 	loginSem      chan struct{}
+
+	textMu sync.RWMutex
+	texts  map[string]string // eigene Texte (nur Abweichungen vom Standard)
+	logo   string            // Dateiname des eigenen Logos (leer = mitgeliefertes)
 }
 
 func New(ctx context.Context, cfg *config.Config, st *store.Store, log *slog.Logger) (*Server, error) {
@@ -41,8 +45,11 @@ func New(ctx context.Context, cfg *config.Config, st *store.Store, log *slog.Log
 	if err := s.loadSessionSecret(ctx); err != nil {
 		return nil, err
 	}
-	for _, p := range []string{"index", "entry", "edit", "handouts", "handout", "login", "patients", "patient", "befund", "compare", "summary", "appointments", "appointment"} {
-		t, err := template.New("").Funcs(funcs).ParseFS(physiobase.TemplatesFS, "web/templates/layout.html", "web/templates/"+p+".html")
+	if err := s.loadBranding(ctx); err != nil {
+		return nil, err
+	}
+	for _, p := range []string{"index", "entry", "edit", "handouts", "handout", "login", "patients", "patient", "befund", "compare", "summary", "appointments", "appointment", "settings"} {
+		t, err := template.New("").Funcs(funcs).ParseFS(physiobase.TemplatesFS, "web/templates/layout.html", "web/templates/partials.html", "web/templates/"+p+".html")
 		if err != nil {
 			return nil, fmt.Errorf("template %s: %w", p, err)
 		}
@@ -133,6 +140,12 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /patient/{id}/kalender-link", s.rotateCalendar)
 	mux.HandleFunc("GET /patient/{id}/termine/druck", s.printAppointments)
 	mux.HandleFunc("GET /kalender/{file}", s.calendarFeed)
+
+	mux.HandleFunc("GET /einstellungen", s.settingsPage)
+	mux.HandleFunc("POST /einstellungen", s.saveSettings)
+	mux.HandleFunc("POST /einstellungen/logo", s.uploadLogo)
+	mux.HandleFunc("POST /einstellungen/logo/loeschen", s.deleteLogo)
+	mux.HandleFunc("GET /branding/{file}", s.serveBranding)
 	mux.HandleFunc("GET /befund/{id}", s.showBefund)
 	mux.HandleFunc("POST /befund/{id}", s.saveBefund)
 	mux.HandleFunc("POST /befund/{id}/loeschen", s.deleteBefund)
@@ -262,7 +275,10 @@ func (s *Server) render(w http.ResponseWriter, r *http.Request, page string, sta
 	if data == nil {
 		data = map[string]any{}
 	}
-	data["Practice"] = s.cfg.PracticeName
+	data["Practice"] = s.practice()
+	data["Logo"] = s.logoURL()
+	data["Contact"] = s.text("practice_contact")
+	data["T"] = s.textMap()
 	data["Kinds"] = store.Kinds
 	data["Path"] = r.URL.Path
 	name := "layout"

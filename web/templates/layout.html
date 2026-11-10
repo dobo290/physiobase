@@ -7,12 +7,16 @@
 <title>{{template "title" .}} · {{.Practice}}</title>
 <link rel="stylesheet" href="/static/pico.min.css">
 <link rel="stylesheet" href="/static/style.css">
+<link rel="icon" href="{{.Logo}}">
 <script src="/static/befund.js" defer></script>
 </head>
 <body>
 <header class="container">
 <nav>
-  <ul><li><a href="/" class="brand"><strong>{{.Practice}}</strong></a></li></ul>
+  <ul>
+    <li><a href="/" class="brand"><img src="{{.Logo}}" alt="" class="brand-logo"><strong>{{.Practice}}</strong></a></li>
+    {{if ne .Path "/login"}}<li><a href="/einstellungen" class="settings-link" title="Einstellungen: Praxisname, Logo, Texte"{{if eq .Path "/einstellungen"}} aria-current="page"{{end}}>⚙</a></li>{{end}}
+  </ul>
   {{if ne .Path "/login"}}
   <ul>
     <li><a href="/"{{if eq .Path "/"}} aria-current="page"{{end}}>Wissen</a></li>

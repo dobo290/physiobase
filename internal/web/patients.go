@@ -134,7 +134,7 @@ func (s *Server) showPatient(w http.ResponseWriter, r *http.Request) {
 	s.render(w, r, "patient", http.StatusOK, map[string]any{
 		"P": p, "Befunde": bs, "Sessions": sessions, "Linked": linked, "Linkable": linkable,
 		"Handouts": handouts, "Trend": trend, "Today": time.Now().Format("2006-01-02"),
-		"Docs": docs, "DocCategories": store.DocCategories, "Summaries": summaries, "Appt": appt,
+		"Docs": docs, "DocCategories": s.lines("doc_categories"), "Summaries": summaries, "Appt": appt,
 		"Error": r.URL.Query().Get("fehler"),
 	})
 }
@@ -283,7 +283,7 @@ func (s *Server) createPatientHandout(w http.ResponseWriter, r *http.Request) {
 	if title == "" {
 		title = "Heimübungsprogramm"
 	}
-	hid, err := s.st.CreateHandoutFor(r.Context(), title, p)
+	hid, err := s.st.CreateHandoutWithNotes(r.Context(), title, p.Name, s.text("handout_default_notes"), p.ID)
 	if err != nil {
 		s.fail(w, r, err)
 		return

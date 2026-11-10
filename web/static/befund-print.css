@@ -30,3 +30,4 @@ tr { break-inside: avoid; }
 footer { display: flex; gap: 12mm; margin-top: 16mm; break-inside: avoid; }
 .sig { flex: 1; border-top: 1px solid #333; padding-top: .2rem; font-size: 9pt; color: #444; }
 @media print { .hint { display: none; } body { padding: 0; } }
+.pre { white-space: pre-line; }

@@ -13,7 +13,7 @@
     <h1>{{.H.Title}}</h1>
     {{with .H.Recipient}}<p class="for">für {{.}}</p>{{end}}
   </div>
-  <div class="meta">{{.Practice}}<br>{{date .Today}}</div>
+  <div class="meta"><img src="{{.Logo}}" alt="" class="logo"><br>{{.Practice}}{{with .Contact}}<br>{{.}}{{end}}<br>{{date .Today}}</div>
 </header>
 {{with .H.Notes}}<section class="notes">{{md .}}</section>{{end}}
 
@@ -30,6 +30,6 @@
   </div>
 </section>
 {{end}}
-<footer>Bei starken oder zunehmenden Beschwerden die Übung pausieren und Rücksprache halten.</footer>
+{{with index .T "print_handout_footer"}}<footer class="pre">{{.}}</footer>{{end}}
 </body>
 </html>{{end}}

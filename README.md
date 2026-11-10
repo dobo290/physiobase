@@ -47,6 +47,17 @@ conveniences; everything else works without it.
 - **Email**: send a summary to the patient over SMTP (text and HTML).
   Requires an address and recorded consent in the patient record; every
   attempt is logged with time, recipient and result.
+- **Appointments**: per patient with therapist, duration, place and a note
+  for the patient. Several appointments are entered in one go: each new row
+  copies the previous one, one week later. Calendar subscription per patient
+  (secret link and QR code), printable appointment list, practice overview.
+- **Settings page** (⚙): practice name, address, contact and logo (SVG, PNG,
+  WebP or JPG) replace "PhysioBase" in the header, on printouts, in emails and
+  in the patients' calendar. Every text patients see – notes on printouts,
+  email greeting and closing, summary building blocks, appointment types and
+  defaults, document categories – can be changed there, with placeholders
+  such as `{praxis}` and `{name}`. An empty field falls back to the built-in
+  text. Uploaded SVGs are rejected if they contain scripts.
 - **Import**: JSON exports of the previous standalone assessment page
   (`Befund_*.json`) and of PhysioBase itself.
 - **Backups**: consistent SQLite snapshots (`VACUUM INTO`) at start and every
@@ -115,7 +126,9 @@ are embedded in the binary.
 | `PHYSIOBASE_DOCS_DIR` | `<data>/patienten` | Patient documents (scans, photos) |
 | `PHYSIOBASE_BACKUP_DIR` | `<data>/backup` | Daily database backups |
 | `PHYSIOBASE_BACKUP_KEEP` | `14` | Backups to keep; `0` turns them off |
-| `PHYSIOBASE_PRACTICE_NAME` | `PhysioBase` | Shown in the header and on printouts |
+| `PHYSIOBASE_PRACTICE_NAME` | `PhysioBase` | Default practice name; can be changed on the settings page |
+| `PHYSIOBASE_PRACTICE_ADDRESS` | — | Default address; can be changed on the settings page |
+| `PHYSIOBASE_PUBLIC_URL` | `$PHYSIOBASE_BASE_URL` | Address reachable from outside, used for calendar links |
 | `PHYSIOBASE_BASE_URL` | — | External URL; an `https://` value makes cookies `Secure` and enables HSTS |
 | `PHYSIOBASE_SMTP_HOST` | — | SMTP server; empty turns email off |
 | `PHYSIOBASE_SMTP_PORT` | `587` | SMTP port |

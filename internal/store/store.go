@@ -356,7 +356,13 @@ func (s *Store) Handout(ctx context.Context, id int64) (Handout, error) {
 }
 
 func (s *Store) CreateHandout(ctx context.Context, title, recipient string) (int64, error) {
-	res, err := s.db.ExecContext(ctx, `INSERT INTO handouts (title, recipient) VALUES (?, ?)`, title, recipient)
+	return s.CreateHandoutWithNotes(ctx, title, recipient, "", 0)
+}
+
+// CreateHandoutWithNotes legt ein Handout mit Hinweistext an (pid 0 = ohne Patient).
+func (s *Store) CreateHandoutWithNotes(ctx context.Context, title, recipient, notes string, pid int64) (int64, error) {
+	res, err := s.db.ExecContext(ctx, `INSERT INTO handouts (title, recipient, notes, patient_id) VALUES (?, ?, ?, ?)`,
+		title, recipient, notes, nullID(pid))
 	if err != nil {
 		return 0, err
 	}

@@ -14,9 +14,9 @@
     <h1>{{.S.Title}}</h1>
     <p class="for">für {{.P.Name}}</p>
   </div>
-  <div class="meta"><img src="/static/logo.webp" alt="" class="logo"><br>{{.Practice}}<br>{{de .S.Date}}</div>
+  <div class="meta"><img src="{{.Logo}}" alt="" class="logo"><br>{{.Practice}}{{with .Contact}}<br>{{.}}{{end}}<br>{{de .S.Date}}</div>
 </header>
 <main class="summary-body">{{md .Body}}</main>
-<footer>Bei Fragen sprechen Sie mich gern beim nächsten Termin an.</footer>
+{{with index .T "print_summary_footer"}}<footer class="pre">{{.}}</footer>{{end}}
 </body>
 </html>{{end}}

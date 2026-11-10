@@ -244,3 +244,22 @@ label.consent input { flex: 0 0 auto; margin-top: .2rem; }
 .cal-share .qr { width: 9rem; height: 9rem; flex: 0 0 auto; background: #fff; border-radius: .3rem; }
 .cal-share input { font-size: .8em; }
 @media (max-width: 576px) { .cal-share { flex-direction: column; align-items: center; } .appt-time { min-width: 0; } .appt-actions { margin-left: 0; } }
+
+/* ---------- Logo, Einstellungen ---------- */
+.brand { display: inline-flex; align-items: center; gap: .5rem; }
+.brand-logo { height: 1.8rem; width: auto; max-width: 6rem; object-fit: contain; }
+.settings-link { text-decoration: none; font-size: 1.15em; padding: .2rem .4rem; }
+.settings-group summary { font-size: 1.15rem; font-weight: 600; }
+.setting { margin-bottom: 1.1rem; }
+.setting .help { display: block; font-size: .82em; color: var(--pico-muted-color); margin-top: -.3rem; margin-bottom: .3rem; }
+.setting .default { font-size: .78em; color: var(--pico-muted-color); }
+.setting .default summary { font-size: 1em; }
+.setting .default pre { white-space: pre-wrap; font-size: .95em; padding: .4rem .6rem; margin: .2rem 0 0; }
+.custom-badge { font-size: .72em; padding: .05rem .4rem; border-radius: .3rem; background: var(--pico-primary-focus); margin-left: .4rem; }
+.logo-preview { height: 4rem; width: auto; max-width: 14rem; object-fit: contain; background: #fff; padding: .3rem; border-radius: .3rem; }
+.placeholders code { font-size: .85em; }
+.appt-rows input.num { width: 5rem; }
+.appt-rows td { min-width: 6rem; }
+.appt-bulk-actions { align-items: center; margin-top: .3rem; }
+.small-label { font-size: .85em; display: flex; gap: .4rem; align-items: center; flex: 1 1 14rem; }
+.small-label input { margin: 0; }

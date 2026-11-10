@@ -12,12 +12,12 @@
   {{if .Sessions}}<a href="/befund/{{.B.ID}}/druck">ohne Behandlungsverlauf</a>{{else}}<a href="/befund/{{.B.ID}}/druck?verlauf=1">mit Behandlungsverlauf</a>{{end}} ·
   <a href="/befund/{{.B.ID}}">zurück zum Befund</a></p>
 <header>
-  <img src="/static/logo.webp" alt="" class="logo">
+  <img src="{{.Logo}}" alt="" class="logo">
   <div class="htext">
     <h1>Physiotherapeutischer Befund</h1>
     <p><strong>{{.P.Name}}</strong>{{with .P.Dob}} · geb. {{.}}{{end}}</p>
   </div>
-  <div class="meta">{{.B.Title}}<br>{{de .B.Date}}<br>{{.Practice}}</div>
+  <div class="meta">{{.B.Title}}<br>{{de .B.Date}}<br>{{.Practice}}{{with .Contact}}<br>{{.}}{{end}}</div>
 </header>
 
 {{range $s := .Sections}}{{if $d.HasSection $s}}
@@ -63,8 +63,8 @@
 {{end}}
 
 <footer>
-  <div class="sig">Datum, Unterschrift Therapeut*in</div>
-  <div class="sig">Datum, Unterschrift Patient*in</div>
+  <div class="sig">{{index .T "print_befund_sig_left"}}</div>
+  <div class="sig">{{index .T "print_befund_sig_right"}}</div>
 </footer>
 </body>
 </html>{{end}}

@@ -78,12 +78,9 @@ func (d *draft) exercises(h store.Handout, items []store.HandoutItem) {
 	d.line("Die genaue Anleitung mit Bildern finden Sie im Übungsblatt „%s“.", h.Title)
 }
 
-func safetyNet(d *draft) {
+func (s *Server) safetyNet(d *draft) {
 	d.section("Wann Sie sich melden sollten")
-	d.line("- wenn die Beschwerden deutlich stärker werden oder nach Übungen länger als einen Tag schlechter bleiben")
-	d.line("- bei neuem Taubheitsgefühl, Kribbeln oder Kraftverlust")
-	d.line("- bei Schwellung, Rötung, Überwärmung oder Fieber")
-	d.note("Bei Rückenbeschwerden ggf. ergänzen: Taubheit im Gesäß-/Genitalbereich oder Probleme beim Wasserlassen → sofort ärztlich abklären.")
+	d.line("%s", s.text("summary_safety_net"))
 }
 
 // generalDraft baut die Gesamtzusammenfassung aus dem neuesten Befund, dem
@@ -169,7 +166,7 @@ func (s *Server) generalDraft(ctx context.Context, p store.Patient) (string, err
 		d.note("Was hat sich im Alltag verbessert? Konkrete Beispiele des Patienten aufgreifen.")
 	}
 
-	safetyNet(d)
+	s.safetyNet(d)
 	return d.String(), nil
 }
 
@@ -193,8 +190,7 @@ func (s *Server) sessionDraft(ctx context.Context, x store.Session) (string, err
 	d.section("Ihre Übungen bis zum nächsten Termin")
 	d.exercises(h, items)
 	d.section("Darauf sollten Sie achten")
-	d.line("- ")
-	d.note("z. B. Belastung dosieren, Schmerz bei Übungen bis 3–4 von 10 ist in Ordnung, am Folgetag nicht schlechter.")
+	d.line("%s", s.text("summary_session_watch"))
 	d.section("Nächster Termin")
 	day, _ := time.ParseInLocation("2006-01-02", x.Date, time.Local)
 	next, found, err := s.st.NextAppointment(ctx, x.PatientID, day.Add(24*time.Hour-time.Second))
@@ -237,7 +233,7 @@ func (s *Server) createGeneralSummary(w http.ResponseWriter, r *http.Request) {
 	}
 	id, err := s.st.CreateSummary(ctx, store.Summary{
 		PatientID: pid, Kind: "gesamt",
-		Date: time.Now().Format("2006-01-02"), Title: "Ihre Physiotherapie – Zusammenfassung", Body: body,
+		Date: time.Now().Format("2006-01-02"), Title: s.text("summary_general_title", "name", p.Name), Body: body,
 	})
 	if err != nil {
 		s.fail(w, r, err)
@@ -265,7 +261,7 @@ func (s *Server) createSessionSummary(w http.ResponseWriter, r *http.Request) {
 	}
 	id, err := s.st.CreateSummary(ctx, store.Summary{
 		PatientID: x.PatientID, SessionID: x.ID, Kind: "sitzung",
-		Date: x.Date, Title: "Ihre Behandlung am " + deDate(x.Date), Body: body,
+		Date: x.Date, Title: s.text("summary_session_title", "datum", deDate(x.Date)), Body: body,
 	})
 	if err != nil {
 		s.fail(w, r, err)

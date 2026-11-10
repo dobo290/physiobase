@@ -1,0 +1,25 @@
+{{/* Terminzeilen für die Sammel-Eingabe. Erwartet .AF (siehe apptForm in appointments.go). */}}
+{{define "apptrows"}}{{$f := .AF}}
+<datalist id="dl-appttypes">{{range $f.Types}}<option value="{{.}}">{{end}}</datalist>
+<div class="tablewrap">
+  <table class="etable appt-rows" data-table="appt" data-step-days="7">
+    <thead><tr><th>Datum</th><th>Uhrzeit</th><th>Min.</th><th>Behandler</th><th>Art</th><th>Hinweis für den Patienten</th></tr></thead>
+    <tbody>
+    {{range $i, $_ := $f.Rows}}<tr>
+      <td><input type="date" name="t.appt.{{$i}}.date" value="{{if eq $i 0}}{{$f.Today}}{{end}}" aria-label="Datum"></td>
+      <td><input type="time" name="t.appt.{{$i}}.time" value="{{$f.Time}}" step="300" aria-label="Uhrzeit"></td>
+      <td><input type="number" name="t.appt.{{$i}}.duration" value="{{$f.Duration}}" min="5" max="480" step="5" aria-label="Dauer in Minuten" class="num"></td>
+      <td><select name="t.appt.{{$i}}.therapist" aria-label="Behandler"><option value="0">—</option>{{range $f.Therapists}}<option value="{{.ID}}">{{.Name}}</option>{{end}}</select></td>
+      <td><input name="t.appt.{{$i}}.title" value="{{$f.Type}}" list="dl-appttypes" aria-label="Art"></td>
+      <td><input name="t.appt.{{$i}}.note" value="{{$f.Note}}" placeholder="optional" aria-label="Hinweis"></td>
+    </tr>{{end}}
+    </tbody>
+  </table>
+</div>
+<input type="hidden" name="t.appt.n" value="{{len $f.Rows}}">
+<div class="row appt-bulk-actions">
+  <button type="button" class="addrow js-only secondary outline small" data-table="appt">+ Zeile (eine Woche später)</button>
+  <label class="small-label">Ort <input name="location" placeholder="{{if $f.Address}}{{$f.Address}}{{else}}Praxis / Hausbesuch{{end}}"></label>
+</div>
+<small class="muted">Leere Zeilen werden ignoriert. „+ Zeile“ übernimmt Uhrzeit, Dauer, Behandler und Art der letzten Zeile und setzt das Datum eine Woche später.</small>
+{{end}}

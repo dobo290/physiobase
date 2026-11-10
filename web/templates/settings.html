@@ -1,0 +1,49 @@
+{{define "title"}}Einstellungen{{end}}
+{{define "content"}}
+<h2>Einstellungen</h2>
+{{if .Saved}}<p class="ok" role="status">Gespeichert.</p>{{end}}
+{{with .Error}}<p class="error" role="alert">{{.}}</p>{{end}}
+
+<article id="logo">
+  <h3>Logo</h3>
+  <div class="row">
+    <img src="{{.LogoURL}}" alt="Aktuelles Logo" class="logo-preview">
+    <div>
+      <p class="muted">Erscheint oben in der App, auf allen Ausdrucken und als Symbol im Browser-Tab. SVG, PNG, WebP oder JPG, höchstens 2 MB. SVG bleibt in jeder Größe scharf.</p>
+      <form method="post" action="/einstellungen/logo" enctype="multipart/form-data" class="row">
+        <input type="file" name="logo" accept=".svg,image/svg+xml,image/png,image/webp,image/jpeg" required aria-label="Logo-Datei">
+        <button type="submit">Hochladen</button>
+      </form>
+      {{if .CustomLogo}}<form method="post" action="/einstellungen/logo/loeschen" class="inline"><button type="submit" class="secondary outline small">Eigenes Logo entfernen</button></form>{{end}}
+    </div>
+  </div>
+</article>
+
+<form method="post" action="/einstellungen">
+  <p class="muted placeholders">Platzhalter in den Texten: <code>{praxis}</code> Praxisname · <code>{adresse}</code> Adresse ·
+    <code>{name}</code> Name des Patienten (E-Mail, Titel) · <code>{datum}</code> Datum (Titel der Behandlungszusammenfassung).
+    Ein leeres Feld bedeutet: Standardtext verwenden.</p>
+  {{range $i, $g := .Groups}}
+  <details class="settings-group" {{if eq $i 0}}open{{end}}>
+    <summary>{{$g.Name}}</summary>
+    {{range $g.Fields}}
+    <div class="setting">
+      <label for="t-{{.Key}}">{{.Label}}{{if not .IsDefault}}<span class="custom-badge">eigener Text</span>{{end}}</label>
+      {{with .Help}}<small class="help">{{.}}</small>{{end}}
+      {{if eq .Kind "area"}}<textarea id="t-{{.Key}}" name="t.{{.Key}}" rows="{{if gt (len .Value) 120}}5{{else}}3{{end}}">{{.Value}}</textarea>
+      {{else if eq .Kind "number"}}<input id="t-{{.Key}}" name="t.{{.Key}}" type="number" min="5" max="480" step="5" value="{{.Value}}">
+      {{else if eq .Kind "time"}}<input id="t-{{.Key}}" name="t.{{.Key}}" type="time" step="300" value="{{.Value}}">
+      {{else}}<input id="t-{{.Key}}" name="t.{{.Key}}" value="{{.Value}}">{{end}}
+      {{if not .IsDefault}}
+      <div class="default">
+        <label class="consent"><input type="checkbox" name="reset.{{.Key}}" value="1"> Standard wiederherstellen</label>
+        {{with .DefText}}<details><summary>Standardtext anzeigen</summary><pre>{{.}}</pre></details>{{end}}
+      </div>
+      {{end}}
+    </div>
+    {{end}}
+  </details>
+  {{end}}
+  <div class="savebar"><button type="submit">Speichern</button></div>
+</form>
+{{end}}

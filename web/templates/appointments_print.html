@@ -14,7 +14,7 @@
     <h1>Ihre Termine</h1>
     <p class="for">für {{.P.Name}}</p>
   </div>
-  <div class="meta"><img src="/static/logo.webp" alt="" class="logo"><br>{{.Practice}}{{with .Address}}<br>{{.}}{{end}}<br>Stand {{date .Today}}</div>
+  <div class="meta"><img src="{{.Logo}}" alt="" class="logo"><br>{{.Practice}}{{with .Address}}<br>{{.}}{{end}}{{with .Contact}}<br>{{.}}{{end}}<br>Stand {{date .Today}}</div>
 </header>
 {{if .Appts}}
 <table class="appt-print">
@@ -32,10 +32,10 @@
   <img src="/patient/{{.P.ID}}/kalender-qr.svg" alt="QR-Code Kalender-Abo" class="qr">
   <div>
     <h2>Termine im Handy-Kalender</h2>
-    <p>QR-Code mit der Kamera scannen und den Kalender abonnieren. Neue Termine, Änderungen und Absagen erscheinen dann automatisch.</p>
+    <p class="pre">{{index .T "print_appointments_calendar"}}</p>
     <p class="url">{{.CalURL}}</p>
   </div>
 </section>
-<footer>Bitte sagen Sie Termine, die Sie nicht wahrnehmen können, mindestens 24 Stunden vorher ab.</footer>
+{{with index .T "print_appointments_footer"}}<footer class="pre">{{.}}</footer>{{end}}
 </body>
 </html>{{end}}

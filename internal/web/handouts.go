@@ -25,7 +25,7 @@ func (s *Server) createHandout(w http.ResponseWriter, r *http.Request) {
 	if title == "" {
 		title = "Mein Übungsprogramm"
 	}
-	id, err := s.st.CreateHandout(ctx, title, formText(r, "recipient"))
+	id, err := s.st.CreateHandoutWithNotes(ctx, title, formText(r, "recipient"), s.text("handout_default_notes"), 0)
 	if err != nil {
 		s.fail(w, r, err)
 		return

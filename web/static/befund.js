@@ -3,6 +3,38 @@
 (() => {
   "use strict";
   document.documentElement.classList.add("js");
+
+  // ---- Tabellen: weitere Zeile (alle Seiten) ----
+  // Normal: neue leere Zeile. Mit data-step-days (Terminzeilen): letzte Zeile übernehmen,
+  // Datum um so viele Tage weiter – so entsteht eine Terminserie ohne Neuladen der Seite.
+  document.querySelectorAll("button.addrow").forEach((btn) => btn.addEventListener("click", () => {
+    const key = btn.dataset.table;
+    const scope = btn.closest("form") || document;
+    const table = scope.querySelector(`table[data-table="${key}"]`);
+    const tbody = table?.querySelector("tbody");
+    const count = scope.querySelector(`input[name="t.${key}.n"]`);
+    if (!tbody || !count || !tbody.lastElementChild) return;
+    const step = parseInt(table.dataset.stepDays || "0", 10);
+    const n = parseInt(count.value, 10) || 0;
+    const last = tbody.lastElementChild;
+    const tr = last.cloneNode(true);
+    const src = [...last.querySelectorAll("input,select")];
+    tr.querySelectorAll("input,select").forEach((el, i) => {
+      el.name = el.name.replace(/^(t\.[^.]+\.)\d+(\.)/, `$1${n}$2`);
+      if (!step) { if (el.tagName === "SELECT") el.selectedIndex = 0; else el.value = ""; return; }
+      if (el.tagName === "SELECT") { el.selectedIndex = src[i].selectedIndex; return; }
+      el.value = src[i].value;
+      if (el.type === "date" && el.value) {
+        const d = new Date(el.value + "T12:00:00");
+        d.setDate(d.getDate() + step);
+        el.value = d.toISOString().slice(0, 10);
+      }
+    });
+    tbody.appendChild(tr);
+    count.value = n + 1;
+    tr.querySelector("input,select")?.focus();
+  }));
+
   const form = document.getElementById("befund-form");
   if (!form) return;
 
@@ -13,23 +45,6 @@
   document.addEventListener("keydown", (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); dirty = false; form.requestSubmit(); }
   });
-
-  // ---- Tabellen: weitere Zeile ----
-  form.querySelectorAll("button.addrow").forEach((btn) => btn.addEventListener("click", () => {
-    const key = btn.dataset.table;
-    const tbody = form.querySelector(`table[data-table="${key}"] tbody`);
-    const count = form.querySelector(`input[name="t.${key}.n"]`);
-    if (!tbody || !count || !tbody.lastElementChild) return;
-    const n = parseInt(count.value, 10) || 0;
-    const tr = tbody.lastElementChild.cloneNode(true);
-    tr.querySelectorAll("input,select").forEach((el) => {
-      el.name = el.name.replace(/^(t\.[^.]+\.)\d+(\.)/, `$1${n}$2`);
-      if (el.tagName === "SELECT") el.selectedIndex = 0; else el.value = "";
-    });
-    tbody.appendChild(tr);
-    count.value = n + 1;
-    tr.querySelector("input,select")?.focus();
-  }));
 
   // ---- Körperschema ----
   const hidden = document.getElementById("stamps");
