@@ -5,20 +5,23 @@ import (
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
-	"crypto/subtle"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
+
+	"forge.gpl-nas.de/physiobase/internal/store"
 )
 
-// Sitzung = signiertes Cookie (Ablaufzeit + HMAC), kein Serverzustand.
-// Der Schlüssel enthält ein gespeichertes Geheimnis; Abmelden erneuert es und
-// macht damit alle bisherigen Cookies ungültig (z. B. verlorenes Tablet).
+// Sitzung = signiertes Cookie „uid.version.ablauf.mac“. Bei jeder Anfrage wird der
+// Benutzer geladen: deaktiviert oder andere Version (Abmelden, Passwortwechsel,
+// Deaktivieren) → Sitzung ungültig, und zwar auf allen Geräten.
 const (
 	sessionCookie       = "physiobase_session"
 	sessionTTL          = 30 * 24 * time.Hour
@@ -27,9 +30,19 @@ const (
 	maxLoginBody        = 4 << 10
 )
 
+type ctxKey struct{}
+
+// currentUser liefert den angemeldeten Benutzer (nur hinter requireAuth gesetzt).
+func currentUser(r *http.Request) (store.User, bool) {
+	u, ok := r.Context().Value(ctxKey{}).(store.User)
+	return u, ok
+}
+
 func randomHex(n int) string {
 	b := make([]byte, n)
-	rand.Read(b)
+	if _, err := rand.Read(b); err != nil {
+		panic(err)
+	}
 	return hex.EncodeToString(b)
 }
 
@@ -44,33 +57,30 @@ func (s *Server) loadSessionSecret(ctx context.Context) error {
 			return err
 		}
 	}
-	s.sessionSecret = secret
+	sum := sha256.Sum256([]byte("physiobase-session:" + secret))
+	s.sessionKey = sum[:]
 	return nil
 }
 
-func (s *Server) rotateSessionSecret(ctx context.Context) error {
-	secret := randomHex(32)
-	if err := s.st.SetSetting(ctx, "session_secret", secret); err != nil {
+// bootstrapAdmin: Gibt es noch keinen Benutzer, wird der Login aus der .env zum ersten Admin.
+func (s *Server) bootstrapAdmin(ctx context.Context) error {
+	n, err := s.st.CountUsers(ctx)
+	if err != nil || n > 0 {
 		return err
 	}
-	s.sessionMu.Lock()
-	s.sessionSecret = secret
-	s.sessionMu.Unlock()
+	if s.cfg.Username == "" || s.cfg.PasswordHash == "" {
+		return errors.New("keine Benutzer vorhanden: PHYSIOBASE_USERNAME und PHYSIOBASE_PASSWORD_HASH für den ersten Admin setzen")
+	}
+	if _, err := s.st.CreateUser(ctx, store.User{Username: s.cfg.Username, PasswordHash: s.cfg.PasswordHash, Role: "admin"}); err != nil {
+		return err
+	}
+	s.log.Info("erster admin angelegt", "benutzer", s.cfg.Username)
 	return nil
 }
 
-func (s *Server) sessionKey() []byte {
-	s.sessionMu.RLock()
-	secret := s.sessionSecret
-	s.sessionMu.RUnlock()
-	// Benutzername/Hash mit drin: Passwortwechsel beendet alle Sitzungen
-	sum := sha256.Sum256([]byte(s.cfg.Username + ":" + s.cfg.PasswordHash + ":" + secret))
-	return sum[:]
-}
-
-func (s *Server) sign(exp int64) string {
-	m := hmac.New(sha256.New, s.sessionKey())
-	m.Write([]byte(strconv.FormatInt(exp, 10)))
+func (s *Server) mac(uid, ver, exp int64) string {
+	m := hmac.New(sha256.New, s.sessionKey)
+	_, _ = fmt.Fprintf(m, "%d|%d|%d", uid, ver, exp) // Schreiben in einen Hash schlägt nie fehl
 	return hex.EncodeToString(m.Sum(nil))
 }
 
@@ -82,30 +92,58 @@ func (s *Server) setCookie(w http.ResponseWriter, value string, maxAge int) {
 	})
 }
 
-func (s *Server) hasSession(r *http.Request) bool {
+func (s *Server) startSession(w http.ResponseWriter, r *http.Request, u store.User) {
+	exp := time.Now().Add(sessionTTL).Unix()
+	s.setCookie(w, fmt.Sprintf("%d.%d.%d.%s", u.ID, u.SessionVersion, exp, s.mac(u.ID, u.SessionVersion, exp)), int(sessionTTL.Seconds()))
+	if err := s.st.TouchLogin(r.Context(), u.ID); err != nil {
+		s.log.Warn("letzte anmeldung", "err", err)
+	}
+	s.log.Info("anmeldung", "benutzer", u.Username)
+}
+
+// sessionUser prüft das Cookie und lädt den Benutzer.
+func (s *Server) sessionUser(r *http.Request) (store.User, bool) {
 	c, err := r.Cookie(sessionCookie)
 	if err != nil {
-		return false
+		return store.User{}, false
 	}
-	raw, mac, ok := strings.Cut(c.Value, "|")
-	if !ok {
-		return false
+	parts := strings.Split(c.Value, ".")
+	if len(parts) != 4 {
+		return store.User{}, false
 	}
-	exp, err := strconv.ParseInt(raw, 10, 64)
-	if err != nil || !hmac.Equal([]byte(mac), []byte(s.sign(exp))) {
-		return false
+	var n [3]int64
+	for i := range 3 {
+		if n[i], err = strconv.ParseInt(parts[i], 10, 64); err != nil {
+			return store.User{}, false
+		}
 	}
-	return time.Now().Unix() < exp
+	uid, ver, exp := n[0], n[1], n[2]
+	if time.Now().Unix() >= exp || !hmac.Equal([]byte(parts[3]), []byte(s.mac(uid, ver, exp))) {
+		return store.User{}, false
+	}
+	u, err := s.st.User(r.Context(), uid)
+	if err != nil || !u.Active || u.SessionVersion != ver {
+		return store.User{}, false
+	}
+	return u, true
 }
 
 func publicPath(p string) bool {
 	// /kalender/ ist der Abo-Feed für Kalender-Apps: geschützt durch den geheimen Token im Pfad.
-	return p == "/login" || p == "/healthz" || strings.HasPrefix(p, "/static/") || strings.HasPrefix(p, "/kalender/") || strings.HasPrefix(p, "/branding/")
+	// /einrichten/ sind Einmal-Links für neue Benutzer; /passkey/login/ die Passkey-Anmeldung.
+	// /passkey/registrieren/ prüft selbst: angemeldet ODER gültiger Einrichtungs-Link (neue Benutzer).
+	return p == "/login" || p == "/healthz" || strings.HasPrefix(p, "/static/") || strings.HasPrefix(p, "/kalender/") ||
+		strings.HasPrefix(p, "/branding/") || strings.HasPrefix(p, "/einrichten/") || strings.HasPrefix(p, "/passkey/login/") ||
+		strings.HasPrefix(p, "/passkey/registrieren/")
 }
 
 func (s *Server) requireAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if publicPath(r.URL.Path) || s.hasSession(r) {
+		if u, ok := s.sessionUser(r); ok {
+			next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ctxKey{}, u)))
+			return
+		}
+		if publicPath(r.URL.Path) {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -113,13 +151,30 @@ func (s *Server) requireAuth(next http.Handler) http.Handler {
 	})
 }
 
+// adminOnly: Nicht-Admins sehen 404 – die Verwaltung soll nicht auffallen.
+func (s *Server) adminOnly(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if u, ok := currentUser(r); !ok || !u.IsAdmin() {
+			http.NotFound(w, r)
+			return
+		}
+		h(w, r)
+	}
+}
+
 func (s *Server) loginForm(w http.ResponseWriter, r *http.Request) {
-	if s.hasSession(r) {
+	if _, ok := currentUser(r); ok {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 	s.render(w, r, "login", http.StatusOK, nil)
 }
+
+// Vergleichs-Hash für unbekannte Benutzernamen (gleiche Laufzeit wie ein echter Vergleich).
+var dummyHash = sync.OnceValue(func() []byte {
+	h, _ := bcrypt.GenerateFromPassword([]byte(randomHex(16)), 12)
+	return h
+})
 
 func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxLoginBody)
@@ -135,23 +190,26 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 		s.render(w, r, "login", http.StatusTooManyRequests, map[string]any{"Error": "Zu viele Anmeldeversuche, bitte gleich nochmal."})
 		return
 	}
-	// Passwort immer prüfen, auch bei falschem Benutzernamen (gleiche Laufzeit).
-	userOK := subtle.ConstantTimeCompare([]byte(r.PostFormValue("username")), []byte(s.cfg.Username)) == 1
-	passOK := bcrypt.CompareHashAndPassword([]byte(s.cfg.PasswordHash), []byte(r.PostFormValue("password"))) == nil
-	if !userOK || !passOK {
+	u, err := s.st.UserByName(r.Context(), r.PostFormValue("username"))
+	hash := dummyHash()
+	if err == nil && u.PasswordHash != "" {
+		hash = []byte(u.PasswordHash)
+	}
+	passOK := bcrypt.CompareHashAndPassword(hash, []byte(r.PostFormValue("password"))) == nil
+	if err != nil || !u.Active || u.PasswordHash == "" || !passOK {
 		s.log.Warn("fehlgeschlagene anmeldung", "remote", r.RemoteAddr)
 		time.Sleep(time.Second)
 		s.render(w, r, "login", http.StatusUnauthorized, map[string]any{"Error": "Benutzername oder Passwort falsch."})
 		return
 	}
-	exp := time.Now().Add(sessionTTL).Unix()
-	s.setCookie(w, fmt.Sprintf("%d|%s", exp, s.sign(exp)), int(sessionTTL.Seconds()))
+	s.startSession(w, r, u)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+// logout beendet alle Sitzungen dieses Benutzers (z. B. auch auf einem verlorenen Tablet).
 func (s *Server) logout(w http.ResponseWriter, r *http.Request) {
-	if s.hasSession(r) {
-		if err := s.rotateSessionSecret(r.Context()); err != nil {
+	if u, ok := currentUser(r); ok {
+		if err := s.st.EndSessions(r.Context(), u.ID); err != nil {
 			s.fail(w, r, err)
 			return
 		}
@@ -160,8 +218,21 @@ func (s *Server) logout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
-// HashPassword wird vom Unterbefehl "hash-password" benutzt.
+// HashPassword wird vom Unterbefehl "hash-password" und von der Benutzerverwaltung benutzt.
 func HashPassword(pw string) (string, error) {
 	h, err := bcrypt.GenerateFromPassword([]byte(pw), 12)
 	return string(h), err
+}
+
+func bcryptOK(hash, pw string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(pw)) == nil
+}
+
+const minPasswordLen = 10
+
+func checkPassword(pw string) error {
+	if len([]rune(pw)) < minPasswordLen {
+		return fmt.Errorf("das Passwort muss mindestens %d Zeichen haben", minPasswordLen)
+	}
+	return nil
 }

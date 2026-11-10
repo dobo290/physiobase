@@ -9,13 +9,13 @@
 <link rel="stylesheet" href="/static/style.css">
 <link rel="icon" href="{{.Logo}}">
 <script src="/static/befund.js" defer></script>
+<script src="/static/passkey.js" defer></script>
 </head>
 <body>
 <header class="container">
 <nav>
   <ul>
     <li><a href="/" class="brand"><img src="{{.Logo}}" alt="" class="brand-logo"><strong>{{.Practice}}</strong></a></li>
-    {{if ne .Path "/login"}}<li><a href="/einstellungen" class="settings-link" title="Einstellungen: Praxisname, Logo, Texte"{{if eq .Path "/einstellungen"}} aria-current="page"{{end}}>⚙</a></li>{{end}}
   </ul>
   {{if ne .Path "/login"}}
   <ul>
@@ -40,7 +40,7 @@
 </main>
 {{if ne .Path "/login"}}
 <footer class="container site-footer">
-  <form method="post" action="/logout" class="inline"><button type="submit" class="link">Abmelden</button></form>
+  {{with .Me}}<span class="muted">{{.Name}}</span> · <a href="/konto">Konto</a> · {{end}}<form method="post" action="/logout" class="inline"><button type="submit" class="link">Abmelden</button></form>
 </footer>
 {{end}}
 </body>

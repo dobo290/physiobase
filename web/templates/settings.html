@@ -1,5 +1,6 @@
 {{define "title"}}Einstellungen{{end}}
 {{define "content"}}
+<nav aria-label="breadcrumb"><ul><li><a href="/admin">Verwaltung</a></li><li>Einstellungen</li></ul></nav>
 <h2>Einstellungen</h2>
 {{if .Saved}}<p class="ok" role="status">Gespeichert.</p>{{end}}
 {{with .Error}}<p class="error" role="alert">{{.}}</p>{{end}}
@@ -10,16 +11,16 @@
     <img src="{{.LogoURL}}" alt="Aktuelles Logo" class="logo-preview">
     <div>
       <p class="muted">Erscheint oben in der App, auf allen Ausdrucken und als Symbol im Browser-Tab. SVG, PNG, WebP oder JPG, höchstens 2 MB. SVG bleibt in jeder Größe scharf.</p>
-      <form method="post" action="/einstellungen/logo" enctype="multipart/form-data" class="row">
+      <form method="post" action="/admin/einstellungen/logo" enctype="multipart/form-data" class="row">
         <input type="file" name="logo" accept=".svg,image/svg+xml,image/png,image/webp,image/jpeg" required aria-label="Logo-Datei">
         <button type="submit">Hochladen</button>
       </form>
-      {{if .CustomLogo}}<form method="post" action="/einstellungen/logo/loeschen" class="inline"><button type="submit" class="secondary outline small">Eigenes Logo entfernen</button></form>{{end}}
+      {{if .CustomLogo}}<form method="post" action="/admin/einstellungen/logo/loeschen" class="inline"><button type="submit" class="secondary outline small">Eigenes Logo entfernen</button></form>{{end}}
     </div>
   </div>
 </article>
 
-<form method="post" action="/einstellungen">
+<form method="post" action="/admin/einstellungen">
   <p class="muted placeholders">Platzhalter in den Texten: <code>{praxis}</code> Praxisname · <code>{adresse}</code> Adresse ·
     <code>{name}</code> Name des Patienten (E-Mail, Titel) · <code>{datum}</code> Datum (Titel der Behandlungszusammenfassung).
     Ein leeres Feld bedeutet: Standardtext verwenden.</p>

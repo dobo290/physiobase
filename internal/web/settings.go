@@ -96,40 +96,40 @@ func (s *Server) saveSettings(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
-	redirect(w, r, "/einstellungen?gespeichert=1")
+	redirect(w, r, "/admin/einstellungen?gespeichert=1")
 }
 
 func (s *Server) uploadLogo(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	r.Body = http.MaxBytesReader(w, r.Body, 3<<20)
 	if err := r.ParseMultipartForm(3 << 20); err != nil { //nolint:gosec // G120: per MaxBytesReader begrenzt
-		redirect(w, r, "/einstellungen?fehler=%s#logo", urlPathEscape("Datei zu groß (max. 2 MB)"))
+		redirect(w, r, "/admin/einstellungen?fehler=%s#logo", urlPathEscape("Datei zu groß (max. 2 MB)"))
 		return
 	}
 	defer func() { _ = r.MultipartForm.RemoveAll() }()
 	f, fh, err := r.FormFile("logo")
 	if err != nil {
-		redirect(w, r, "/einstellungen?fehler=%s#logo", urlPathEscape("Keine Datei ausgewählt"))
+		redirect(w, r, "/admin/einstellungen?fehler=%s#logo", urlPathEscape("Keine Datei ausgewählt"))
 		return
 	}
 	defer func() { _ = f.Close() }()
 	ext := extOf(fh.Filename)
 	if _, ok := logoExt[ext]; !ok {
-		redirect(w, r, "/einstellungen?fehler=%s#logo", urlPathEscape("Erlaubt sind SVG, PNG, WebP und JPG"))
+		redirect(w, r, "/admin/einstellungen?fehler=%s#logo", urlPathEscape("Erlaubt sind SVG, PNG, WebP und JPG"))
 		return
 	}
 	b, err := io.ReadAll(io.LimitReader(f, 2<<20+1))
 	if err != nil || len(b) > 2<<20 {
-		redirect(w, r, "/einstellungen?fehler=%s#logo", urlPathEscape("Datei zu groß (max. 2 MB)"))
+		redirect(w, r, "/admin/einstellungen?fehler=%s#logo", urlPathEscape("Datei zu groß (max. 2 MB)"))
 		return
 	}
 	if ext == ".svg" {
 		if err := checkSVG(b); err != nil {
-			redirect(w, r, "/einstellungen?fehler=%s#logo", urlPathEscape(err.Error()))
+			redirect(w, r, "/admin/einstellungen?fehler=%s#logo", urlPathEscape(err.Error()))
 			return
 		}
 	} else if ct := http.DetectContentType(b); !strings.HasPrefix(ct, "image/") {
-		redirect(w, r, "/einstellungen?fehler=%s#logo", urlPathEscape("Die Datei ist kein Bild"))
+		redirect(w, r, "/admin/einstellungen?fehler=%s#logo", urlPathEscape("Die Datei ist kein Bild"))
 		return
 	}
 	if err := os.MkdirAll(s.brandingDir(), 0o750); err != nil {
@@ -153,7 +153,7 @@ func (s *Server) uploadLogo(w http.ResponseWriter, r *http.Request) {
 	if old != "" {
 		os.Remove(filepath.Join(s.brandingDir(), old)) //nolint:gosec // G703: Name aus der Datenbank
 	}
-	redirect(w, r, "/einstellungen?gespeichert=1#logo")
+	redirect(w, r, "/admin/einstellungen?gespeichert=1#logo")
 }
 
 func (s *Server) deleteLogo(w http.ResponseWriter, r *http.Request) {
@@ -170,5 +170,5 @@ func (s *Server) deleteLogo(w http.ResponseWriter, r *http.Request) {
 	if old != "" {
 		os.Remove(filepath.Join(s.brandingDir(), old)) //nolint:gosec // G703: Name aus der Datenbank
 	}
-	redirect(w, r, "/einstellungen?gespeichert=1#logo")
+	redirect(w, r, "/admin/einstellungen?gespeichert=1#logo")
 }

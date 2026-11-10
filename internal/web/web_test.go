@@ -52,6 +52,26 @@ func newServerCfg(t *testing.T, mod func(*config.Config)) (*httptest.Server, *ht
 	return ts, c
 }
 
+// newClient: neuer Client mit eigenem Cookie-Speicher (zweiter Benutzer im selben Test).
+func newClient(t *testing.T) (struct{}, *http.Client) {
+	t.Helper()
+	return struct{}{}, newClientOnly()
+}
+
+func newClientOnly() *http.Client {
+	jar, _ := cookiejar.New(nil)
+	return &http.Client{Jar: jar, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+}
+
+func readBody(r *http.Response) string {
+	if r == nil || r.Body == nil {
+		return ""
+	}
+	defer r.Body.Close()
+	b, _ := io.ReadAll(r.Body)
+	return string(b)
+}
+
 func post(c *http.Client, u string, v url.Values) (*http.Response, error) {
 	req, _ := http.NewRequest(http.MethodPost, u, strings.NewReader(v.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")

@@ -5,8 +5,8 @@ import "testing"
 func TestLoadRequiresCredentials(t *testing.T) {
 	t.Setenv("PHYSIOBASE_USERNAME", "")
 	t.Setenv("PHYSIOBASE_PASSWORD_HASH", "")
-	if _, err := Load(); err == nil {
-		t.Fatal("Start ohne Zugangsdaten darf nicht gehen")
+	if _, err := Load(); err != nil {
+		t.Fatalf("ohne Zugangsdaten muss die Konfiguration laden (Benutzer liegen in der DB): %v", err)
 	}
 	t.Setenv("PHYSIOBASE_USERNAME", "admin")
 	t.Setenv("PHYSIOBASE_PASSWORD_HASH", "klartext")

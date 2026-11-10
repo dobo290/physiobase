@@ -1,0 +1,12 @@
+{{define "title"}}Verwaltung{{end}}
+{{define "content"}}
+<h2>Verwaltung</h2>
+<p class="muted">Nur für Admins. Diese Seite ist absichtlich nirgends verlinkt – Adresse merken: <code>/admin</code></p>
+<div class="cards">
+  <a class="card" href="/admin/benutzer"><strong>Benutzer &amp; Passkeys</strong>
+    <span class="summary">{{len .Users}} Benutzer · anlegen, Rollen, Passwörter, Einrichtungs-Links, Passkeys</span></a>
+  <a class="card" href="/admin/einstellungen"><strong>Einstellungen</strong>
+    <span class="summary">Praxisname, Logo, alle Texte auf Ausdrucken und in E-Mails, Termin-Vorgaben</span></a>
+</div>
+{{if not .Passkeys}}<p class="error">Passkeys sind aus, weil keine HTTPS-Adresse eingestellt ist (PHYSIOBASE_BASE_URL).</p>{{end}}
+{{end}}

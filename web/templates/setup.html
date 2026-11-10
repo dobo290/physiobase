@@ -1,0 +1,29 @@
+{{define "title"}}Konto einrichten{{end}}
+{{define "content"}}
+<article class="narrow">
+  {{if .Invalid}}
+    <h2>Link ungültig</h2>
+    <p>Dieser Einrichtungs-Link ist abgelaufen oder wurde schon benutzt. Bitte um einen neuen Link.</p>
+  {{else}}
+    <h2>Willkommen, {{.U.Name}}</h2>
+    <p>Richte deinen Zugang ein. Der Link funktioniert einmal und gilt 24 Stunden.</p>
+    {{with .Error}}<p class="error" role="alert">{{.}}</p>{{end}}
+    {{if .PasskeysOn}}
+    <div class="js-only setup-passkey">
+      <h3>Mit Passkey (empfohlen)</h3>
+      <p class="muted">Anmeldung per Fingerabdruck, Gesicht oder Geräte-PIN – ohne Passwort.</p>
+      <input data-passkey-name placeholder="Name, z. B. iPhone" aria-label="Name des Passkeys">
+      <button type="button" data-passkey-register data-token="{{.Token}}">🔑 Passkey auf diesem Gerät anlegen</button>
+      <p data-passkey-msg hidden></p>
+    </div>
+    {{end}}
+    <h3>{{if .PasskeysOn}}Oder mit Passwort{{else}}Passwort festlegen{{end}}</h3>
+    <form method="post" action="/einrichten/{{.Token}}/passwort">
+      <label>Benutzername <input value="{{.U.Username}}" readonly autocomplete="username"></label>
+      <label>Passwort <input type="password" name="password" minlength="10" required autocomplete="new-password"></label>
+      <label>Wiederholen <input type="password" name="password2" minlength="10" required autocomplete="new-password"></label>
+      <button type="submit" class="secondary">Passwort speichern</button>
+    </form>
+  {{end}}
+</article>
+{{end}}

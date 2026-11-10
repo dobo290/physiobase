@@ -16,6 +16,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 
@@ -31,9 +32,10 @@ type Server struct {
 	log   *slog.Logger
 	pages map[string]*template.Template
 
-	sessionMu     sync.RWMutex
-	sessionSecret string
-	loginSem      chan struct{}
+	sessionKey []byte
+	loginSem   chan struct{}
+	wa         *webauthn.WebAuthn // nil = Passkeys aus (keine HTTPS-Adresse)
+	pk         passkeyState
 
 	textMu sync.RWMutex
 	texts  map[string]string // eigene Texte (nur Abweichungen vom Standard)
@@ -48,7 +50,19 @@ func New(ctx context.Context, cfg *config.Config, st *store.Store, log *slog.Log
 	if err := s.loadBranding(ctx); err != nil {
 		return nil, err
 	}
-	for _, p := range []string{"index", "entry", "edit", "handouts", "handout", "login", "patients", "patient", "befund", "compare", "summary", "appointments", "appointment", "settings"} {
+	if err := s.bootstrapAdmin(ctx); err != nil {
+		return nil, err
+	}
+	s.pk.open = map[string]ceremony{}
+	wa, err := newWebAuthn(cfg.BaseURL, s.practice())
+	if err != nil {
+		return nil, fmt.Errorf("passkeys: %w", err)
+	}
+	s.wa = wa
+	for _, p := range []string{
+		"index", "entry", "edit", "handouts", "handout", "login", "patients", "patient", "befund", "compare", "summary", "appointments", "appointment", "settings",
+		"admin", "admin_users", "admin_user", "account", "setup",
+	} {
 		t, err := template.New("").Funcs(funcs).ParseFS(physiobase.TemplatesFS, "web/templates/layout.html", "web/templates/partials.html", "web/templates/"+p+".html")
 		if err != nil {
 			return nil, fmt.Errorf("template %s: %w", p, err)
@@ -141,10 +155,31 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /patient/{id}/termine/druck", s.printAppointments)
 	mux.HandleFunc("GET /kalender/{file}", s.calendarFeed)
 
-	mux.HandleFunc("GET /einstellungen", s.settingsPage)
-	mux.HandleFunc("POST /einstellungen", s.saveSettings)
-	mux.HandleFunc("POST /einstellungen/logo", s.uploadLogo)
-	mux.HandleFunc("POST /einstellungen/logo/loeschen", s.deleteLogo)
+	// Verwaltung: nur über /admin erreichbar (kein Knopf in der App), nur für Admins – sonst 404
+	mux.HandleFunc("GET /admin", s.adminOnly(s.adminHome))
+	mux.HandleFunc("GET /admin/einstellungen", s.adminOnly(s.settingsPage))
+	mux.HandleFunc("POST /admin/einstellungen", s.adminOnly(s.saveSettings))
+	mux.HandleFunc("POST /admin/einstellungen/logo", s.adminOnly(s.uploadLogo))
+	mux.HandleFunc("POST /admin/einstellungen/logo/loeschen", s.adminOnly(s.deleteLogo))
+	mux.HandleFunc("GET /admin/benutzer", s.adminOnly(s.adminUsers))
+	mux.HandleFunc("POST /admin/benutzer", s.adminOnly(s.adminCreateUser))
+	mux.HandleFunc("GET /admin/benutzer/{id}", s.adminOnly(s.adminUser))
+	mux.HandleFunc("POST /admin/benutzer/{id}", s.adminOnly(s.adminUpdateUser))
+	mux.HandleFunc("POST /admin/benutzer/{id}/passwort", s.adminOnly(s.adminSetPassword))
+	mux.HandleFunc("POST /admin/benutzer/{id}/link", s.adminOnly(s.adminSetupLink))
+	mux.HandleFunc("POST /admin/benutzer/{id}/abmelden", s.adminOnly(s.adminEndSessions))
+	mux.HandleFunc("POST /admin/benutzer/{id}/loeschen", s.adminOnly(s.adminDeleteUser))
+	mux.HandleFunc("POST /admin/passkey/{pid}/loeschen", s.adminOnly(s.adminDeletePasskey))
+
+	mux.HandleFunc("GET /konto", s.account)
+	mux.HandleFunc("POST /konto/passwort", s.accountPassword)
+	mux.HandleFunc("POST /konto/passkey/{pid}/loeschen", s.accountDeletePasskey)
+	mux.HandleFunc("GET /einrichten/{token}", s.setupPage)
+	mux.HandleFunc("POST /einrichten/{token}/passwort", s.setupPassword)
+	mux.HandleFunc("POST /passkey/registrieren/start", s.passkeyRegisterBegin)
+	mux.HandleFunc("POST /passkey/registrieren/fertig", s.passkeyRegisterFinish)
+	mux.HandleFunc("POST /passkey/login/start", s.passkeyLoginBegin)
+	mux.HandleFunc("POST /passkey/login/fertig", s.passkeyLoginFinish)
 	mux.HandleFunc("GET /branding/{file}", s.serveBranding)
 	mux.HandleFunc("GET /befund/{id}", s.showBefund)
 	mux.HandleFunc("POST /befund/{id}", s.saveBefund)
@@ -276,6 +311,10 @@ func (s *Server) render(w http.ResponseWriter, r *http.Request, page string, sta
 		data = map[string]any{}
 	}
 	data["Practice"] = s.practice()
+	if u, ok := currentUser(r); ok {
+		data["Me"] = u
+	}
+	data["PasskeyLogin"] = s.wa != nil
 	data["Logo"] = s.logoURL()
 	data["Contact"] = s.text("practice_contact")
 	data["T"] = s.textMap()

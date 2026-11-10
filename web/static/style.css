@@ -263,3 +263,11 @@ label.consent input { flex: 0 0 auto; margin-top: .2rem; }
 .appt-bulk-actions { align-items: center; margin-top: .3rem; }
 .small-label { font-size: .85em; display: flex; gap: .4rem; align-items: center; flex: 1 1 14rem; }
 .small-label input { margin: 0; }
+
+/* ---------- Benutzer, Passkeys ---------- */
+.passkeys { padding-left: 0; }
+.passkeys li { list-style: none; margin: .35rem 0; }
+tr.inactive td { opacity: .55; }
+.setup-link { border-left: 4px solid var(--pico-ins-color); }
+.passkey-login { text-align: center; margin-top: 1rem; }
+.passkey-login button { width: 100%; }

@@ -1,0 +1,37 @@
+{{define "title"}}Konto{{end}}
+{{define "content"}}
+{{$u := .U}}
+<h2>Mein Konto <small class="muted">@{{$u.Username}}</small></h2>
+{{if .Saved}}<p class="ok" role="status">Gespeichert.</p>{{end}}
+{{with .Error}}<p class="error" role="alert">{{.}}</p>{{end}}
+
+<article id="passkeys">
+  <h3>Passkeys</h3>
+  {{if .PK}}
+  <ul class="passkeys">{{range .PK}}
+    <li><strong>{{if .Name}}{{.Name}}{{else}}Passkey{{end}}</strong> <small class="muted">angelegt {{date .Created}} · zuletzt benutzt {{if .LastUsed.IsZero}}nie{{else}}{{date .LastUsed}}{{end}}</small>
+      <form method="post" action="/konto/passkey/{{.ID}}/loeschen" class="inline"><button type="submit" class="link" title="Passkey löschen">✕</button></form></li>
+  {{end}}</ul>
+  {{else}}<p class="muted">Noch keine Passkeys. Mit einem Passkey meldest du dich per Fingerabdruck, Gesicht oder Geräte-PIN an – ohne Passwort.</p>{{end}}
+  {{if .PasskeysOn}}
+  <div class="row js-only">
+    <input data-passkey-name placeholder="Name, z. B. iPhone oder Laptop" aria-label="Name des Passkeys">
+    <button type="button" data-passkey-register>🔑 Passkey auf diesem Gerät anlegen</button>
+  </div>
+  <p data-passkey-msg hidden></p>
+  {{else}}<p class="muted">Passkeys gehen nur über die HTTPS-Adresse der Praxis.</p>{{end}}
+</article>
+
+<article>
+  <h3>{{if $u.PasswordHash}}Passwort ändern{{else}}Passwort festlegen{{end}}</h3>
+  <form method="post" action="/konto/passwort">
+    {{if $u.PasswordHash}}<label>Aktuelles Passwort <input type="password" name="current" required autocomplete="current-password"></label>{{end}}
+    <div class="grid">
+      <label>Neues Passwort <input type="password" name="password" minlength="10" required autocomplete="new-password"></label>
+      <label>Wiederholen <input type="password" name="password2" minlength="10" required autocomplete="new-password"></label>
+    </div>
+    <button type="submit" class="secondary">Speichern</button>
+    <small class="muted">Meldet dich auf allen anderen Geräten ab.</small>
+  </form>
+</article>
+{{end}}

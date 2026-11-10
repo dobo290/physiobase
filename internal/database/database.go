@@ -265,6 +265,41 @@ CREATE INDEX idx_appointments_start ON appointments(starts_at);
 ALTER TABLE patients ADD COLUMN cal_token TEXT;
 CREATE UNIQUE INDEX idx_patients_cal_token ON patients(cal_token) WHERE cal_token IS NOT NULL;
 `},
+	{7, `
+-- Benutzer (vorher: ein einziger Login aus der .env – der wird beim ersten Start zum Admin)
+CREATE TABLE users (
+    id              INTEGER PRIMARY KEY,
+    username        TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    display_name    TEXT NOT NULL DEFAULT '',
+    password_hash   TEXT NOT NULL DEFAULT '',          -- leer = nur Passkey
+    role            TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'user')),
+    active          INTEGER NOT NULL DEFAULT 1,
+    session_version INTEGER NOT NULL DEFAULT 1,        -- erhöhen = alle Sitzungen dieses Benutzers beenden
+    webauthn_id     BLOB NOT NULL,                     -- zufällige Kennung für Passkeys (kein Name, keine ID)
+    created_at      INTEGER NOT NULL DEFAULT (unixepoch()),
+    last_login_at   INTEGER
+);
+
+-- Passkeys (WebAuthn): data = gespeicherte Credential-Struktur (öffentlicher Schlüssel, Zähler …)
+CREATE TABLE passkeys (
+    id            INTEGER PRIMARY KEY,
+    user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    credential_id BLOB NOT NULL UNIQUE,
+    data          TEXT NOT NULL,
+    name          TEXT NOT NULL DEFAULT '',
+    created_at    INTEGER NOT NULL DEFAULT (unixepoch()),
+    last_used_at  INTEGER
+);
+CREATE INDEX idx_passkeys_user ON passkeys(user_id);
+
+-- Einmal-Links zum Einrichten (Passkey/Passwort) – gespeichert wird nur der Hash
+CREATE TABLE setup_tokens (
+    token_hash TEXT PRIMARY KEY,
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expires_at INTEGER NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch())
+);
+`},
 }
 
 func migrate(db *sql.DB) error {

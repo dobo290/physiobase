@@ -8,5 +8,12 @@
     <label>Passwort <input name="password" type="password" autocomplete="current-password" required></label>
     <button type="submit">Anmelden</button>
   </form>
+  {{if .PasskeyLogin}}
+  <div class="js-only passkey-login">
+    <p class="muted">oder</p>
+    <button type="button" class="secondary" data-passkey-login>🔑 Mit Passkey anmelden</button>
+    <p class="error" data-passkey-msg hidden></p>
+  </div>
+  {{end}}
 </article>
 {{end}}

@@ -18,7 +18,7 @@ func uploadLogo(t *testing.T, c *http.Client, base, name, content string) string
 	fw, _ := w.CreateFormFile("logo", name)
 	io.WriteString(fw, content)
 	w.Close()
-	req, _ := http.NewRequest(http.MethodPost, base+"/einstellungen/logo", &buf)
+	req, _ := http.NewRequest(http.MethodPost, base+"/admin/einstellungen/logo", &buf)
 	req.Header.Set("Content-Type", w.FormDataContentType())
 	req.Header.Set("Sec-Fetch-Site", "same-origin")
 	r, err := c.Do(req)
@@ -33,11 +33,11 @@ func TestSettingsTextsAndLogo(t *testing.T) {
 	ts, c := newServer(t)
 	login(t, c, ts.URL)
 
-	if code, html := body(t, c, ts.URL+"/einstellungen"); code != http.StatusOK || !strings.Contains(html, "Terminliste – Hinweis unten") {
+	if code, html := body(t, c, ts.URL+"/admin/einstellungen"); code != http.StatusOK || !strings.Contains(html, "Terminliste – Hinweis unten") {
 		t.Fatalf("Einstellungsseite: %d", code)
 	}
 	// Praxisname und eigener Hinweistext mit Platzhalter
-	post(c, ts.URL+"/einstellungen", url.Values{
+	post(c, ts.URL+"/admin/einstellungen", url.Values{
 		"t.practice_name":             {"Praxis Sonnenschein"},
 		"t.print_appointments_footer": {"Absagen bitte 48 h vorher – {praxis}"},
 		"t.appt_default_time":         {"kaputt"},
@@ -52,11 +52,11 @@ func TestSettingsTextsAndLogo(t *testing.T) {
 		t.Error("eigener Hinweis nicht auf der Terminliste")
 	}
 	// ungültige Uhrzeit → Standard bleibt
-	if _, set := body(t, c, ts.URL+"/einstellungen"); !strings.Contains(set, `value="08:00"`) {
+	if _, set := body(t, c, ts.URL+"/admin/einstellungen"); !strings.Contains(set, `value="08:00"`) {
 		t.Error("ungültige Standard-Uhrzeit übernommen")
 	}
 	// Standard wiederherstellen
-	post(c, ts.URL+"/einstellungen", url.Values{"t.print_appointments_footer": {"egal"}, "reset.print_appointments_footer": {"1"}})
+	post(c, ts.URL+"/admin/einstellungen", url.Values{"t.print_appointments_footer": {"egal"}, "reset.print_appointments_footer": {"1"}})
 	if _, pr := body(t, c, ts.URL+"/patient/1/termine/druck"); !strings.Contains(pr, "mindestens 24 Stunden vorher") {
 		t.Error("Standardtext nicht wiederhergestellt")
 	}

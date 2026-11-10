@@ -99,10 +99,8 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("PHYSIOBASE_LOG_FORMAT muss text oder json sein, nicht %q", f)
 	}
 
-	if c.Username == "" || c.PasswordHash == "" {
-		return nil, errors.New("PHYSIOBASE_USERNAME und PHYSIOBASE_PASSWORD_HASH sind Pflicht (Hash erzeugen: physiobase hash-password)")
-	}
-	if !strings.HasPrefix(c.PasswordHash, "$2") {
+	// Benutzer liegen in der Datenbank. USERNAME/PASSWORD_HASH legen beim ersten Start den ersten Admin an.
+	if c.PasswordHash != "" && !strings.HasPrefix(c.PasswordHash, "$2") {
 		return nil, errors.New("PHYSIOBASE_PASSWORD_HASH ist kein bcrypt-Hash")
 	}
 	return c, nil

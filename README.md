@@ -51,7 +51,16 @@ conveniences; everything else works without it.
   for the patient. Several appointments are entered in one go: each new row
   copies the previous one, one week later. Calendar subscription per patient
   (secret link and QR code), printable appointment list, practice overview.
-- **Settings page** (⚙): practice name, address, contact and logo (SVG, PNG,
+- **Users and passkeys**: several users with the roles admin and user. Sign in
+  with a password or a passkey (fingerprint, face or device PIN, no username
+  needed). New users get a one-time setup link (24 hours) and create their own
+  passkey or password on their own device. Deactivating a user, changing a
+  password or logging out ends that user's sessions on every device. The last
+  active admin cannot be removed.
+- **Administration under `/admin`** (deliberately not linked in the app, admins
+  only, everyone else gets 404): user management including other users'
+  passkeys, and the settings below.
+- **Settings page** (`/admin/einstellungen`): practice name, address, contact and logo (SVG, PNG,
   WebP or JPG) replace "PhysioBase" in the header, on printouts, in emails and
   in the patients' calendar. Every text patients see – notes on printouts,
   email greeting and closing, summary building blocks, appointment types and
@@ -117,8 +126,8 @@ are embedded in the binary.
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `PHYSIOBASE_USERNAME` | — | **Required.** Login user |
-| `PHYSIOBASE_PASSWORD_HASH` | — | **Required.** bcrypt hash of the password |
+| `PHYSIOBASE_USERNAME` | — | First admin, created on first start when no users exist |
+| `PHYSIOBASE_PASSWORD_HASH` | — | bcrypt hash of that admin's password (first start only) |
 | `PHYSIOBASE_PORT` | `8080` | Listen port |
 | `PHYSIOBASE_DATA_DIR` | `./data` | Root for everything below |
 | `PHYSIOBASE_DB_PATH` | `<data>/physiobase.db` | SQLite database |
@@ -140,14 +149,18 @@ are embedded in the binary.
 | `PHYSIOBASE_LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error` |
 | `PHYSIOBASE_LOG_FORMAT` | `text` | `text` or `json`; logs go to stderr |
 
-The server refuses to start without a username and password hash. There is no
-mode without login.
+Users live in the database. On first start, `PHYSIOBASE_USERNAME` and
+`PHYSIOBASE_PASSWORD_HASH` create the first admin; without them and without
+users, the server refuses to start. There is no mode without login.
+Passkeys need `PHYSIOBASE_BASE_URL` set to the `https://` address of the app.
 
 ## Security
 
-- Sessions are signed cookies (expiry plus HMAC). Logging out rotates the
-  signing secret, which ends every session on every device. Changing the
-  password does the same.
+- Sessions are signed cookies (user, session version, expiry, HMAC), checked
+  against the database on every request. Logging out, changing the password or
+  deactivating a user ends that user's sessions everywhere.
+- Passkeys use WebAuthn via go-webauthn with discoverable credentials. Setup
+  links are random, stored only as a hash, valid 24 hours and usable once.
 - Logins are rate limited: at most two bcrypt checks run at once, and each
   failed attempt waits a second.
 - Strict Content Security Policy: no inline scripts or styles, and

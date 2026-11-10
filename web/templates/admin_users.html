@@ -1,0 +1,33 @@
+{{define "title"}}Benutzer{{end}}
+{{define "content"}}
+<nav aria-label="breadcrumb"><ul><li><a href="/admin">Verwaltung</a></li><li>Benutzer</li></ul></nav>
+<h2>Benutzer</h2>
+{{if .Saved}}<p class="ok" role="status">Gespeichert.</p>{{end}}
+{{with .Error}}<p class="error" role="alert">{{.}}</p>{{end}}
+<div class="tablewrap"><table class="list">
+  <thead><tr><th>Benutzer</th><th>Rolle</th><th>Passkeys</th><th>Passwort</th><th class="hide-sm">Letzte Anmeldung</th></tr></thead>
+  <tbody>{{range .Users}}
+    <tr{{if not .Active}} class="inactive"{{end}}>
+      <td><a href="/admin/benutzer/{{.ID}}"><strong>{{.Username}}</strong></a>{{with .DisplayName}} <small class="muted">{{.}}</small>{{end}}{{if not .Active}} <small class="muted">(deaktiviert)</small>{{end}}</td>
+      <td>{{if .IsAdmin}}Admin{{else}}Benutzer{{end}}</td>
+      <td>{{.Passkeys}}</td>
+      <td>{{if .PasswordHash}}✓{{else}}—{{end}}</td>
+      <td class="hide-sm">{{if .LastLogin.IsZero}}nie{{else}}{{date .LastLogin}}{{end}}</td>
+    </tr>{{end}}
+  </tbody>
+</table></div>
+
+<article>
+  <h3>Neuer Benutzer</h3>
+  <form method="post" action="/admin/benutzer">
+    <div class="grid">
+      <label>Benutzername <input name="username" required pattern="[A-Za-z0-9._\-]{2,40}" autocomplete="off" placeholder="z. B. anna"></label>
+      <label>Anzeigename <input name="display_name" placeholder="z. B. Anna Schmidt"></label>
+      <label>Rolle <select name="role"><option value="user">Benutzer</option><option value="admin">Admin</option></select></label>
+    </div>
+    <label>Startpasswort (optional) <input type="password" name="password" minlength="10" autocomplete="new-password"></label>
+    <small class="muted">Leer lassen empfohlen: Dann entsteht ein Einrichtungs-Link (24 h gültig, einmalig). Die Person öffnet ihn auf ihrem eigenen Gerät und legt dort Passkey oder Passwort selbst fest.</small>
+    <button type="submit">Anlegen</button>
+  </form>
+</article>
+{{end}}
