@@ -95,7 +95,7 @@ var (
 	// Vorschläge für Instrumente (nur Namen; Werte trägt man selbst ein)
 	Measures = []string{
 		"NRS Schmerz", "PSFS (Mittelwert)", "ODI", "RMDQ", "NDI", "KOOS", "HOOS", "LEFS", "QuickDASH", "SPADI",
-		"VISA-A", "VISA-P", "FAAM", "TSK", "PCS", "STarT Back", "Örebro (Kurzform)", "EQ-5D",
+		"FAAM", "TSK", "PCS", "STarT Back", "Örebro (Kurzform)", "EQ-5D",
 		"TUG", "30s Chair Stand", "5x Sit-to-Stand", "6MWT", "10m Gehtest", "BBS", "Tinetti", "Einbeinstand",
 		"Handkraft (Dynamometer)", "Y-Balance", "Single Leg Hop", "Borg (RPE)",
 	}
