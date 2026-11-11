@@ -28,11 +28,12 @@ type Data struct {
 	Fields map[string]string `json:"fields"`
 	Tables map[string][]Row  `json:"tables"`
 	Stamps []Stamp           `json:"stamps"`
+	Draw   []Drawing         `json:"draw,omitempty"` // Freihandzeichnungen
 	Q      map[string]QFill  `json:"q,omitempty"`
 }
 
 func New() Data {
-	return Data{Fields: map[string]string{}, Tables: map[string][]Row{}, Q: map[string]QFill{}}
+	return Data{Fields: map[string]string{}, Tables: map[string][]Row{}, Q: map[string]QFill{}, Draw: []Drawing{}}
 }
 
 func Parse(raw string) (Data, error) {
@@ -51,6 +52,9 @@ func Parse(raw string) (Data, error) {
 	}
 	if d.Q == nil {
 		d.Q = map[string]QFill{}
+	}
+	if d.Draw == nil {
+		d.Draw = []Drawing{}
 	}
 	return d, nil
 }
@@ -125,6 +129,10 @@ func FromForm(form url.Values) Data {
 	var stamps []Stamp
 	if json.Unmarshal([]byte(form.Get("stamps")), &stamps) == nil {
 		d.Stamps = CleanStamps(stamps)
+	}
+	// Freihandzeichnungen (wie Stempel, aus einem versteckten Feld)
+	if json.Unmarshal([]byte(form.Get("drawings")), &d.Draw) == nil {
+		d.Draw = CleanDrawings(d.Draw)
 	}
 	// Fragebögen: übernommen wird, wer eine Antwort oder eine Anmerkung hat.
 	for _, id := range strings.Split(form.Get("q.list"), ",") {

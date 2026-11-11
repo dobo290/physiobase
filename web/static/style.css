@@ -124,7 +124,14 @@ table.etable th { font-size: .82em; padding: .3rem; }
 .savebar button { width: auto; margin: 0; }
 
 /* Körperschema */
-.body-tools { flex-wrap: wrap; gap: .35rem; align-items: center; margin-bottom: .6rem; }
+.body-tools { flex-wrap: wrap; gap: .4rem; align-items: center; margin-bottom: .7rem; }
+.body-tools .mode-switch { display: inline-flex; gap: .2rem; }
+.body-tools .mode { margin: 0; padding: .25rem .6rem; font-size: .85em; background: transparent; color: var(--pico-color); border: 1px solid var(--pico-muted-border-color); border-radius: .3rem 0 0 .3rem; }
+.body-tools .mode:last-of-type { border-radius: 0 .3rem .3rem 0; }
+.body-tools .mode.active { background: var(--pico-primary); color: var(--pico-primary-inverse); border-color: var(--pico-primary); }
+.body-tools .tool-sep { border-left: 1px solid var(--pico-muted-border-color); height: 1.6rem; margin: 0 .2rem; }
+.body-tools .arrow { font-size: 1.4rem; line-height: 1; width: 2.4rem; height: 2.4rem; padding: 0; margin: 0; background: transparent; color: var(--pico-color); border: 1px solid var(--pico-muted-border-color); border-radius: .3rem; }
+.body-tools .arrow:disabled { opacity: .4; pointer-events: none; }
 .body-tools .sym { width: auto; min-width: 2.6rem; padding: .25rem .5rem; margin: 0; background: transparent;
                    color: var(--pico-h2-color); border: 1px solid var(--pico-muted-border-color); font-size: 1.05rem; }
 .body-tools .sym.active { color: var(--pico-h1-color); }
@@ -133,12 +140,12 @@ table.etable th { font-size: .82em; padding: .3rem; }
 .body-tools select { width: auto; margin: 0; padding: .3rem 2rem .3rem .6rem; }
 .body-tools button { margin: 0; width: auto; }
 /* Körperschema: hochformatige Vorlagen → Höhe steuert die Größe, Breite folgt dem Seitenverhältnis */
-.bodies { display: flex; gap: 1.2rem; flex-wrap: wrap; align-items: flex-start; justify-content: center; }
+.bodies { display: flex; gap: 1.8rem; flex-wrap: wrap; align-items: flex-start; justify-content: space-evenly; }
 .body { margin: 0; height: 23rem; display: inline-flex; flex-direction: column; align-items: center; text-align: center; }
 .body-canvas { position: relative; height: 100%; background: #fff; border-radius: .4rem; }
 .body-canvas img { display: block; height: 100%; width: auto; max-width: 100%; }
-.body-canvas svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; cursor: crosshair; touch-action: manipulation; }
-.body figcaption { font-size: .8em; }
+.body-canvas svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; cursor: crosshair; touch-action: none; }
+/* Beschriftung unter den Körperschemata bewusst entfernt (überlappte den Text darunter) */
 .legend { font-size: .82em; color: var(--pico-muted-color); display: flex; flex-wrap: wrap; gap: .3rem 1rem; margin-top: .4rem; }
 
 /* ---------- Smartphone ---------- */
@@ -304,3 +311,4 @@ tr.inactive td { opacity: .55; }
 .demo-consent button { width: auto; margin: 0; }
 .demo-box { border: 1px solid var(--pico-primary-border); background: var(--pico-primary-focus); padding: .8rem 1.2rem; border-radius: var(--pico-border-radius); margin-bottom: 1rem; }
 .demo-box h2 { margin-bottom: .3rem; }
+.fld.dep-hidden { display: none !important; }

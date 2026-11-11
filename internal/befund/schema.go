@@ -10,7 +10,9 @@ type Field struct {
 	Type                    string // "text" (Standard), "area", "select", "check", "nrs" (0–10)
 	Rows                    int
 	Options                 []string
-	Wide                    bool // volle Breite im Raster
+	Wide                    bool   // volle Breite im Raster
+	DependsOn               string // Feld-Schlüssel, von dem dieses Feld abhängt
+	DependsValue            string // Wert, bei dem es sichtbar ist
 }
 
 type Col struct {
@@ -143,7 +145,12 @@ var Sections = []Section{
 			nrs("pain_worst", "NRS schlimmste 24 h"),
 			{
 				Key: "pain_type", Label: "Dominanter Schmerzmechanismus", Type: "select",
-				Options: []string{"", "nozizeptiv", "neuropathisch", "noziplastisch", "gemischt", "unklar"},
+				Options: []string{"", "nozizeptiv", "neurogen", "zentral generiert"},
+			},
+			{
+				Key: "pain_nozi", Label: "Nozizeptiver Subtyp", Type: "select",
+				Options:   []string{"", "mechanisch", "hypoxisch", "entzündlich"},
+				DependsOn: "pain_type", DependsValue: "nozizeptiv",
 			},
 		}},
 		{Fields: []Field{

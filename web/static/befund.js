@@ -55,11 +55,26 @@
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); dirty = false; form.requestSubmit(); }
   });
 
-  // ---- Körperschema ----
-  const hidden = document.getElementById("stamps");
-  if (!hidden) return;
-  let stamps = [];
-  try { stamps = JSON.parse(hidden.value || "[]") || []; } catch { stamps = []; }
+  // ---- Körperschema: Stempel + Freihand-Zeichnen, Undo/Redo ----
+  const hiddenStamps = document.getElementById("stamps");
+  const hiddenDraw = document.getElementById("drawings");
+  if (!hiddenStamps || !hiddenDraw) return;
+  const safeParse = (j) => { try { const v = JSON.parse(j); return Array.isArray(v) ? v : []; } catch { return []; } };
+  let stamps = safeParse(hiddenStamps.value || "[]");
+  let drawings = safeParse(hiddenDraw.value || "[]");
+  const NS = "http://www.w3.org/2000/svg";
+  const SIZES = [0, 7, 11, 16]; // gleich wie befund.StampSize
+  const svgs = [...document.querySelectorAll("svg[data-view]")];
+  const svgFor = (view) => svgs.find((sv) => +sv.dataset.view === view);
+
+  // Modus Stempel / Zeichnen
+  let mode = "stempel";
+  const modeBtns = [...document.querySelectorAll(".mode-switch .mode")];
+  modeBtns.forEach((b) => b.addEventListener("click", () => {
+    mode = b.dataset.mode;
+    modeBtns.forEach((x) => x.classList.toggle("active", x === b));
+  }));
+
   const symButtons = [...document.querySelectorAll(".body-tools .sym")];
   const chars = Object.fromEntries(symButtons.map((b) => [b.dataset.sym, b.textContent]));
   let sym = symButtons.find((b) => b.classList.contains("active"))?.dataset.sym || "pain";
@@ -70,10 +85,8 @@
   }));
   const color = document.getElementById("stamp-color");
   const size = document.getElementById("stamp-size");
-  const SIZES = [0, 7, 11, 16]; // gleich wie befund.StampSize
-  const NS = "http://www.w3.org/2000/svg";
 
-  const draw = (svg, s) => {
+  const appendStamp = (svg, s) => {
     const t = document.createElementNS(NS, "text");
     t.setAttribute("x", (s.x * +svg.dataset.w).toFixed(1));
     t.setAttribute("y", (s.y * +svg.dataset.h).toFixed(1));
@@ -84,25 +97,89 @@
     t.textContent = chars[s.s] || "?";
     svg.appendChild(t);
   };
-  const save = () => { hidden.value = JSON.stringify(stamps); dirty = true; };
+  const appendPath = (svg, dr) => {
+    const w = +svg.dataset.w, h = +svg.dataset.h;
+    let d = "";
+    dr.pts.forEach((p, i) => { d += (i ? "L " : "M ") + (p.x * w).toFixed(1) + " " + (p.y * h).toFixed(1) + " "; });
+    const path = document.createElementNS(NS, "path");
+    path.setAttribute("d", d);
+    path.setAttribute("stroke", dr.c);
+    path.setAttribute("stroke-width", Math.max(0.5, (dr.w || 0.02) * h));
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke-linecap", "round");
+    path.setAttribute("stroke-linejoin", "round");
+    svg.appendChild(path);
+  };
+  const redraw = (svg, view) => {
+    if (!svg) return;
+    while (svg.lastElementChild) svg.removeChild(svg.lastElementChild);
+    drawings.filter((dr) => dr.v === view).forEach((dr) => appendPath(svg, dr));
+    stamps.filter((st) => st.v === view).forEach((st) => appendStamp(svg, st));
+  };
+  const save = () => { hiddenStamps.value = JSON.stringify(stamps); hiddenDraw.value = JSON.stringify(drawings); dirty = true; };
 
-  document.querySelectorAll("svg[data-view]").forEach((svg) => svg.addEventListener("pointerdown", (e) => {
-    e.preventDefault();
-    const r = svg.getBoundingClientRect();
-    const s = {
-      v: +svg.dataset.view,
-      x: +Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)).toFixed(4),
-      y: +Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)).toFixed(4),
-      s: sym, c: color?.value || "#d32f2f", z: +(size?.value || 2),
-    };
-    stamps.push(s);
-    draw(svg, s);
-    save();
-  }));
-  document.getElementById("stamp-undo")?.addEventListener("click", () => {
-    const s = stamps.pop();
-    if (!s) return;
-    document.querySelector(`svg[data-view="${s.v}"]`)?.lastElementChild?.remove();
-    save();
+  // Undo/Redo (Stempel und Striche gemeinsam)
+  const undoStack = [], redoStack = [];
+  const undoBtn = document.getElementById("btn-undo");
+  const redoBtn = document.getElementById("btn-redo");
+  // Bedingte Felder (z. B. "Nozizeptiver Subtyp" nur bei "nozizeptiv")
+  const updateDep = () => {
+    document.querySelectorAll(".fld[data-depends-on]").forEach((fld) => {
+      const src = document.querySelector(`[name="${fld.dataset.dependsOn}"]`);
+      const show = !src || src.value === fld.dataset.dependsValue;
+      fld.classList.toggle("dep-hidden", !show);
+    });
+  };
+  document.addEventListener("change", (e) => { if (e.target.matches("select")) updateDep(); });
+  updateDep();
+
+  const updateArrows = () => { undoBtn.disabled = undoStack.length === 0; redoBtn.disabled = redoStack.length === 0; };
+  const clamp01 = (v) => Math.min(1, Math.max(0, v));
+  const ptAt = (svg, ev) => { const r = svg.getBoundingClientRect(); return { x: +clamp01((ev.clientX - r.left) / r.width).toFixed(4), y: +clamp01((ev.clientY - r.top) / r.height).toFixed(4) }; };
+  const strokeW = (ev) => { const p = (ev.pressure || 0.5) || 0.5; return +(0.012 + 0.035 * Math.min(1, Math.max(0, p))).toFixed(4); }; // Stift-Druck → Breite
+
+  svgs.forEach((svg) => {
+    const view = +svg.dataset.view;
+    redraw(svg, view);
+    svg.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      if (mode === "stempel") {
+        const s = { v: view, ...ptAt(svg, e), s: sym, c: color?.value || "#d32f2f", z: +(size?.value || 2) };
+        stamps.push(s); appendStamp(svg, s);
+        undoStack.push({ view, type: "stamp", st: s }); redoStack.length = 0;
+        save(); updateArrows();
+        return;
+      }
+      svg.setPointerCapture(e.pointerId);
+      const stroke = { v: view, c: color?.value || "#000000", w: strokeW(e), pts: [ptAt(svg, e)] };
+      const move = (ev) => { ev.preventDefault(); stroke.pts.push(ptAt(svg, ev)); };
+      const up = (ev) => {
+        svg.removeEventListener("pointermove", move);
+        svg.removeEventListener("pointerup", up);
+        svg.removeEventListener("pointercancel", up);
+        if (stroke.pts.length < 2) return;
+        drawings.push(stroke); appendPath(svg, stroke);
+        undoStack.push({ view, type: "draw", st: stroke }); redoStack.length = 0;
+        save(); updateArrows();
+      };
+      svg.addEventListener("pointermove", move);
+      svg.addEventListener("pointerup", up);
+      svg.addEventListener("pointercancel", up);
+    });
   });
+
+  undoBtn.addEventListener("click", () => {
+    const a = undoStack.pop(); if (!a) return;
+    if (a.type === "stamp") stamps = stamps.filter((x) => x !== a.st);
+    else drawings = drawings.filter((x) => x !== a.st);
+    redraw(svgFor(a.view), a.view);
+    redoStack.push(a); save(); updateArrows();
+  });
+  redoBtn.addEventListener("click", () => {
+    const a = redoStack.pop(); if (!a) return;
+    if (a.type === "stamp") stamps.push(a.st); else drawings.push(a.st);
+    redraw(svgFor(a.view), a.view);
+    undoStack.push(a); save(); updateArrows();
+  });
+  updateArrows();
 })();

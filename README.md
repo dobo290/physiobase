@@ -9,6 +9,10 @@ One static Go binary, one SQLite file, server-rendered pages. The interface is
 in German. JavaScript is only used for marking the body chart and a few
 conveniences; everything else works without it.
 
+> **▶ Live-Demo:** [physiobase.gpl-nas.de](https://physiobase.gpl-nas.de) –
+> Zugang `admin` / `demo1234`. Alle Angaben werden **beim Abmelden gelöscht**.
+> Besucher-Statistik zählt nur nach Zustimmung (Cookie-Banner).
+
 ![Knowledge base](docs/preview-wissen.png)
 
 ## Features

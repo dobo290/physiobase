@@ -300,6 +300,9 @@ var funcs = template.FuncMap{
 	"qcomplete": func(f befund.QFill, q befund.Questionnaire) bool { return f.Complete(q) },
 	"maxTotal":  func(q befund.Questionnaire) int { return q.MaxTotal() },
 	"dirLbl":    func(q befund.Questionnaire) string { return q.DirectionLabel() },
+	// Freihandzeichnungen
+	"drawPath":  func(dr befund.Drawing, v befund.View) string { return dr.Path(v) },
+	"drawWidth": func(dr befund.Drawing, v befund.View) float64 { return dr.StrokeWidth(v) },
 	"size": func(n int64) string {
 		switch {
 		case n >= 1<<20:
