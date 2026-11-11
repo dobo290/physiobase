@@ -50,3 +50,10 @@ run_sh = "cd project && go test -race -count=1 ./..."
 name = "build"
 run_sh = "cd project && CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o physiobase ./cmd/physiobase"
 publish_file = ["/ci/build/project/physiobase"]
+
+[[steps]]
+name = "image"
+# Baut das Container-Image und schiebt es in die Registry des Repos:
+#   forge.gpl-nas.de/physiobase:latest  (öffentlich pullbar, REGISTRY_PULL=public)
+[steps.build_image]
+tags = ["$CI_COMMIT_SHORT_SHA", "latest"]

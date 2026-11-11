@@ -89,16 +89,45 @@ there appears everywhere.
 
 ## Running
 
-With the container image:
+### Ready-made image
+
+A public image is built by CI and hosted in the repository's registry:
+
+```sh
+podman pull forge.gpl-nas.de/physiobase:latest     # or: docker pull …
+```
+
+Then use the image directly (no local build needed):
 
 ```sh
 cp .env.example .env
-echo 'your-password' | podman run --rm -i localhost/physiobase hash-password   # after the first build
+echo 'your-password' | podman run --rm -i forge.gpl-nas.de/physiobase hash-password
+# paste the hash into .env
+podman run -d --name physiobase -p 8080:8080 \
+    -v ./data:/data --env-file .env \
+    forge.gpl-nas.de/physiobase:latest
+```
+
+With `compose.yml` (builds locally instead):
+
+```sh
+cp .env.example .env
+echo 'your-password' | podman run --rm -i forge.gpl-nas.de/physiobase hash-password
 # paste the hash into .env
 podman compose up -d        # or: docker compose up -d
 ```
 
 `compose.yml` builds the image, mounts `./data` and publishes port 8080.
+
+### From source / Docker Hub mirror
+
+When pulling base images directly from Docker Hub hits its anonymous rate
+limit, use Google's mirror (the build files already do):
+
+```sh
+podman pull mirror.gcr.io/library/golang:1.27.4-alpine
+podman tag  mirror.gcr.io/library/golang:1.27.4-alpine docker.io/library/golang:1.27.4-alpine
+```
 
 From source:
 
@@ -206,7 +235,9 @@ gofumpt -l -extra .
 ```
 
 The same checks, plus `go mod tidy` and `govulncheck`, run in CI on every push
-(see [`.hearthforge-ci.toml`](.hearthforge-ci.toml)).
+(see [`.hearthforge-ci.toml`](.hearthforge-ci.toml)). On every push to
+`master`, CI also builds the container image and publishes it to
+`forge.gpl-nas.de/physiobase:latest`.
 
 ## Use of AI
 
