@@ -12,6 +12,11 @@ conveniences; everything else works without it.
 > **▶ Live-Demo:** [physiobase.gpl-nas.de](https://physiobase.gpl-nas.de) –
 > Zugang `admin` / `demo1234`. Alle Angaben werden **beim Abmelden gelöscht**.
 > Besucher-Statistik zählt nur nach Zustimmung (Cookie-Banner).
+>
+> **📦 Image-Pulls:** ![Pulls](https://feedback.gpl-nas.de/pulls.svg)
+>
+> **💬 Feedback & Wünsche:** [feedback.gpl-nas.de](https://feedback.gpl-nas.de/feedback) –
+> ohne Anmeldung, erscheint hier im Repo: [FEEDBACK.md](FEEDBACK.md).
 
 ![Knowledge base](docs/preview-wissen.png)
 
