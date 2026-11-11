@@ -85,13 +85,13 @@ var seedEntries = []seedEntry{
 _Hier eigene Erfahrungen ergänzen._`,
 	}},
 	{"visa", Entry{
-		Kind: "test", Title: "VISA-P Fragebogen", Region: "Knie", Tags: "Fragebogen, Verlaufskontrolle, Beispiel",
-		Summary: "Fragebogen zu Symptomen und Funktion bei Patellatendinopathie (0–100, höher = besser). Gut für die Verlaufskontrolle.",
+		Kind: "test", Title: "Punkt-Fragebogen Knie (Beispiel)", Region: "Knie", Tags: "Fragebogen, Verlaufskontrolle, Beispiel",
+		Summary: "Selbst gemachtetes Beispiel für einen Punkt-Fragebogen (0–100, höher = besser). Eigene, lizenzierte Instrumente hier eintragen.",
 		Body: `## Durchführung
-Patient füllt 8 Fragen aus (Schmerz, Funktion, Sportfähigkeit).
+Beispielhafte Fragen zu Schmerz, Funktion und Sportfähigkeit – hier eigene Fragen verwenden.
 
 ## Interpretation
-- 100 = beschwerdefrei
+- höhere Punktzahl = besser
 - Verlauf alle 2–4 Wochen dokumentieren`,
 	}},
 	{"iso", Entry{
