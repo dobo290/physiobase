@@ -212,12 +212,12 @@ func (s *Server) brandingDir() string { return filepath.Join(filepath.Dir(s.cfg.
 func (s *Server) logoURL() string {
 	name := s.rawLogo()
 	if name == "" {
-		return "/static/logo.webp"
+		return "/static/logo.svg" // neutraler Platzhalter
 	}
 	if fi, err := os.Stat(filepath.Join(s.brandingDir(), name)); err == nil {
 		return fmt.Sprintf("/branding/%s?v=%d", name, fi.ModTime().Unix())
 	}
-	return "/static/logo.webp"
+	return "/static/logo.svg" // neutraler Platzhalter
 }
 
 func (s *Server) rawLogo() string {

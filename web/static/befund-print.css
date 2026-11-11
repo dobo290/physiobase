@@ -4,7 +4,7 @@ body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; fo
        color: #111; max-width: 190mm; margin: 0 auto; padding: 1rem; background: #fff; }
 .hint { background: #fff8d6; border: 1px solid #e6d27a; padding: .5rem .8rem; border-radius: 6px; font-size: 10pt; }
 header { display: flex; align-items: center; gap: 1rem; border-bottom: 2px solid #2c6fbb; padding-bottom: .5rem; margin-bottom: .8rem; }
-.logo { height: 16mm; width: auto; }
+.logo { height: 16mm; width: auto; max-width: 44mm; max-height: 16mm; object-fit: contain; }
 .htext { flex: 1; }
 h1 { font-size: 16pt; margin: 0; }
 header p { margin: .2rem 0 0; font-size: 11.5pt; }

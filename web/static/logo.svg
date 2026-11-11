@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Physiotherapie">
+  <rect width="200" height="200" rx="42" fill="#16a085"/>
+  <rect x="86" y="44" width="28" height="112" rx="8" fill="#ffffff"/>
+  <rect x="44" y="86" width="112" height="28" rx="8" fill="#ffffff"/>
+</svg>

@@ -24,7 +24,7 @@ footer { margin-top: 1rem; font-size: 9.5pt; color: #555; border-top: 1px solid 
 @media print { .hint { display: none; } body { padding: 0; } }
 
 /* Zusammenfassung für Patienten */
-.summary .logo { height: 14mm; width: auto; margin-bottom: .2rem; }
+.summary .logo { height: 14mm; width: auto; max-width: 40mm; max-height: 14mm; object-fit: contain; margin-bottom: .2rem; }
 .summary-body { font-size: 12.5pt; line-height: 1.55; }
 .summary-body h2 { font-size: 14pt; color: #16a085; margin: 1.1rem 0 .3rem; padding-bottom: .15rem; border-bottom: 1px solid #cfe5df; break-after: avoid; }
 .summary-body ul { margin: .2rem 0 .5rem; padding-left: 1.3rem; }
@@ -44,4 +44,4 @@ footer { margin-top: 1rem; font-size: 9.5pt; color: #555; border-top: 1px solid 
 .cal-box p { margin: .2rem 0; }
 .cal-box .url { font-family: ui-monospace, monospace; font-size: 8.5pt; color: #555; word-break: break-all; }
 .pre { white-space: pre-line; }
-.meta .logo { height: 14mm; width: auto; margin-bottom: .2rem; }
+.meta .logo { height: 14mm; width: auto; max-width: 40mm; max-height: 14mm; object-fit: contain; margin-bottom: .2rem; }
