@@ -19,6 +19,8 @@ type Config struct {
 	DocsDir      string
 	BackupDir    string
 	SMTP         SMTP
+	Demo         bool   // Demo-Modus: Daten werden beim Abmelden/zurücksetzen gelöscht, Uploads/Mail aus
+	DemoHome     string // "Zur eigenen Startseite" im Demo-Banner
 	PublicURL    string // von außen erreichbare Adresse für Kalender-Links (z. B. https://physio.example.com)
 	Address      string // Praxisadresse, Standard-Ort für Termine
 	BackupKeep   int
@@ -77,6 +79,10 @@ func Load() (*Config, error) {
 		Host: get("SMTP_HOST", ""), User: get("SMTP_USER", ""), Password: get("SMTP_PASSWORD", ""),
 		From: get("SMTP_FROM", get("SMTP_USER", "")), Security: get("SMTP_SECURITY", "starttls"),
 	}
+	if c.Demo, err = strconv.ParseBool(get("DEMO", "0")); err != nil {
+		return nil, fmt.Errorf("PHYSIOBASE_DEMO ungültig: %w", err)
+	}
+	c.DemoHome = get("DEMO_HOME_URL", "https://gpl-nas.de")
 	if c.SMTP.Port, err = strconv.Atoi(get("SMTP_PORT", "587")); err != nil {
 		return nil, fmt.Errorf("PHYSIOBASE_SMTP_PORT ungültig: %w", err)
 	}

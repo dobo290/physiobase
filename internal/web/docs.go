@@ -22,6 +22,10 @@ var docExt = map[string]bool{
 func isPreviewable(f string) bool { return isImage(f) }
 
 func (s *Server) uploadDocs(w http.ResponseWriter, r *http.Request) {
+	if s.cfg.Demo {
+		http.Error(w, "Im Demo sind Uploads deaktiviert.", http.StatusForbidden)
+		return
+	}
 	ctx := r.Context()
 	pid, ok := pathID(r, "id")
 	if !ok {

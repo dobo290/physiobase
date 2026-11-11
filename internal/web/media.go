@@ -30,6 +30,10 @@ func allowedUpload(f string) bool {
 }
 
 func (s *Server) uploadMedia(w http.ResponseWriter, r *http.Request) {
+	if s.cfg.Demo {
+		http.Error(w, "Im Demo sind Uploads deaktiviert.", http.StatusForbidden)
+		return
+	}
 	ctx := r.Context()
 	id, ok := pathID(r, "id")
 	if !ok {

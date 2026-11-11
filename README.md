@@ -270,3 +270,11 @@ version as a network service, its users are entitled to the source code.
 
 Bundled third-party files keep their own licenses:
 [Pico CSS](https://picocss.com) (`web/static/pico.min.css`) is MIT-licensed.
+
+## Demo instance
+
+A public demo runs at `physiobase.gpl-nas.de` (credentials `admin` / `demo123`).
+The demo keeps its data in memory: logging out or pressing "Demo zurücksetzen"
+deletes everything and re-seeds. Visitor statistics only count after explicit
+consent (cookie banner); uploads and email are disabled in demo mode. Start it
+with `PHYSIOBASE_DEMO=1` (`PHYSIOBASE_DEMO_HOME_URL` sets the "back" link).

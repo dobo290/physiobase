@@ -36,6 +36,7 @@ type Server struct {
 	loginSem   chan struct{}
 	wa         *webauthn.WebAuthn // nil = Passkeys aus (keine HTTPS-Adresse)
 	pk         passkeyState
+	demo       *demoStats // nur im Demo-Modus genutzt
 
 	textMu sync.RWMutex
 	texts  map[string]string // eigene Texte (nur Abweichungen vom Standard)
@@ -54,6 +55,7 @@ func New(ctx context.Context, cfg *config.Config, st *store.Store, log *slog.Log
 		return nil, err
 	}
 	s.pk.open = map[string]ceremony{}
+	s.demo = newDemoStats()
 	wa, err := newWebAuthn(cfg.BaseURL, s.practice())
 	if err != nil {
 		return nil, fmt.Errorf("passkeys: %w", err)
@@ -180,12 +182,26 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /passkey/registrieren/fertig", s.passkeyRegisterFinish)
 	mux.HandleFunc("POST /passkey/login/start", s.passkeyLoginBegin)
 	mux.HandleFunc("POST /passkey/login/fertig", s.passkeyLoginFinish)
+	if s.cfg.Demo {
+		mux.HandleFunc("POST /demo/reset", s.demoResetHandler)
+	}
 	mux.HandleFunc("GET /branding/{file}", s.serveBranding)
 	mux.HandleFunc("GET /befund/{id}", s.showBefund)
 	mux.HandleFunc("POST /befund/{id}", s.saveBefund)
 	mux.HandleFunc("POST /befund/{id}/loeschen", s.deleteBefund)
 	mux.HandleFunc("GET /befund/{id}/druck", s.printBefund)
 	mux.HandleFunc("GET /befund/{id}/export", s.exportBefund)
+
+	// Demo: Consent-/Statistik-Spur nur auf Seiten-Render (kein Tracking vor Einwilligung)
+	if s.cfg.Demo {
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodGet {
+				s.trackDemo(r)
+			}
+			mux.ServeHTTP(w, r)
+		})
+		return s.securityHeaders(http.NewCrossOriginProtection().Handler(s.requireAuth(s.logRequests(handler))))
+	}
 
 	// CrossOriginProtection (Go 1.25+) blockt fremde POSTs anhand von Sec-Fetch-Site/Origin – CSRF-Schutz ohne Tokens.
 	return s.securityHeaders(http.NewCrossOriginProtection().Handler(s.requireAuth(s.logRequests(mux))))
@@ -325,6 +341,12 @@ func (s *Server) render(w http.ResponseWriter, r *http.Request, page string, sta
 		data["Me"] = u
 	}
 	data["PasskeyLogin"] = s.wa != nil
+	if s.cfg.Demo {
+		today, week, total := s.demoInfo()
+		data["Demo"] = true
+		data["DemoHome"] = s.cfg.DemoHome
+		data["DemoInfo"] = map[string]int{"Today": today, "Week": week, "Total": total}
+	}
 	data["Logo"] = s.logoURL()
 	data["Contact"] = s.text("practice_contact")
 	data["T"] = s.textMap()

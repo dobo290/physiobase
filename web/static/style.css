@@ -132,11 +132,13 @@ table.etable th { font-size: .82em; padding: .3rem; }
 .body-tools input[type=color] { width: 2.6rem; height: 2.3rem; padding: 0; margin: 0; }
 .body-tools select { width: auto; margin: 0; padding: .3rem 2rem .3rem .6rem; }
 .body-tools button { margin: 0; width: auto; }
-.bodies { display: flex; gap: 1.2rem; flex-wrap: wrap; }
-.body { margin: 0; width: 9.5rem; text-align: center; }
-.body-canvas { position: relative; background: #fff; border-radius: .4rem; }
-.body-canvas img { display: block; width: 100%; height: auto; }
+/* Körperschema: hochformatige Vorlagen → Höhe steuert die Größe, Breite folgt dem Seitenverhältnis */
+.bodies { display: flex; gap: 1.2rem; flex-wrap: wrap; align-items: flex-start; justify-content: center; }
+.body { margin: 0; height: 23rem; display: inline-flex; flex-direction: column; align-items: center; text-align: center; }
+.body-canvas { position: relative; height: 100%; background: #fff; border-radius: .4rem; }
+.body-canvas img { display: block; height: 100%; width: auto; max-width: 100%; }
 .body-canvas svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; cursor: crosshair; touch-action: manipulation; }
+.body figcaption { font-size: .8em; }
 .legend { font-size: .82em; color: var(--pico-muted-color); display: flex; flex-wrap: wrap; gap: .3rem 1rem; margin-top: .4rem; }
 
 /* ---------- Smartphone ---------- */
@@ -189,8 +191,9 @@ table.etable th { font-size: .82em; padding: .3rem; }
   .fgrid:has(.chk) > .fld { grid-column: auto; }
   .fld.small label { font-size: .78em; min-height: 2.1em; }
   /* Körperschema: drei Ansichten nebeneinander */
-  .bodies { flex-wrap: nowrap; gap: .5rem; justify-content: space-between; }
-  .body { width: auto; flex: 1 1 0; }
+  .bodies { flex-wrap: nowrap; gap: .4rem; justify-content: space-between; }
+  .body { height: 13rem; flex: 0 1 auto; }
+  .body-canvas img { max-width: none; }
   .body-tools .sym { min-width: 2.3rem; padding: .2rem .35rem; }
   /* Speicherleiste schmal */
   .savebar { padding: .4rem .5rem; gap: .4rem; margin: 1rem -.75rem 0; }
@@ -289,3 +292,15 @@ tr.inactive td { opacity: .55; }
 .fragebogen-editor table.etable input.num { width: 6rem; }
 /* Druck-Zusammenfassung */
 .qb { margin: .2rem 0 .5rem; }
+
+/* ---------- Demo-Banner (Einwilligung zur Statistik) ---------- */
+.demo-consent { position: fixed; z-index: 60; left: 1rem; right: 1rem; bottom: 1rem;
+  display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;
+  background: var(--pico-card-background-color); border: 1px solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius); box-shadow: var(--pico-card-box-shadow);
+  padding: .9rem 1.2rem; max-width: 44rem; margin: 0 auto; }
+.demo-consent p { margin: .3rem 0 0; font-size: .9em; }
+.demo-consent-actions { display: flex; gap: .6rem; flex-wrap: wrap; }
+.demo-consent button { width: auto; margin: 0; }
+.demo-box { border: 1px solid var(--pico-primary-border); background: var(--pico-primary-focus); padding: .8rem 1.2rem; border-radius: var(--pico-border-radius); margin-bottom: 1rem; }
+.demo-box h2 { margin-bottom: .3rem; }

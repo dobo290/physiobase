@@ -110,6 +110,10 @@ func (s *Server) saveSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) uploadLogo(w http.ResponseWriter, r *http.Request) {
+	if s.cfg.Demo {
+		http.Error(w, "Im Demo sind Uploads deaktiviert.", http.StatusForbidden)
+		return
+	}
 	ctx := r.Context()
 	r.Body = http.MaxBytesReader(w, r.Body, 3<<20)
 	if err := r.ParseMultipartForm(3 << 20); err != nil { //nolint:gosec // G120: per MaxBytesReader begrenzt

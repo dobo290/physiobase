@@ -67,6 +67,10 @@ func (s *Server) sendSummary(w http.ResponseWriter, r *http.Request) {
 		redirect(w, r, "/zusammenfassung/%d?fehler=%s#senden", x.ID, url.QueryEscape(reason))
 		return
 	}
+	if s.cfg.Demo {
+		redirect(w, r, "/zusammenfassung/%d?fehler=%s#senden", x.ID, urlPathEscape("Im Demo ist der E-Mail-Versand deaktiviert."))
+		return
+	}
 	body := Printable(x.Body)
 	mt := s.mailTexts(p.Name)
 	var html bytes.Buffer

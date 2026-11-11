@@ -208,6 +208,11 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 
 // logout beendet alle Sitzungen dieses Benutzers (z. B. auch auf einem verlorenen Tablet).
 func (s *Server) logout(w http.ResponseWriter, r *http.Request) {
+	if s.cfg.Demo {
+		s.resetDemo(r.Context(), w) // löscht Daten und beendet die Sitzung
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
 	if u, ok := currentUser(r); ok {
 		if err := s.st.EndSessions(r.Context(), u.ID); err != nil {
 			s.fail(w, r, err)

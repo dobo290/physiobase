@@ -10,6 +10,7 @@
 <link rel="icon" href="{{.Logo}}">
 <script src="/static/befund.js" defer></script>
 <script src="/static/passkey.js" defer></script>
+{{if .Demo}}<script src="/static/demo.js" defer></script>{{end}}
 </head>
 <body>
 <header class="container">
@@ -38,6 +39,18 @@
 <main class="container">
 {{template "content" .}}
 </main>
+{{if .Demo}}
+<div id="demo-consent" class="demo-consent" hidden role="dialog" aria-live="polite">
+  <div>
+    <strong>Diese Seite ist eine Demo.</strong>
+    <p>Sie nutzt nur zur <em>Statistik</em> (Anzahl der Besucher) ein Cookie und speichert eine anonymisierte IP. Es werden <strong>keine persönlichen Daten</strong> eingegeben – alle Angaben werden beim Abmelden gelöscht.</p>
+  </div>
+  <div class="demo-consent-actions">
+    <button type="button" data-demo-consent-accept>Akzeptieren</button>
+    <button type="button" class="secondary outline" data-demo-consent-leave>Nein, zurück zu meiner Seite</button>
+  </div>
+</div>
+{{end}}
 {{if ne .Path "/login"}}
 <footer class="container site-footer">
   {{with .Me}}<span class="muted">{{.Name}}</span> · <a href="/konto">Konto</a> · {{end}}<form method="post" action="/logout" class="inline"><button type="submit" class="link">Abmelden</button></form>

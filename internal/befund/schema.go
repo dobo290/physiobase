@@ -312,9 +312,11 @@ type View struct {
 }
 
 var Views = []View{
-	{"Vorne", "/static/body/body-front.png", 78, 180},
-	{"Hinten", "/static/body/body-back.png", 84, 176},
-	{"Seitlich", "/static/body/body-side.png", 106, 181},
+	// Bild-Seitenverhältnis (exakte Pixel): Koordinaten der Stempel sind 0..1 und
+	// skalieren dadurch automatisch mit. W/H = Breite/Höhe im viewBox.
+	{"Vorne", "/static/body/body-front.png", 1000, 3093},
+	{"Hinten", "/static/body/body-back.png", 1000, 2905},
+	{"Seitlich", "/static/body/body-side.png", 814, 3999},
 }
 
 var fieldIndex = func() map[string]Field {
