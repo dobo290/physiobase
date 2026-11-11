@@ -21,6 +21,16 @@ func (s *Server) loadBranding(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	if logo != "" && strings.EqualFold(extOf(logo), ".svg") {
+		path := filepath.Join(s.brandingDir(), logo)
+		if b, err := os.ReadFile(path); err == nil {
+			if nb := normalizeSVG(b); len(nb) != len(b) {
+				if err := os.WriteFile(path, nb, 0o640); err != nil { //nolint:gosec // G703: Name aus der DB
+					s.log.Warn("logo-normalisierung", "err", err)
+				}
+			}
+		}
+	}
 	s.textMu.Lock()
 	s.logo = logo
 	s.textMu.Unlock()
@@ -128,6 +138,9 @@ func (s *Server) uploadLogo(w http.ResponseWriter, r *http.Request) {
 			redirect(w, r, "/admin/einstellungen?fehler=%s#logo", urlPathEscape(err.Error()))
 			return
 		}
+		// Fremde SVG-Größen (z. B. 2000×2000 px) auf viewBox-Normalisierung zurückführen,
+		// damit das Logo automatisch dieselbe Größe wie das Standard-Logo hat.
+		b = normalizeSVG(b)
 	} else if ct := http.DetectContentType(b); !strings.HasPrefix(ct, "image/") {
 		redirect(w, r, "/admin/einstellungen?fehler=%s#logo", urlPathEscape("Die Datei ist kein Bild"))
 		return

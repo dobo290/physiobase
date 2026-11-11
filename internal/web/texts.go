@@ -229,6 +229,40 @@ func (s *Server) rawLogo() string {
 // SVGs können Skripte enthalten – solche Dateien werden abgelehnt.
 var svgDanger = regexp.MustCompile(`(?i)<\s*script|<\s*foreignobject|\son[a-z]+\s*=|javascript:|<\s*iframe|<\s*embed|<\s*object|href\s*=\s*["']\s*(https?:|data:text)`)
 
+// svgStart findet das öffnende <svg>-Tag (Attribute stehen in Gruppe 1).
+var svgStart = regexp.MustCompile(`(?i)<\s*svg\b([^>]*)>`)
+
+// svgDim entfernt width=… und height=… jedes Attribut-Paars im öffnenden <svg>-Tag.
+var svgDim = regexp.MustCompile(`(?i)\s*(?:width|height)\s*=\s*("[^"\\]*(?:\\.[^"\\]*)*"|'[^'\\]*(?:\\.[^'\\]*)*')`)
+
+// normalizeSVG entfernt absichtlich width/height aus dem <svg>-Tag, solange eine
+// viewBox vorhanden ist. Das SVG wird dann nur durch viewBox skaliert und passt sich
+// automatisch der Höhe an, die das CSS vorgibt (wie beim Standard-Logo). Ohne viewBox
+// bleibt es unverändert, weil es sonst keine einheitliche Skalierung gäbe.
+func normalizeSVG(b []byte) []byte {
+	m := svgStart.FindSubmatchIndex(b)
+	if m == nil {
+		return b
+	}
+	attrs := b[m[2]:m[3]]
+	if !regexp.MustCompile(`(?i)viewBox\s*=`).Match(attrs) {
+		return b
+	}
+	cleaned := svgDim.ReplaceAll(attrs, nil) // entfernt auch die Leerzeichen vor width/height
+	cleaned = bytes.TrimSpace(cleaned)
+	if bytes.Equal(cleaned, attrs) {
+		return b
+	}
+	out := make([]byte, 0, len(b))
+	out = append(out, b[:m[2]]...)
+	if len(cleaned) > 0 { // `<svg` und erste(n) Restattribut(e) mit einem Leerzeichen trennen
+		out = append(out, ' ')
+	}
+	out = append(out, cleaned...)
+	out = append(out, b[m[3]:]...)
+	return out
+}
+
 func checkSVG(b []byte) error {
 	if !bytes.Contains(bytes.ToLower(b[:min(len(b), 4096)]), []byte("<svg")) {
 		return fmt.Errorf("keine SVG-Datei")
