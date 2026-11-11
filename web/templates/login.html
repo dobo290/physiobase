@@ -3,7 +3,7 @@
 {{if .Demo}}
 <article class="demo-box">
   <h2>Demo-Vorschau</h2>
-  <p>Anmelden mit <strong>admin</strong> / <strong>demo123</strong>. Alle Änderungen werden <strong>beim Abmelden gelöscht</strong>.</p>
+  <p>Anmelden mit <strong>admin</strong> / <strong>demo1234</strong>. Alle Änderungen werden <strong>beim Abmelden gelöscht</strong>.</p>
   <p class="muted">Besucher: heute {{.DemoInfo.Today}} · letzte 7 Tage {{.DemoInfo.Week}} · gesamt {{.DemoInfo.Total}} (nur nach Einwilligung).</p>
   <form method="post" action="/demo/reset" class="inline"><button type="submit" class="secondary outline small">Demo zurücksetzen</button></form>
 </article>
