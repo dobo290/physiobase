@@ -7,3 +7,8 @@ für alle sichtbar und nachvollziehbar sind.
 ---
 
 _Neue Einträge erscheinen unten._
+
+## #1 – Wunsch / Idee – 2026-11-11
+**Testbesucher**
+
+Ein Wunsch aus dem Test: bitte ein Dunkel-Modus-Symbol.
