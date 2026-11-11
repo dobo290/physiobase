@@ -295,3 +295,8 @@ func (s *Store) HandoutPatient(ctx context.Context, hid int64) (int64, string, e
 		WHERE h.id = ?`, hid).Scan(&pid, &name)
 	return pid.Int64, name.String, notFound(err)
 }
+
+// QuestionnaireTests: Tests, die einen Fragebogen tragen (kind 'test' + schema gefüllt).
+func (s *Store) QuestionnaireTests(ctx context.Context) ([]Entry, error) {
+	return s.entries(ctx, `SELECT `+entryCols+` FROM entries e WHERE e.kind = 'test' AND e.schema <> '' ORDER BY e.title COLLATE NOCASE`)
+}

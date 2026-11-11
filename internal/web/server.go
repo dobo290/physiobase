@@ -274,6 +274,16 @@ var funcs = template.FuncMap{
 	"isImage": isImage,
 	"isVideo": isVideo,
 	"isPDF":   func(f string) bool { return strings.EqualFold(extOf(f), ".pdf") },
+	// Punkt-Fragebögen
+	"qval": func(f befund.QFill, q befund.Questionnaire, i int) string {
+		if i < len(f.Values) {
+			return f.Values[i]
+		}
+		return ""
+	},
+	"qcomplete": func(f befund.QFill, q befund.Questionnaire) bool { return f.Complete(q) },
+	"maxTotal":  func(q befund.Questionnaire) int { return q.MaxTotal() },
+	"dirLbl":    func(q befund.Questionnaire) string { return q.DirectionLabel() },
 	"size": func(n int64) string {
 		switch {
 		case n >= 1<<20:

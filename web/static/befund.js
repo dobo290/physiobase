@@ -4,6 +4,15 @@
   "use strict";
   document.documentElement.classList.add("js");
 
+  // ---- Fragebogen-Editor im Eintragsformular: Blöcke an-/ausschalten ----
+  document.querySelectorAll('input[name="fragebogen_an"]').forEach((cb) => {
+    const box = document.getElementById("_fq");
+    if (!box) return;
+    const show = () => { box.hidden = !cb.checked; };
+    cb.addEventListener("change", show);
+    show();
+  });
+
   // ---- Tabellen: weitere Zeile (alle Seiten) ----
   // Normal: neue leere Zeile. Mit data-step-days (Terminzeilen): letzte Zeile übernehmen,
   // Datum um so viele Tage weiter – so entsteht eine Terminserie ohne Neuladen der Seite.
@@ -12,7 +21,7 @@
     const scope = btn.closest("form") || document;
     const table = scope.querySelector(`table[data-table="${key}"]`);
     const tbody = table?.querySelector("tbody");
-    const count = scope.querySelector(`input[name="t.${key}.n"]`);
+    const count = scope.querySelector(`input[name="t.${key}.n"], input[name="d.n"]`);
     if (!tbody || !count || !tbody.lastElementChild) return;
     const step = parseInt(table.dataset.stepDays || "0", 10);
     const n = parseInt(count.value, 10) || 0;
@@ -20,7 +29,7 @@
     const tr = last.cloneNode(true);
     const src = [...last.querySelectorAll("input,select")];
     tr.querySelectorAll("input,select").forEach((el, i) => {
-      el.name = el.name.replace(/^(t\.[^.]+\.)\d+(\.)/, `$1${n}$2`);
+      el.name = el.name.replace(/^(?:t\.[^.]+\." + "|d\.)\d+(\.)/, `$1${n}$2`);
       if (!step) { if (el.tagName === "SELECT") el.selectedIndex = 0; else el.value = ""; return; }
       if (el.tagName === "SELECT") { el.selectedIndex = src[i].selectedIndex; return; }
       el.value = src[i].value;

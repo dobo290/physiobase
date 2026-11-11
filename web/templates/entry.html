@@ -16,6 +16,15 @@
     {{with $e.Dosage}}<p class="dosage"><strong>Dosierung:</strong> {{.}}</p>{{end}}
   {{end}}
 
+  {{if and (eq $e.Kind "test") .FBOn}}
+  <section class="patient">
+    <h3>Fragebogen (Punkteskala)</h3>
+    {{with dirLbl .FB}}<p class="muted">Auswertung: {{.}}</p>{{end}}
+    <ol class="q-def">{{range .FB.Items}}<li>{{.Q}} <span class="muted">(0–{{.Max}} Punkte)</span></li>{{end}}</ol>
+    <p class="muted">Im Befund des Patienten auswählbar; die Punkte werden aufsummiert.</p>
+  </section>
+  {{end}}
+
   {{with $e.Body}}<section class="prose">{{md .}}</section>{{end}}
 
   {{if eq $e.Kind "uebung"}}{{with $e.PatientText}}

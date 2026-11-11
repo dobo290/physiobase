@@ -1,11 +1,15 @@
 package web
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
+	"forge.gpl-nas.de/physiobase/internal/befund"
 	"forge.gpl-nas.de/physiobase/internal/store"
 )
 
@@ -37,6 +41,14 @@ func (s *Server) index(w http.ResponseWriter, r *http.Request) {
 		"Entries": entries, "Q": q, "Art": kind, "Region": region,
 		"Counts": counts, "Total": total, "Regions": regions,
 	})
+}
+
+// questionnaireEditor liefert die Zeilen und Richtung für den Editor (Standard: 3 leere Zeilen).
+func questionnaireEditor(schema string) (items []befund.QItem, direktion string) {
+	if q, ok := befund.ParseQuestionnaire(schema); ok {
+		return append([]befund.QItem(nil), q.Items...), q.Direction
+	}
+	return make([]befund.QItem, 3), ""
 }
 
 type group struct {
@@ -96,10 +108,15 @@ func (s *Server) showEntry(w http.ResponseWriter, r *http.Request) {
 			groups = append(groups, g)
 		}
 	}
-	s.render(w, r, "entry", http.StatusOK, map[string]any{
+	data := map[string]any{
 		"E": e, "Groups": groups, "Linkable": linkable, "Sources": sources,
 		"Media": media, "Handouts": handouts, "Added": r.URL.Query().Get("handout"),
-	})
+	}
+	if e.Kind == "test" {
+		q, ok := befund.ParseQuestionnaire(e.Schema)
+		data["FB"], data["FBOn"] = q, ok
+	}
+	s.render(w, r, "entry", http.StatusOK, data)
 }
 
 func (s *Server) newEntry(w http.ResponseWriter, r *http.Request) {
@@ -112,9 +129,10 @@ func (s *Server) newEntry(w http.ResponseWriter, r *http.Request) {
 	if !store.ValidKind(kind) {
 		kind = "krankheitsbild"
 	}
+	items, dir := questionnaireEditor("")
 	s.render(w, r, "edit", http.StatusOK, map[string]any{
 		"E": store.Entry{Kind: kind, Region: r.URL.Query().Get("region")}, "New": true,
-		"Regions": regions, "LinkFrom": r.URL.Query().Get("von"),
+		"Regions": regions, "LinkFrom": r.URL.Query().Get("von"), "FItems": items, "FRichtung": dir,
 	})
 }
 
@@ -134,7 +152,8 @@ func (s *Server) editEntry(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
-	s.render(w, r, "edit", http.StatusOK, map[string]any{"E": e, "Regions": regions})
+	items, dir := questionnaireEditor(e.Schema)
+	s.render(w, r, "edit", http.StatusOK, map[string]any{"E": e, "Regions": regions, "FItems": items, "FRichtung": dir})
 }
 
 func (s *Server) saveEntry(w http.ResponseWriter, r *http.Request) {
@@ -146,6 +165,33 @@ func (s *Server) saveEntry(w http.ResponseWriter, r *http.Request) {
 		Kind: formText(r, "kind"), Title: formText(r, "title"), Summary: formText(r, "summary"),
 		Body: formText(r, "body"), Region: formText(r, "region"), Tags: formText(r, "tags"),
 		Dosage: formText(r, "dosage"), PatientText: formText(r, "patient_text"),
+	}
+	// Fragebogen-Definition bei Tests: aktiv über Häkchen, Fragen als Tabelle (d.<i>.q / d.<i>.max)
+	if e.Kind == "test" && r.FormValue("fragebogen_an") == "1" {
+		n, _ := strconv.Atoi(formText(r, "d.n"))
+		q := befund.Questionnaire{Direction: formText(r, "fragebogen_richtung")}
+		for i := range min(n, 200) {
+			frage := formText(r, fmt.Sprintf("d.%d.q", i))
+			max, _ := strconv.Atoi(formText(r, fmt.Sprintf("d.%d.max", i)))
+			if frage != "" && max >= 1 {
+				q.Items = append(q.Items, befund.QItem{Q: frage, Max: max})
+			}
+		}
+		if len(q.Items) == 0 {
+			regions, _ := s.st.Regions(ctx)
+			id, _ := pathID(r, "id")
+			e.ID = id
+			s.render(w, r, "edit", http.StatusBadRequest, map[string]any{
+				"E": e, "New": id == 0, "Regions": regions, "LinkFrom": r.FormValue("link_from"),
+				"Error":  "Bitte mindestens eine Frage mit positiver Maximalpunktzahl eingeben.",
+				"FItems": q.Items, "FRichtung": q.Direction,
+			})
+			return
+		}
+		b, _ := json.Marshal(q)
+		e.Schema = string(b)
+	} else {
+		e.Schema = ""
 	}
 	if !store.ValidKind(e.Kind) || e.Title == "" {
 		regions, _ := s.st.Regions(ctx)

@@ -52,6 +52,19 @@
 </section>
 {{end}}{{end}}
 
+{{if $d.Q}}
+<section>
+  <h2>Fragebögen (Zusammenfassung)</h2>
+  {{range $qe := $.Q}}{{$qid := print $qe.ID}}{{$f := index $d.Q $qid}}{{if $f.Values}}
+  <div class="qb">
+    <strong>{{$qe.Title}}</strong> – <a href="/eintrag/{{$qe.ID}}">Fragebogen ansehen</a>:
+    Summe {{$f.Sum}} von {{maxTotal $qe.Q}}{{with dirLbl $qe.Q}} ({{.}}){{end}}
+    {{if not (qcomplete $f $qe.Q)}} · <strong>unvollständig</strong>{{end}}
+    {{with $f.Note}} · Anmerkung: {{.}}{{end}}
+  </div>
+  {{end}}{{end}}
+</section>
+{{end}}
 {{with .Sessions}}
 <section>
   <h2>Behandlungsverlauf</h2>

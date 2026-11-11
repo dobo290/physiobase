@@ -30,6 +30,37 @@
     {{if $p.Collapsible}}<details class="part"{{if $d.HasPart $p}} open{{end}}><summary>{{$p.Title}}</summary>
     {{else}}<div class="part">{{with $p.Title}}<h4>{{.}}</h4>{{end}}{{end}}
 
+      {{if $p.Questionnaires}}
+      {{if not $.Q}}<p class="muted">Keine Fragebögen vorhanden – als „Test“ mit Punktfragen anlegen (Wissen → Test).</p>
+      {{else}}<div class="q-list">
+        {{range $qe := $.Q}}{{$id := print $qe.ID}}{{$f := index $d.Q $id}}
+        <details class="fragebogen"{{if $f.Values}} open{{end}}>
+          <summary>
+            <strong>{{$qe.Title}}</strong>
+            {{if $f.Values}} · <span class="qsum">{{$f.Sum}} von {{maxTotal $qe.Q}}{{with dirLbl $qe.Q}} ({{.}}){{end}}</span>{{end}}
+            {{if and $f.Values (not (qcomplete $f $qe.Q))}} · <span class="error">unvollständig</span>{{end}}
+          </summary>
+          <p class="muted">{{with dirLbl $qe.Q}}Richtung: {{.}} · {{end}}Punktwerte pro Frage von 0 bis zur jeweiligen Maximalpunktzahl. Ein Feld leer lassen ist erlaubt (→ unvollständig).</p>
+          {{with index $.PrevScores $qe.ID}}<p class="prev">Letzter Wert: {{.}}</p>{{end}}
+          <div class="q-items">
+            {{range $i, $it := $qe.Q.Items}}
+            <label class="q-item">{{$it.Q}}
+              <input type="number" name="f.q.{{$id}}.{{$i}}" min="0" max="{{$it.Max}}" step="1" inputmode="numeric"
+                     placeholder="0–{{$it.Max}}" value="{{qval $f $qe.Q $i}}">
+              <small class="muted">max. {{$it.Max}}</small>
+            </label>
+            {{end}}
+          </div>
+          <input type="hidden" name="f.q.{{$id}}.n" value="{{len $qe.Q.Items}}">
+          <label class="q-note">Anmerkung / Anpassung (z. B. Hilfsmittel)
+            <input name="f.q.{{$id}}.note" value="{{$f.Note}}" placeholder="z. B. mit Unterarmgehstützen, geänderte Position">
+          </label>
+        </details>
+        {{end}}
+        <input type="hidden" name="q.list" value="{{range $.Q}}{{.ID}},{{end}}">
+      </div>{{end}}
+      {{end}}
+
       {{if $p.Body}}
       <div class="body-tools js-only">
         {{range $i, $y := $.Symbols}}<button type="button" class="sym{{if eq $i 0}} active{{end}}" data-sym="{{$y.Key}}" title="{{$y.Name}}">{{$y.Char}}</button>{{end}}

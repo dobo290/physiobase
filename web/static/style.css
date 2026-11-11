@@ -271,3 +271,21 @@ tr.inactive td { opacity: .55; }
 .setup-link { border-left: 4px solid var(--pico-ins-color); }
 .passkey-login { text-align: center; margin-top: 1rem; }
 .passkey-login button { width: 100%; }
+
+/* ---------- Fragebögen (Punkteskala) ---------- */
+.q-list { display: flex; flex-direction: column; gap: .5rem; }
+.fragebogen { border: 1px solid var(--pico-muted-border-color); border-radius: var(--pico-border-radius); padding: .5rem .8rem; }
+.fragebogen summary { font-weight: 600; cursor: pointer; }
+.qsum { color: var(--pico-primary); }
+.prev { font-size: .85em; color: var(--pico-muted-color); border-left: 3px solid var(--pico-primary-border); padding-left: .5rem; margin: .3rem 0; }
+.q-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: .4rem 1rem; margin-top: .5rem; }
+.q-item { display: flex; align-items: center; gap: .5rem; font-size: .95em; }
+.q-item input[type=number] { width: 5rem; margin: 0; }
+.q-note { display: block; margin-top: .5rem; font-size: .92em; }
+.q-note input { margin-top: .2rem; }
+.q-def { margin: .3rem 0; }
+.fragebogen-editor { border: 1px dashed var(--pico-muted-border-color); padding: .8rem 1rem; border-radius: var(--pico-border-radius); }
+.fragebogen-editor .tablewrap { margin-top: .5rem; }
+.fragebogen-editor table.etable input.num { width: 6rem; }
+/* Druck-Zusammenfassung */
+.qb { margin: .2rem 0 .5rem; }

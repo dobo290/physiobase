@@ -28,9 +28,12 @@ type Data struct {
 	Fields map[string]string `json:"fields"`
 	Tables map[string][]Row  `json:"tables"`
 	Stamps []Stamp           `json:"stamps"`
+	Q      map[string]QFill  `json:"q,omitempty"`
 }
 
-func New() Data { return Data{Fields: map[string]string{}, Tables: map[string][]Row{}} }
+func New() Data {
+	return Data{Fields: map[string]string{}, Tables: map[string][]Row{}, Q: map[string]QFill{}}
+}
 
 func Parse(raw string) (Data, error) {
 	d := New()
@@ -45,6 +48,9 @@ func Parse(raw string) (Data, error) {
 	}
 	if d.Tables == nil {
 		d.Tables = map[string][]Row{}
+	}
+	if d.Q == nil {
+		d.Q = map[string]QFill{}
 	}
 	return d, nil
 }
@@ -67,6 +73,9 @@ func (d Data) HasSection(s Section) bool {
 }
 
 func (d Data) HasPart(p Part) bool {
+	if p.Questionnaires && len(d.Q) > 0 {
+		return true
+	}
 	for _, f := range p.Fields {
 		if strings.TrimSpace(d.Fields[f.Key]) != "" {
 			return true
@@ -116,6 +125,25 @@ func FromForm(form url.Values) Data {
 	var stamps []Stamp
 	if json.Unmarshal([]byte(form.Get("stamps")), &stamps) == nil {
 		d.Stamps = CleanStamps(stamps)
+	}
+	// Fragebögen: übernommen wird, wer eine Antwort oder eine Anmerkung hat.
+	for _, id := range strings.Split(form.Get("q.list"), ",") {
+		id = strings.TrimSpace(id)
+		if id == "" {
+			continue
+		}
+		n, _ := strconv.Atoi(form.Get("f.q." + id + ".n"))
+		vals := []string{}
+		for i := range min(n, 200) {
+			v := strings.TrimSpace(form.Get(fmt.Sprintf("f.q.%s.%d", id, i)))
+			if v != "" {
+				vals = append(vals, v)
+			}
+		}
+		note := strings.TrimSpace(form.Get("f.q." + id + ".note"))
+		if len(vals) > 0 || note != "" {
+			d.Q[id] = QFill{Values: vals, Note: note}
+		}
 	}
 	return d
 }

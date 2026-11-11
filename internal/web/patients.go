@@ -91,7 +91,7 @@ func (s *Server) showPatient(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
-	linkable, err := s.st.EntriesOfKind(ctx, "krankheitsbild", "protokoll", "notiz")
+	linkable, err := s.st.EntriesOfKind(ctx, "krankheitsbild", "protokoll", "notiz", "test")
 	if err != nil {
 		s.fail(w, r, err)
 		return
@@ -107,6 +107,11 @@ func (s *Server) showPatient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	summaries, err := s.st.Summaries(ctx, id)
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
+	qhist, err := s.questionnaireHistory(ctx, id)
 	if err != nil {
 		s.fail(w, r, err)
 		return
@@ -134,7 +139,7 @@ func (s *Server) showPatient(w http.ResponseWriter, r *http.Request) {
 	s.render(w, r, "patient", http.StatusOK, map[string]any{
 		"P": p, "Befunde": bs, "Sessions": sessions, "Linked": linked, "Linkable": linkable,
 		"Handouts": handouts, "Trend": trend, "Today": time.Now().Format("2006-01-02"),
-		"Docs": docs, "DocCategories": s.lines("doc_categories"), "Summaries": summaries, "Appt": appt,
+		"Docs": docs, "DocCategories": s.lines("doc_categories"), "Summaries": summaries, "Appt": appt, "QHist": qhist,
 		"Error": r.URL.Query().Get("fehler"),
 	})
 }
@@ -363,9 +368,20 @@ func (s *Server) showBefund(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
+	qes, err := s.questionnaireEntries(r.Context())
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
+	prev, err := s.prevScores(r.Context(), p.ID, b.ID)
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
 	s.render(w, r, "befund", http.StatusOK, map[string]any{
 		"B": b, "P": p, "D": d, "Sections": befund.Sections, "Symbols": befund.Symbols, "Views": befund.Views,
 		"Tests": tests, "Measures": befund.Measures, "Saved": r.URL.Query().Get("gespeichert") == "1",
+		"Q": qes, "PrevScores": prev,
 	})
 }
 
@@ -423,8 +439,14 @@ func (s *Server) printBefund(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	qes, err := s.questionnaireEntries(r.Context())
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
 	s.render(w, r, "befund_print", http.StatusOK, map[string]any{
 		"B": b, "P": p, "D": d, "Sections": befund.Sections, "Views": befund.Views, "Sessions": sessions, "Today": time.Now(),
+		"Q": qes,
 	})
 }
 
@@ -505,6 +527,33 @@ func (s *Server) compareBefunde(w http.ResponseWriter, r *http.Request) {
 			da, _ := befund.Parse(A.Data)
 			db, _ := befund.Parse(B.Data)
 			fields, tables := befund.Compare(da, db)
+			// Punkt-Fragebögen: Summen der beiden Befunde gegenüberstellen
+			qes, err := s.questionnaireEntries(ctx)
+			if err != nil {
+				s.fail(w, r, err)
+				return
+			}
+			for _, qe := range qes {
+				id := fmt.Sprint(qe.ID)
+				fa, fb := da.Q[id], db.Q[id]
+				if len(fa.Values) == 0 && len(fb.Values) == 0 {
+					continue
+				}
+				show := func(f befund.QFill) string {
+					if len(f.Values) == 0 {
+						return "–"
+					}
+					t := fmt.Sprintf("%d von %d", f.Sum(), qe.Q.MaxTotal())
+					if dl := qe.Q.DirectionLabel(); dl != "" {
+						t += " (" + dl + ")"
+					}
+					if !f.Complete(qe.Q) {
+						t += " (unvollständig)"
+					}
+					return t
+				}
+				fields = append(fields, befund.FieldDiff{Section: "Fragebögen", Label: qe.Title, A: show(fa), B: show(fb)})
+			}
 			data["A"], data["B"], data["Fields"], data["Tables"] = A, B, fields, tables
 		}
 	}

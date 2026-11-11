@@ -140,6 +140,13 @@ Erst wenn Isometrie gut vertragen wird. Schmerz am Folgetag beobachten.`,
 - Hochkommen mit beiden Beinen.
 - Die Knie zeigen in Richtung der Fußspitzen.`,
 	}},
+	{"fragebogen-beispiel", Entry{
+		Kind: "test", Title: "Beispielfragebogen: Alltagsbelastung Knie", Region: "Knie",
+		Tags:    "Fragebogen, Beispiel, Punkte",
+		Summary: "Selbst gemachtes Beispiel, um Punkt-Fragebögen auszuprobieren. Hier eigene (lizenzierte) Fragebögen eintragen.",
+		Body:    "Jede Frage wird mit 0 bis zur Maximalpunktzahl beantwortet; die Punkte werden aufsummiert. Richtung hier: niedriger ist besser.",
+		Schema:  `{"direction":"lower","items":[{"q":"Schmerzen beim Treppensteigen","max":10},{"q":"Schmerzen nach 30 Min. Gehen","max":10},{"q":"Schmerzen beim tiefen Hocken","max":10}]}`,
+	}},
 	{"proto", Entry{
 		Kind: "protokoll", Title: "Sehnen-Rehabilitation – Stufenmodell", Region: "Allgemein",
 		Tags:    "Tendinopathie, Belastungsaufbau, Beispiel",

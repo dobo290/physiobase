@@ -29,11 +29,12 @@ type Table struct {
 
 // Part ist ein Abschnitt innerhalb einer Sektion: Feldraster, Tabelle oder Körperschema.
 type Part struct {
-	Title       string
-	Collapsible bool
-	Fields      []Field
-	Table       *Table
-	Body        bool
+	Title          string
+	Collapsible    bool
+	Fields         []Field
+	Table          *Table
+	Body           bool
+	Questionnaires bool // dynamische Punkt-Fragebögen aus der Wissensdatenbank
 }
 
 type Section struct {
@@ -197,6 +198,7 @@ var Sections = []Section{
 		}},
 		{Title: "Sicherheitstests", Collapsible: true, Fields: []Field{wide(ph(area("safetyNeuro", ""), "z. B. Instabilitätstests HWS, vaskuläre Tests"))}},
 	}},
+	{ID: "frageboegen", Title: "Fragebögen", Parts: []Part{{Questionnaires: true}}},
 
 	// ---- Fachbereiche ----
 	{ID: "ortho", Title: "Chirurgie/Orthopädie", Specialty: true, Parts: []Part{{Fields: []Field{

@@ -52,6 +52,7 @@ func ValidKind(k string) bool {
 type Entry struct {
 	ID                                                            int64
 	Kind, Title, Summary, Body, Region, Tags, Dosage, PatientText string
+	Schema                                                        string // JSON (z. B. Fragebogen-Definition für Tests)
 	Created, Updated                                              time.Time
 }
 
@@ -88,14 +89,14 @@ func notFound(err error) error {
 
 // ---------- Einträge ----------
 
-const entryCols = `e.id, e.kind, e.title, e.summary, e.body, e.region, e.tags, e.dosage, e.patient_text, e.created_at, e.updated_at`
+const entryCols = `e.id, e.kind, e.title, e.summary, e.body, e.region, e.tags, e.dosage, e.patient_text, e.schema, e.created_at, e.updated_at`
 
 type scanner interface{ Scan(...any) error }
 
 func scanEntry(sc scanner) (Entry, error) {
 	var e Entry
 	var c, u int64
-	err := sc.Scan(&e.ID, &e.Kind, &e.Title, &e.Summary, &e.Body, &e.Region, &e.Tags, &e.Dosage, &e.PatientText, &c, &u)
+	err := sc.Scan(&e.ID, &e.Kind, &e.Title, &e.Summary, &e.Body, &e.Region, &e.Tags, &e.Dosage, &e.PatientText, &e.Schema, &c, &u)
 	e.Created, e.Updated = time.Unix(c, 0), time.Unix(u, 0)
 	return e, err
 }
@@ -185,8 +186,8 @@ func (s *Store) Entry(ctx context.Context, id int64) (Entry, error) {
 }
 
 func (s *Store) CreateEntry(ctx context.Context, e Entry) (int64, error) {
-	res, err := s.db.ExecContext(ctx, `INSERT INTO entries (kind, title, summary, body, region, tags, dosage, patient_text)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, e.Kind, e.Title, e.Summary, e.Body, e.Region, e.Tags, e.Dosage, e.PatientText)
+	res, err := s.db.ExecContext(ctx, `INSERT INTO entries (kind, title, summary, body, region, tags, dosage, patient_text, schema)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, e.Kind, e.Title, e.Summary, e.Body, e.Region, e.Tags, e.Dosage, e.PatientText, e.Schema)
 	if err != nil {
 		return 0, err
 	}
@@ -195,8 +196,8 @@ func (s *Store) CreateEntry(ctx context.Context, e Entry) (int64, error) {
 
 func (s *Store) UpdateEntry(ctx context.Context, e Entry) error {
 	res, err := s.db.ExecContext(ctx, `UPDATE entries SET kind=?, title=?, summary=?, body=?, region=?, tags=?,
-		dosage=?, patient_text=?, updated_at=unixepoch() WHERE id=?`,
-		e.Kind, e.Title, e.Summary, e.Body, e.Region, e.Tags, e.Dosage, e.PatientText, e.ID)
+		dosage=?, patient_text=?, schema=?, updated_at=unixepoch() WHERE id=?`,
+		e.Kind, e.Title, e.Summary, e.Body, e.Region, e.Tags, e.Dosage, e.PatientText, e.Schema, e.ID)
 	if err != nil {
 		return err
 	}
@@ -427,7 +428,7 @@ func (s *Store) handoutItemRows(ctx context.Context, hid int64) ([]HandoutItem, 
 		e := &it.Entry
 		var c, u int64
 		if err := rows.Scan(&it.Pos, &it.Dosage, &it.Note, &e.ID, &e.Kind, &e.Title, &e.Summary, &e.Body,
-			&e.Region, &e.Tags, &e.Dosage, &e.PatientText, &c, &u); err != nil {
+			&e.Region, &e.Tags, &e.Dosage, &e.PatientText, &e.Schema, &c, &u); err != nil {
 			return nil, err
 		}
 		e.Created, e.Updated = time.Unix(c, 0), time.Unix(u, 0)

@@ -94,6 +94,21 @@
   </div>
 </article>
 
+{{if .QHist}}
+<article id="frageboegen">
+  <h3>Fragebögen im Verlauf</h3>
+  <div class="tablewrap"><table class="list">
+    <thead><tr><th>Datum</th><th>Fragebogen</th><th>Summe</th><th class="hide-sm">Richtung</th><th>Status</th><th></th></tr></thead>
+    <tbody>{{range .QHist}}
+      <tr><td>{{de .Date}}</td><td><a href="/eintrag/{{.BefundID}}">{{.Name}}</a></td><td><strong>{{.Sum}} von {{.Max}}</strong></td>
+        <td class="hide-sm">{{.Dir}}</td>
+        <td>{{if .Complete}}<span class="ok">vollständig</span>{{else}}<span class="error">unvollständig</span>{{end}}{{with .Note}} · {{.}}{{end}}</td>
+        <td><a href="/befund/{{.BefundID}}">Befund</a></td></tr>
+    {{end}}</tbody>
+  </table></div>
+  <small class="muted">Punktwerte aus den Befunden. NRS/PSFS bleiben unverändert.</small>
+</article>
+{{end}}
 <article id="verlauf">
   <h3>Behandlungsverlauf</h3>
   <form method="post" action="/patient/{{$p.ID}}/verlauf" class="session-form">

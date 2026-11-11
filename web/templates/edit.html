@@ -25,6 +25,36 @@
       <small>Markdown: <code>## Überschrift</code>, <code>- Liste</code>, <code>**fett**</code>, Tabellen mit <code>| a | b |</code></small>
     </label>
 
+    {{if eq $e.Kind "test"}}
+    <fieldset class="fragebogen-editor">
+      <legend>Fragebogen (Punkteskala) – optional</legend>
+      <label class="consent"><input type="checkbox" name="fragebogen_an" value="1"{{if .E.Schema}} checked{{end}}> Dieser Test ist ein Fragebogen mit Punkten</label>
+      <div id="_fq" {{if not .E.Schema}}hidden{{end}}>
+        <label>Auswertung
+          <select name="fragebogen_richtung">
+            <option value="">(keine Richtung)</option>
+            <option value="lower"{{if eq .FRichtung "lower"}} selected{{end}}>niedriger ist besser</option>
+            <option value="higher"{{if eq .FRichtung "higher"}} selected{{end}}>höher ist besser</option>
+          </select>
+        </label>
+        <div class="tablewrap">
+          <table class="etable qdef" data-table="qdef">
+            <thead><tr><th>Frage</th><th>Max. Punkte</th></tr></thead>
+            <tbody>
+            {{range $i, $it := .FItems}}<tr>
+              <td><input name="d.{{$i}}.q" value="{{$it.Q}}" aria-label="Frage" required></td>
+              <td><input name="d.{{$i}}.max" type="number" min="1" step="1" value="{{$it.Max}}" aria-label="Maximale Punkte" class="num" required></td>
+            </tr>{{end}}
+            </tbody>
+          </table>
+        </div>
+        <input type="hidden" name="d.n" value="{{len .FItems}}">
+        <button type="button" class="addrow js-only secondary outline small" data-table="qdef">+ Frage</button>
+        <small class="muted">Jede Frage wird mit 0 bis zur Maximalpunktzahl beantwortet; die Punkte werden aufsummiert.</small>
+      </div>
+    </fieldset>
+    {{end}}
+
     <fieldset class="exercise">
       <legend>Nur für Übungen</legend>
       <label>Standard-Dosierung <input name="dosage" value="{{$e.Dosage}}" placeholder="z. B. 3 × 12 Wdh., 2× täglich"></label>

@@ -300,6 +300,10 @@ CREATE TABLE setup_tokens (
     created_at INTEGER NOT NULL DEFAULT (unixepoch())
 );
 `},
+	{8, `
+-- Fragebogen-/Schema-Attribut für Tests (JSON im Bereich befund.Questionnaire)
+ALTER TABLE entries ADD COLUMN schema TEXT NOT NULL DEFAULT "";
+`},
 }
 
 func migrate(db *sql.DB) error {
