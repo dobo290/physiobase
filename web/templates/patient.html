@@ -39,8 +39,8 @@
   <h3>Verlauf der Kernwerte</h3>
   <div class="tablewrap">
   <table class="list">
-    <thead><tr><th>Datum</th><th class="hide-sm">Befund</th><th>NRS jetzt</th><th>NRS max</th><th>PSFS Ø</th></tr></thead>
-    <tbody>{{range .Trend}}<tr><td>{{de .Date}}</td><td class="hide-sm"><a href="/befund/{{.ID}}">{{.Title}}</a></td><td>{{.Now}}</td><td>{{.Worst}}</td><td>{{.PSFS}}</td></tr>{{end}}</tbody>
+    <thead><tr><th>Datum</th><th class="hide-sm">Befund</th><th>NRS jetzt</th><th>NRS max</th><th>PSFS Ø</th><th>Schmerzquellen (P…)</th></tr></thead>
+    <tbody>{{range .Trend}}<tr><td>{{de .Date}}</td><td class="hide-sm"><a href="/befund/{{.ID}}">{{.Title}}</a></td><td>{{.Now}}</td><td>{{.Worst}}</td><td>{{.PSFS}}</td><td>{{.Pain}}</td></tr>{{end}}</tbody>
   </table>
   </div>
   <small class="muted">Orientierung: Änderungen um etwa 2 Punkte auf NRS bzw. PSFS gelten in Studien häufig als klinisch relevant. Details im Vergleich.</small>

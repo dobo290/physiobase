@@ -315,5 +315,5 @@ tr.inactive td { opacity: .55; }
 
 /* Körperschema: kein Scrollen/Selektieren beim Zeichnen, große Pfeile */
 .body-canvas { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
-.body-tools .arrow { font-size: 1.5rem; width: 2.8rem; height: 2.8rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center;
-  font-family: "Segoe UI Symbol","Noto Sans Symbols2","Noto Sans Symbols",DejaVu Sans,system-ui,sans-serif; }
+.body-tools .arrow { width: 2.8rem; height: 2.8rem; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.body-tools .arrow svg { pointer-events: none; display: block; }

@@ -20,6 +20,8 @@ type Col struct {
 	Type                    string // "text", "number", "date", "select"
 	Options                 []string
 	List                    string // id einer <datalist> mit Vorschlägen
+	DependsOnCol            string // Spalten-Schlüssel, von dem diese Spalte abhängt
+	DependsValue            string // Wert, bei dem sie sichtbar ist
 }
 
 type Table struct {
@@ -92,7 +94,13 @@ var (
 		{Key: "activity", Label: "Aktivität (vom Patienten genannt)", Placeholder: "z. B. Treppe steigen 2 Stockwerke"},
 		{Key: "score", Label: "0–10", Type: "number"},
 	}}
-	Tables = []*Table{TableTimeline, TableROM, TableMFP, TableCirc, TableTests, TableMeasures, TablePSFS}
+	TablePain = &Table{Key: "pain", Diff: []string{"nrs"}, Cols: []Col{
+		{Key: "lok", Label: "Lokalisation", Placeholder: "z. B. vorderes Knie links"},
+		{Key: "nrs", Label: "NRS (0–10)", Type: "number", Placeholder: "0–10"},
+		{Key: "mech", Label: "Schmerzmechanismus", Type: "select", Options: []string{"", "nozizeptiv", "neurogen", "zentral generiert"}},
+		{Key: "sub", Label: "Subtyp (nur nozizeptiv)", Type: "select", Options: []string{"", "mechanisch", "hypoxisch", "entzündlich"}, DependsOnCol: "mech", DependsValue: "nozizeptiv"},
+	}}
+	Tables = []*Table{TableTimeline, TableROM, TableMFP, TableCirc, TableTests, TableMeasures, TablePSFS, TablePain}
 
 	// Vorschläge für Instrumente (nur Namen; Werte trägt man selbst ein)
 	Measures = []string{
@@ -138,25 +146,16 @@ var Sections = []Section{
 		}},
 	}},
 	{ID: "anamnese", Title: "Anamnese", Parts: []Part{
-		{Title: "Körperschema", Body: true},
-		{Title: "Schmerz", Fields: []Field{
-			nrs("pain_now", "NRS aktuell (0–10)"),
-			nrs("pain_best", "NRS beste 24 h"),
-			nrs("pain_worst", "NRS schlimmste 24 h"),
-			{
-				Key: "pain_type", Label: "Dominanter Schmerzmechanismus", Type: "select",
-				Options: []string{"", "nozizeptiv", "neurogen", "zentral generiert"},
-			},
-			{
-				Key: "pain_nozi", Label: "Nozizeptiver Subtyp", Type: "select",
-				Options:   []string{"", "mechanisch", "hypoxisch", "entzündlich"},
-				DependsOn: "pain_type", DependsValue: "nozizeptiv",
-			},
-		}},
 		{Fields: []Field{
 			wide(rows(ph(area("anaIntro", "Einleitende Frage(n)"), "Was führt Sie zu mir? …"), 5)),
 		}},
 		{Title: "Zeitlicher Verlauf", Table: TableTimeline},
+		{Title: "Körperschema", Body: true},
+		{Title: "Schmerz", Fields: []Field{
+			nrs("pain_now", "NRS gesamt – aktuell (0–10)"),
+			nrs("pain_best", "NRS gesamt – beste 24 h"),
+			nrs("pain_worst", "NRS gesamt – schlimmste 24 h"),
+		}, Table: TablePain},
 		{Fields: []Field{
 			area("24h", "24h-Verlauf"),
 			area("provo", "Provokation"),

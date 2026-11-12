@@ -187,7 +187,7 @@ func TestPatientBefundFlow(t *testing.T) {
 		"t.rom.n": {"1"}, "t.rom.0.joint": {"LWS"}, "t.rom.0.move": {"Flex"}, "t.rom.0.act": {"55"},
 	})
 	code, html := body(t, c, ts.URL+"/patient/1/vergleich")
-	if code != 200 || !strings.Contains(html, "&#43;15") || !strings.Contains(html, "NRS aktuell") {
+	if code != 200 || !strings.Contains(html, "&#43;15") || !strings.Contains(html, "NRS gesamt") {
 		t.Fatalf("Vergleich: %d\n%s", code, html[strings.Index(html, "<main"):])
 	}
 	if _, html := body(t, c, ts.URL+"/befund/1/druck"); !strings.Contains(html, "Lumbalgie") || !strings.Contains(html, "<text") || strings.Contains(html, "Fachbereich") {

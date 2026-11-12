@@ -19,9 +19,10 @@ type Stamp struct {
 	V int     `json:"v"` // Ansicht (Index in Views)
 	X float64 `json:"x"`
 	Y float64 `json:"y"`
-	S string  `json:"s"` // Symbol-Key
-	C string  `json:"c"` // Farbe #rrggbb
-	Z int     `json:"z"` // Größe 1..3
+	S string  `json:"s"`           // Symbol-Key
+	C string  `json:"c"`           // Farbe #rrggbb
+	Z int     `json:"z"`           // Größe 1..3
+	N int     `json:"n,omitempty"` // Nummer bei Schmerzquellen (P1, P2, …)
 }
 
 type Data struct {
@@ -121,7 +122,9 @@ func FromForm(form url.Values) Data {
 					row[c.Key] = v
 				}
 			}
-			if len(row) > 0 {
+			// Schmerzquelle: auch leere Zeilen behalten (je Platzhalter steht ein Punkt
+			// auf dem Körperschema; die Zeile würde sonst beim Speichern verschwinden).
+			if len(row) > 0 || t.Key == "pain" {
 				d.Tables[t.Key] = append(d.Tables[t.Key], row)
 			}
 		}
@@ -181,6 +184,15 @@ func CleanStamps(in []Stamp) []Stamp {
 
 // ---------- Darstellung ----------
 
+// FormRows liefert die Zeilen für das Formular. Bei der Schmerzquelle gibt es keine
+// Platzhalterzeilen (die Zeilen entstehen über das Körperschema und bleiben mit ihm synchron).
+func (d Data) FormRows(t *Table) []Row {
+	if t.Key == "pain" {
+		return append([]Row{}, d.Tables["pain"]...)
+	}
+	return d.TableRows(t, 2)
+}
+
 // TableRows liefert die Zeilen für das Formular plus leere Zeilen zum Ausfüllen.
 func (d Data) TableRows(t *Table, blank int) []Row {
 	rows := append([]Row{}, d.Tables[t.Key]...)
@@ -219,7 +231,11 @@ func (d Data) StampsFor(view int) []StampView {
 			continue
 		}
 		sym := symbol(s.S)
-		out = append(out, StampView{X: s.X * float64(v.W), Y: s.Y * float64(v.H), Size: StampSize(v, s.Z), Char: sym.Char, Color: s.C, Name: sym.Name})
+		ch := sym.Char
+		if s.S == "pain" { // Schmerzquelle: Symbol + Nummer (⚡P1, ⚡P2, …)
+			ch = sym.Char + "P" + strconv.Itoa(s.N)
+		}
+		out = append(out, StampView{X: s.X * float64(v.W), Y: s.Y * float64(v.H), Size: StampSize(v, s.Z), Char: ch, Color: s.C, Name: sym.Name})
 	}
 	return out
 }
@@ -495,4 +511,19 @@ func (d Data) StampsJSON() string {
 	}
 	b, _ := json.Marshal(d.Stamps)
 	return string(b)
+}
+
+// PainSummary baut aus den Schmerzquellen eine kompakte Zeile: "P1 6 · P2 3".
+func PainSummary(d Data) string {
+	rows := d.Tables["pain"]
+	if len(rows) == 0 {
+		return ""
+	}
+	var parts []string
+	for i, r := range rows {
+		if n := strings.TrimSpace(r["nrs"]); n != "" {
+			parts = append(parts, fmt.Sprintf("P%d %s", i+1, n))
+		}
+	}
+	return strings.Join(parts, " · ")
 }

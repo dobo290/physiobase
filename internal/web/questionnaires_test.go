@@ -93,3 +93,39 @@ func TestQuestionnaireFlow(t *testing.T) {
 		t.Errorf("Fragebogen mit max 0: rc=%d", r.StatusCode)
 	}
 }
+
+func TestPainSources(t *testing.T) {
+	ts, c := newServer(t)
+	login(t, c, ts.URL)
+	post(c, ts.URL+"/patienten", url.Values{"name": {"Pain P."}})
+	post(c, ts.URL+"/patient/1/befund", url.Values{})
+	// Befund mit Schmerzquelle (Tabelle) + Schmerzstempel speichern
+	post(c, ts.URL+"/befund/1", url.Values{
+		"title": {"Erstbefund"}, "date": {"2026-11-01"},
+		"t.pain.n": {"2"}, "t.pain.0.lok": {"vorderes Knie links"}, "t.pain.0.nrs": {"6"}, "t.pain.0.mech": {"nozizeptiv"}, "t.pain.0.sub": {"mechanisch"},
+		"t.pain.1.lok": {"Schulter rechts"}, "t.pain.1.nrs": {"3"},
+		"stamps": {`[{"v":0,"x":0.3,"y":0.4,"s":"pain","c":"#d32f2f","z":2,"n":1},{"v":0,"x":0.6,"y":0.6,"s":"pain","c":"#d32f2f","z":2,"n":2}]`},
+	})
+	// Formular zeigt die Schmerzquellen-Tabelle mit P1/P2 + ⚡P1/⚡P2 auf dem Schema
+	// (⚡ trägt ein unsichtbares Variation-Selektor-Zeichen → einzeln prüfen)
+	if _, html := body(t, c, ts.URL+"/befund/1"); !strings.Contains(html, "data-table=\"pain\"") ||
+		!strings.Contains(html, "P1") || !strings.Contains(html, "P2") ||
+		!strings.Contains(html, "⚡") || !strings.Contains(html, "vorderes Knie links") ||
+		strings.Contains(html, `name="f.pain_type"`) {
+		t.Error("Schmerzquellen fehlen im Befund-Formular")
+	}
+	// Druckansicht enthält die Tabelle + die Schmerzquelle
+	if _, pr := body(t, c, ts.URL+"/befund/1/druck"); !strings.Contains(pr, "vorderes Knie links") || !strings.Contains(pr, "⚡") {
+		t.Error("Druck ohne Schmerzquellen")
+	}
+	// Patient-Übersicht: PainSummary "P1 6 · P2 3" (Trend zeigt nur ab 2 Befunden)
+	post(c, ts.URL+"/patient/1/befund", url.Values{"kopie": {"1"}})
+	post(c, ts.URL+"/befund/2", url.Values{
+		"title": {"Wiederbefund"}, "date": {"2026-12-01"},
+		"t.pain.n": {"1"}, "t.pain.0.lok": {"vorderes Knie links"}, "t.pain.0.nrs": {"3"},
+		"stamps": {`[{"v":0,"x":0.3,"y":0.4,"s":"pain","c":"#d32f2f","z":2,"n":1}]`},
+	})
+	if _, ov := body(t, c, ts.URL+"/patient/1"); !strings.Contains(ov, "P1 6 · P2 3") || !strings.Contains(ov, "P1 3") {
+		t.Error("Schmerzquellen fehlen in der Patientenübersicht")
+	}
+}

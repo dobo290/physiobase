@@ -103,3 +103,15 @@ func TestCompare(t *testing.T) {
 		t.Errorf("PSFS: %q", PSFSMean(b))
 	}
 }
+
+func TestPainSummary(t *testing.T) {
+	d := New()
+	d.Tables["pain"] = []Row{{"lok": "Knie", "nrs": "6"}, {"lok": "Schulter", "nrs": "3"}, {"lok": "ohne Wert"}}
+	if got := PainSummary(d); got != "P1 6 · P2 3" {
+		t.Errorf("PainSummary: %q", got)
+	}
+	d2 := New()
+	if PainSummary(d2) != "" {
+		t.Error("leere Schmerzquellen")
+	}
+}

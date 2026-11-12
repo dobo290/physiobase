@@ -125,6 +125,7 @@ func (s *Server) showPatient(w http.ResponseWriter, r *http.Request) {
 	type trendRow struct {
 		Date, Title             string
 		Now, Worst, PSFS, Tests string
+		Pain                    string
 		ID                      int64
 	}
 	var trend []trendRow
@@ -133,7 +134,7 @@ func (s *Server) showPatient(w http.ResponseWriter, r *http.Request) {
 		trend = append(trend, trendRow{
 			ID: bs[i].ID, Date: bs[i].Date, Title: bs[i].Title,
 			Now: d.Get("pain_now"), Worst: d.Get("pain_worst"), PSFS: befund.PSFSMean(d),
-			Tests: fmt.Sprint(len(d.Tables["measures"])),
+			Tests: fmt.Sprint(len(d.Tables["measures"])), Pain: befund.PainSummary(d),
 		})
 	}
 	s.render(w, r, "patient", http.StatusOK, map[string]any{

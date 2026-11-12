@@ -65,6 +65,7 @@
       <div class="body-tools js-only">
         <div class="mode-switch" role="group">
           <button type="button" class="mode active" data-mode="stempel">Stempel</button>
+          <button type="button" class="mode" data-mode="schmerz">Schmerzquelle</button>
           <button type="button" class="mode" data-mode="zeichnen">✏️ Zeichnen</button>
         </div>
         <span class="tool-sep"></span>
@@ -72,8 +73,8 @@
         <input type="color" id="stamp-color" value="#d32f2f" aria-label="Farbe">
         <select id="stamp-size" aria-label="Größe"><option value="1">klein</option><option value="2" selected>mittel</option><option value="3">groß</option></select>
         <span class="tool-sep"></span>
-        <button type="button" id="btn-undo" class="arrow" title="Rückgängig" aria-label="Rückgängig">↶</button>
-        <button type="button" id="btn-redo" class="arrow" title="Wiederholen" aria-label="Wiederholen">↷</button>
+        <button type="button" id="btn-undo" class="arrow" title="Rückgängig" aria-label="Rückgängig"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg></button>
+        <button type="button" id="btn-redo" class="arrow" title="Wiederholen" aria-label="Wiederholen"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M18.4 10.6C16.55 9 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"/></svg></button>
       </div>
       <div class="bodies">
         {{range $vi, $v := $.Views}}
@@ -108,23 +109,25 @@
       </div>
       {{end}}
 
-      {{with $p.Table}}{{$t := .}}{{$rows := $d.TableRows $t 2}}
+      {{with $p.Table}}{{$t := .}}{{$rows := $d.FormRows $t}}{{$isPain := eq $t.Key "pain"}}
       <div class="tablewrap">
         <table class="etable" data-table="{{$t.Key}}">
-          <thead><tr>{{range $t.Cols}}<th>{{.Label}}</th>{{end}}</tr></thead>
+          <thead><tr>{{if $isPain}}<th>Nr</th>{{end}}{{range $t.Cols}}<th>{{.Label}}</th>{{end}}{{if $isPain}}<th></th>{{end}}</tr></thead>
           <tbody>
-          {{range $i, $row := $rows}}<tr>{{range $c := $t.Cols}}<td>
-            {{if eq $c.Type "select"}}<select name="{{cell $t.Key $c.Key $i}}" aria-label="{{$c.Label}}">{{range $c.Options}}<option{{if eq . (index $row $c.Key)}} selected{{end}}>{{.}}</option>{{end}}</select>
+          {{range $i, $row := $rows}}<tr{{if $isPain}} data-pain-row="{{add1 $i}}"{{end}}>{{if $isPain}}<td class="pain-nr">P{{add1 $i}}</td>{{end}}{{range $c := $t.Cols}}<td{{if $c.DependsOnCol}} class="subcell"{{if ne (index $row $c.DependsOnCol) $c.DependsValue}} hidden{{end}}{{end}}>
+            {{if eq $c.Type "select"}}<select name="{{cell $t.Key $c.Key $i}}" aria-label="{{$c.Label}}"{{if $c.DependsOnCol}} data-depends-on-col="{{$c.DependsOnCol}}" data-depends-value="{{$c.DependsValue}}"{{end}}>{{range $c.Options}}<option{{if eq . (index $row $c.Key)}} selected{{end}}>{{.}}</option>{{end}}</select>
             {{else if eq $c.Type "number"}}<input name="{{cell $t.Key $c.Key $i}}" value="{{index $row $c.Key}}" type="number" step="any" inputmode="decimal" aria-label="{{$c.Label}}">
             {{else if eq $c.Type "date"}}<input name="{{cell $t.Key $c.Key $i}}" value="{{index $row $c.Key}}" type="date" aria-label="{{$c.Label}}">
             {{else}}<input name="{{cell $t.Key $c.Key $i}}" value="{{index $row $c.Key}}" placeholder="{{$c.Placeholder}}" aria-label="{{$c.Label}}"{{if $c.List}} list="{{$c.List}}"{{end}}>{{end}}
-          </td>{{end}}</tr>{{end}}
+          </td>{{end}}{{if $isPain}}<td class="pain-rm"><button type="button" class="link" title="Schmerzquelle entfernen" data-pain-rm>✕</button></td>{{end}}</tr>{{end}}
           </tbody>
         </table>
       </div>
       <input type="hidden" name="t.{{$t.Key}}.n" value="{{len $rows}}">
       <button type="button" class="addrow js-only secondary outline small" data-table="{{$t.Key}}">+ Zeile</button>
       <small class="muted nojs-only">Für weitere Zeilen speichern.</small>
+      {{if $isPain}}<small class="muted">Im Körperschema (Modus „Schmerzquelle“) setzen oder hier + Zeile – beides bleibt synchron (P1, P2, …).</small>
+      <template id="pain-row-template"><tr><td class="pain-nr">P</td>{{range $t.Cols}}<td>{{if eq .Type "select"}}<select name="t.pain.__i__.{{.Key}}" aria-label="{{.Label}}">{{range .Options}}<option>{{.}}</option>{{end}}</select>{{else if eq .Type "number"}}<input name="t.pain.__i__.{{.Key}}" type="number" step="any" inputmode="decimal" aria-label="{{.Label}}">{{else}}<input name="t.pain.__i__.{{.Key}}" placeholder="{{.Placeholder}}" aria-label="{{.Label}}">{{end}}</td>{{end}}<td class="pain-rm"><button type="button" class="link" data-pain-rm>✕</button></td></tr></template>{{end}}
       {{end}}
 
     {{if $p.Collapsible}}</details>{{else}}</div>{{end}}

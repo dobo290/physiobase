@@ -18,6 +18,7 @@
   // Datum um so viele Tage weiter – so entsteht eine Terminserie ohne Neuladen der Seite.
   document.querySelectorAll("button.addrow").forEach((btn) => btn.addEventListener("click", () => {
     const key = btn.dataset.table;
+    if (key === "pain") return; // Schmerzquelle hat einen eigenen Handler (Template + Schema)
     const scope = btn.closest("form") || document;
     const table = scope.querySelector(`table[data-table="${key}"]`);
     const tbody = table?.querySelector("tbody");
@@ -96,7 +97,7 @@
     t.setAttribute("fill", s.c);
     t.setAttribute("text-anchor", "middle");
     t.setAttribute("dominant-baseline", "central");
-    t.textContent = chars[s.s] || "?";
+    t.textContent = s.s === "pain" ? "⚡P" + (s.n || 1) : (chars[s.s] || "?");
     svg.appendChild(t);
   };
   const appendPath = (svg, dr) => {
@@ -128,6 +129,62 @@
   const clamp01 = (v) => Math.min(1, Math.max(0, v));
   const ptAt = (svg, ev) => { const r = svg.getBoundingClientRect(); return { x: +clamp01((ev.clientX - r.left) / r.width).toFixed(4), y: +clamp01((ev.clientY - r.top) / r.height).toFixed(4) }; };
 
+  // ---- Schmerzquellen: Körperschema (⚡P1…) und Tabelle bleiben synchron ----
+  const painTable = () => document.querySelector('table[data-table="pain"]');
+  const painCount = () => { const n = document.querySelector('input[name="t.pain.n"]'); return n ? parseInt(n.value || "0", 10) : 0; };
+  const painStampCount = () => stamps.filter((st) => st.s === "pain").length;
+  const setPainCount = (k) => { const n = document.querySelector('input[name="t.pain.n"]'); if (n) n.value = k; };
+  const addPainRow = () => {
+    const tb = painTable()?.querySelector("tbody");
+    const tpl = document.getElementById("pain-row-template");
+    if (!tb || !tpl) return;
+    const tr = tpl.content.firstElementChild.cloneNode(true);
+    tr.querySelectorAll("input,select").forEach((el) => {
+      el.name = el.name.replace(/__i__/g, painCount());
+      if (el.tagName === "SELECT") el.selectedIndex = 0; else el.value = "";
+      if (el.dataset && el.dataset.dependsOnCol) { const cell = el.closest("td"); if (cell) cell.hidden = true; }
+    });
+    tb.appendChild(tr);
+    setPainCount(painCount() + 1);
+  };
+  const renumberPain = () => {
+    const pstamps = stamps.filter((st) => st.s === "pain");
+    pstamps.forEach((st, i) => { st.n = i + 1; });
+    const tb = painTable()?.querySelector("tbody");
+    if (tb) [...tb.querySelectorAll("tr")].forEach((tr, i) => {
+      tr.dataset.painRow = "P" + (i + 1);
+      const nr = tr.querySelector(".pain-nr"); if (nr) nr.textContent = "P" + (i + 1);
+    });
+    setPainCount(pstamps.length);
+  };
+  const addPainStamp = (svg, e, num) => {
+    const p = ptAt(svg, e);
+    const st = { v: +svg.dataset.view, x: p.x, y: p.y, s: "pain", c: color?.value || "#d32f2f", z: +(size?.value || 2), n: num || painStampCount() + 1 };
+    stamps.push(st); appendStamp(svg, st);
+    addPainRow(); renumberPain();
+    undoStack.push({ view: +svg.dataset.view, type: "stamp", st }); redoStack.length = 0;
+    save(); updateArrows();
+  };
+  const addPainStampFromRow = () => { // "+ Zeile" in der Tabelle → nur Punkt auf dem Schema (Zeile hat addrow schon erzeugt)
+    const svg = svgFor(0);
+    if (!svg) return;
+    const r = svg.getBoundingClientRect();
+    const p = { x: +0.5.toFixed(4), y: +0.55.toFixed(4) }; // Standardposition, verschiebbar per Undo/Neuplatzieren
+    const st = { v: 0, x: p.x, y: p.y, s: "pain", c: color?.value || "#d32f2f", z: +(size?.value || 2), n: painCount() };
+    stamps.push(st); appendStamp(svg, st);
+    renumberPain(); save(); updateArrows();
+    undoStack.push({ view: 0, type: "stamp", st }); redoStack.length = 0;
+  };
+  const removePainRow = (tr) => {
+    const idx = [...tr.parentElement.children].indexOf(tr);
+    const num = idx + 1;
+    tr.remove();
+    const i = stamps.findIndex((st) => st.s === "pain" && st.n === num);
+    if (i >= 0) { stamps.splice(i, 1); }
+    renumberPain(); save();
+    undoStack.length = 0; redoStack.length = 0; updateArrows();
+  };
+
   svgs.forEach((svg) => {
     const view = +svg.dataset.view;
     const w = +svg.dataset.w, h = +svg.dataset.h;
@@ -142,6 +199,7 @@
         save(); updateArrows();
         return;
       }
+      if (mode === "schmerz") { addPainStamp(svg, e); return; }
       // Zeichnen: live ein Pfad-Element, das bei jeder Bewegung wächst
       svg.setPointerCapture(e.pointerId);
       const z = +(size?.value || 2);
@@ -185,16 +243,49 @@
 
   undoBtn.addEventListener("click", () => {
     const a = undoStack.pop(); if (!a) return;
-    if (a.type === "stamp") stamps = stamps.filter((x) => x !== a.st);
-    else drawings = drawings.filter((x) => x !== a.st);
+    if (a.type === "stamp") {
+      stamps = stamps.filter((x) => x !== a.st);
+      if (a.st.s === "pain") { // passende Zeile entfernen
+        const tb = painTable()?.querySelector("tbody");
+        const tr = tb?.querySelector('tr[data-pain-row="P' + a.st.n + '"]');
+        if (tr) tr.remove();
+      }
+    } else drawings = drawings.filter((x) => x !== a.st);
+    renumberPain();
     redraw(svgFor(a.view), a.view);
     redoStack.push(a); save(); updateArrows();
   });
   redoBtn.addEventListener("click", () => {
     const a = redoStack.pop(); if (!a) return;
-    if (a.type === "stamp") stamps.push(a.st); else drawings.push(a.st);
+    if (a.type === "stamp") {
+      stamps.push(a.st);
+      if (a.st.s === "pain") addPainRow();
+    } else drawings.push(a.st);
+    renumberPain();
     redraw(svgFor(a.view), a.view);
     undoStack.push(a); save(); updateArrows();
+  });
+
+  // "+ Zeile" in der Schmerz-Tabelle → Zeile aus Template + Punkt auf dem Schema
+  document.querySelectorAll("button.addrow[data-table='pain']").forEach((btn) => {
+    btn.addEventListener("click", () => { addPainRow(); addPainStampFromRow(); });
+  });
+  // "✕" in einer Schmerz-Zeile → Zeile + Punkt entfernen
+  document.querySelectorAll("table[data-table='pain']").forEach((tb) => {
+    tb.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-pain-rm]");
+      if (!btn) return;
+      removePainRow(btn.closest("tr"));
+    });
+  });
+  // Subtyp-Spalte: nur sichtbar, wenn Schmerzmechanismus = nozizeptiv
+  document.addEventListener("change", (e) => {
+    const sel = e.target;
+    if (!(sel instanceof HTMLSelectElement) || !sel.dataset.dependsOnCol) return;
+    const cell = sel.closest("td");
+    if (cell && cell.classList.contains("subcell")) {
+      cell.hidden = sel.value !== sel.dataset.dependsValue;
+    }
   });
   updateArrows();
 })();
