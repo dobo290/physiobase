@@ -55,7 +55,7 @@ func New(ctx context.Context, cfg *config.Config, st *store.Store, log *slog.Log
 		return nil, err
 	}
 	s.pk.open = map[string]ceremony{}
-	s.demo = newDemoStats()
+	s.demo = newDemoStats(cfg.DemoStatsFile)
 	wa, err := newWebAuthn(cfg.BaseURL, s.practice())
 	if err != nil {
 		return nil, fmt.Errorf("passkeys: %w", err)

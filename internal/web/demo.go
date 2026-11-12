@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -21,10 +22,51 @@ type demoStats struct {
 	mu    sync.Mutex
 	days  map[string]map[string]bool // "2026-11-11" -> gehashte IPs
 	total int
+	file  string
 }
 
-func newDemoStats() *demoStats {
-	return &demoStats{days: map[string]map[string]bool{}}
+func newDemoStats(file string) *demoStats {
+	d := &demoStats{days: map[string]map[string]bool{}, file: file}
+	d.load()
+	return d
+}
+
+// load liest die dauerhafte Statistik-Datei (Zeilen "Datum,HASH").
+func (d *demoStats) load() {
+	if d.file == "" {
+		return
+	}
+	b, err := os.ReadFile(d.file)
+	if err != nil {
+		return
+	}
+	d.total = 0
+	for _, line := range strings.Split(string(b), "\n") {
+		date, hash, ok := strings.Cut(strings.TrimSpace(line), ",")
+		if !ok || len(hash) < 8 {
+			continue
+		}
+		if d.days[date] == nil {
+			d.days[date] = map[string]bool{}
+		}
+		if !d.days[date][hash] {
+			d.days[date][hash] = true
+			d.total++
+		}
+	}
+}
+
+// persist hängt einen neuen (Tag, Hash) an die Datei an.
+func (d *demoStats) persist(day, hash string) {
+	if d.file == "" {
+		return
+	}
+	f, err := os.OpenFile(d.file, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
+	if err != nil {
+		return
+	}
+	defer func() { _ = f.Close() }()
+	_, _ = f.WriteString(day + "," + hash + "\n")
 }
 
 func clientIP(r *http.Request) string {
@@ -61,6 +103,8 @@ func (s *Server) trackDemo(r *http.Request) {
 	if !s.demo.days[day][h] {
 		s.demo.days[day][h] = true
 		s.demo.total++
+		day, hash := day, h // Helm-Kopie
+		s.demo.persist(day, hash)
 	}
 }
 

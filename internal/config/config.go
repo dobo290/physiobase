@@ -12,25 +12,26 @@ import (
 )
 
 type Config struct {
-	Port         int
-	DataDir      string
-	DBPath       string
-	MediaDir     string
-	DocsDir      string
-	BackupDir    string
-	SMTP         SMTP
-	Demo         bool   // Demo-Modus: Daten werden beim Abmelden/zurücksetzen gelöscht, Uploads/Mail aus
-	DemoHome     string // "Zur eigenen Startseite" im Demo-Banner
-	PublicURL    string // von außen erreichbare Adresse für Kalender-Links (z. B. https://physio.example.com)
-	Address      string // Praxisadresse, Standard-Ort für Termine
-	BackupKeep   int
-	Username     string
-	PasswordHash string
-	PracticeName string
-	BaseURL      string
-	Seed         bool
-	LogLevel     slog.Level
-	LogJSON      bool
+	Port          int
+	DataDir       string
+	DBPath        string
+	MediaDir      string
+	DocsDir       string
+	BackupDir     string
+	SMTP          SMTP
+	Demo          bool   // Demo-Modus: Daten werden beim Abmelden/zurücksetzen gelöscht, Uploads/Mail aus
+	DemoHome      string // "Zur eigenen Startseite" im Demo-Banner
+	DemoStatsFile string // dauerhafte Datei für Besucher-Statistik (überlebt Restarts)
+	PublicURL     string // von außen erreichbare Adresse für Kalender-Links (z. B. https://physio.example.com)
+	Address       string // Praxisadresse, Standard-Ort für Termine
+	BackupKeep    int
+	Username      string
+	PasswordHash  string
+	PracticeName  string
+	BaseURL       string
+	Seed          bool
+	LogLevel      slog.Level
+	LogJSON       bool
 }
 
 // SMTP für den Versand von Zusammenfassungen. Leerer Host = Versand aus.
@@ -83,6 +84,7 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("PHYSIOBASE_DEMO ungültig: %w", err)
 	}
 	c.DemoHome = get("DEMO_HOME_URL", "https://gpl-nas.de")
+	c.DemoStatsFile = get("DEMO_STATS_FILE", "")
 	if c.SMTP.Port, err = strconv.Atoi(get("SMTP_PORT", "587")); err != nil {
 		return nil, fmt.Errorf("PHYSIOBASE_SMTP_PORT ungültig: %w", err)
 	}
