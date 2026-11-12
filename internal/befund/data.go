@@ -16,13 +16,14 @@ type Row map[string]string
 // Stamp ist ein Symbol im Körperschema. X/Y sind relativ (0..1), damit die
 // Position unabhängig von Bildschirm- und Druckgröße stimmt.
 type Stamp struct {
-	V int     `json:"v"` // Ansicht (Index in Views)
-	X float64 `json:"x"`
-	Y float64 `json:"y"`
-	S string  `json:"s"`           // Symbol-Key
-	C string  `json:"c"`           // Farbe #rrggbb
-	Z int     `json:"z"`           // Größe 1..3
-	N int     `json:"n,omitempty"` // Nummer bei Schmerzquellen (P1, P2, …)
+	V  int     `json:"v"` // Ansicht (Index in Views)
+	X  float64 `json:"x"`
+	Y  float64 `json:"y"`
+	S  string  `json:"s"`            // Symbol-Key
+	C  string  `json:"c"`            // Farbe #rrggbb
+	Z  int     `json:"z"`            // Größe 1..3
+	N  int     `json:"n,omitempty"`  // Nummer bei Schmerzquellen (P1, P2, …)
+	Ch string  `json:"ch,omitempty"` // Zeichen zum Rendern (eigene Symbole)
 }
 
 type Data struct {
@@ -166,7 +167,10 @@ func CleanStamps(in []Stamp) []Stamp {
 	}
 	var out []Stamp
 	for _, s := range in {
-		if s.V < 0 || s.V >= len(Views) || !known[s.S] || math.IsNaN(s.X) || math.IsNaN(s.Y) ||
+		if !known[s.S] && s.Ch == "" {
+			continue
+		}
+		if s.V < 0 || s.V >= len(Views) || math.IsNaN(s.X) || math.IsNaN(s.Y) ||
 			s.X < 0 || s.X > 1 || s.Y < 0 || s.Y > 1 {
 			continue
 		}
@@ -234,6 +238,8 @@ func (d Data) StampsFor(view int) []StampView {
 		ch := sym.Char
 		if s.S == "pain" { // Schmerzquelle: Symbol + Nummer (⚡P1, ⚡P2, …)
 			ch = sym.Char + "P" + strconv.Itoa(s.N)
+		} else if s.Ch != "" { // eigene Symbole tragen ihr Zeichen direkt
+			ch = s.Ch
 		}
 		out = append(out, StampView{X: s.X * float64(v.W), Y: s.Y * float64(v.H), Size: StampSize(v, s.Z), Char: ch, Color: s.C, Name: sym.Name})
 	}

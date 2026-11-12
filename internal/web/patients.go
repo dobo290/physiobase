@@ -379,8 +379,13 @@ func (s *Server) showBefund(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
+	syms, err := s.effectiveSymbols(r.Context())
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
 	s.render(w, r, "befund", http.StatusOK, map[string]any{
-		"B": b, "P": p, "D": d, "Sections": befund.Sections, "Symbols": befund.Symbols, "Views": befund.Views,
+		"B": b, "P": p, "D": d, "Sections": befund.Sections, "Symbols": syms, "Views": befund.Views,
 		"Tests": tests, "Measures": befund.Measures, "Saved": r.URL.Query().Get("gespeichert") == "1",
 		"Q": qes, "PrevScores": prev,
 	})
@@ -445,9 +450,14 @@ func (s *Server) printBefund(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
+	used, err := s.usedSymbolsFor(r.Context(), d)
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
 	s.render(w, r, "befund_print", http.StatusOK, map[string]any{
 		"B": b, "P": p, "D": d, "Sections": befund.Sections, "Views": befund.Views, "Sessions": sessions, "Today": time.Now(),
-		"Q": qes,
+		"Q": qes, "UsedSymbols": used,
 	})
 }
 

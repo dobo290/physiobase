@@ -69,7 +69,7 @@
           <button type="button" class="mode" data-mode="zeichnen">✏️ Zeichnen</button>
         </div>
         <span class="tool-sep"></span>
-        {{range $i, $y := $.Symbols}}<button type="button" class="sym{{if eq $i 0}} active{{end}}" data-sym="{{$y.Key}}" title="{{$y.Name}}">{{$y.Char}}</button>{{end}}
+        {{range $i, $y := $.Symbols}}<button type="button" class="sym{{if eq $i 0}} active{{end}}" data-sym="{{$y.Key}}" data-ch="{{$y.Char}}" title="{{$y.Name}}">{{$y.Char}}</button>{{end}}
         <input type="color" id="stamp-color" value="#d32f2f" aria-label="Farbe">
         <select id="stamp-size" aria-label="Größe"><option value="1">klein</option><option value="2" selected>mittel</option><option value="3">groß</option></select>
         <span class="tool-sep"></span>

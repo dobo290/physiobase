@@ -31,7 +31,7 @@
       {{range $vi, $v := $.Views}}
       <figure><div class="body-canvas"><img src="{{$v.Image}}" alt="{{$v.Name}}"><svg viewBox="0 0 {{$v.W}} {{$v.H}}">{{range $d.DrawingsFor $vi}}<path d="{{drawPath . $v}}" stroke="{{.Color}}" stroke-width="{{drawWidth . $v}}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>{{end}}{{range $d.StampsFor $vi}}<text x="{{fmtNum .X}}" y="{{fmtNum .Y}}" font-size="{{fmtNum .Size}}" fill="{{.Color}}" text-anchor="middle" dominant-baseline="central">{{.Char}}</text>{{end}}</svg></div></figure>
       {{end}}
-      <ul class="legend">{{range $d.UsedSymbols}}<li><b>{{.Char}}</b> {{.Name}}</li>{{end}}</ul>
+      <ul class="legend">{{range $.UsedSymbols}}<li><b>{{.Char}}</b> {{.Name}}</li>{{end}}</ul>
     </div>
     {{end}}
 

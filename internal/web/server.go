@@ -65,6 +65,7 @@ func New(ctx context.Context, cfg *config.Config, st *store.Store, log *slog.Log
 	s.wa = wa
 	for _, p := range []string{
 		"index", "entry", "edit", "handouts", "handout", "login", "patients", "patient", "befund", "compare", "summary", "appointments", "appointment", "settings",
+		"admin", "admin_users", "admin_user", "admin_symbols", "account", "setup",
 		"admin", "admin_users", "admin_user", "account", "setup",
 	} {
 		t, err := template.New("").Funcs(funcs).ParseFS(physiobase.TemplatesFS, "web/templates/layout.html", "web/templates/partials.html", "web/templates/"+p+".html")
@@ -165,6 +166,9 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /admin/einstellungen", s.adminOnly(s.saveSettings))
 	mux.HandleFunc("POST /admin/einstellungen/logo", s.adminOnly(s.uploadLogo))
 	mux.HandleFunc("POST /admin/einstellungen/logo/loeschen", s.adminOnly(s.deleteLogo))
+	mux.HandleFunc("GET /admin/symbole", s.adminOnly(s.symbolsPage))
+	mux.HandleFunc("POST /admin/symbole", s.adminOnly(s.addSymbol))
+	mux.HandleFunc("POST /admin/symbole/{key}/loeschen", s.adminOnly(s.deleteSymbol))
 	mux.HandleFunc("GET /admin/benutzer", s.adminOnly(s.adminUsers))
 	mux.HandleFunc("POST /admin/benutzer", s.adminOnly(s.adminCreateUser))
 	mux.HandleFunc("GET /admin/benutzer/{id}", s.adminOnly(s.adminUser))
@@ -273,11 +277,12 @@ var funcs = template.FuncMap{
 		// goldmark ohne WithUnsafe: rohes HTML im Markdown wird verworfen.
 		return template.HTML(b.String()) //nolint:gosec // G203
 	},
-	"date": func(t time.Time) string { return t.Local().Format("02.01.2006") },
-	"add1": func(i int) int { return i + 1 },
-	"day":  dayLabel,
-	"hm":   func(t time.Time) string { return t.Local().Format("15:04") },
-	"ymd":  func(t time.Time) string { return t.Local().Format("2006-01-02") },
+	"date":      func(t time.Time) string { return t.Local().Format("02.01.2006") },
+	"add1":      func(i int) int { return i + 1 },
+	"day":       dayLabel,
+	"hasPrefix": strings.HasPrefix,
+	"hm":        func(t time.Time) string { return t.Local().Format("15:04") },
+	"ymd":       func(t time.Time) string { return t.Local().Format("2006-01-02") },
 	// Diagnose eines Befunds für Listen
 	"diag":    func(raw string) string { d, _ := befund.Parse(raw); return d.Get("diag") },
 	"cell":    func(t, c string, i int) string { return fmt.Sprintf("t.%s.%d.%s", t, i, c) },

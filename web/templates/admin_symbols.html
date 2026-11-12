@@ -1,0 +1,28 @@
+{{define "title"}}Symbole{{end}}
+{{define "content"}}
+<nav aria-label="breadcrumb"><ul><li><a href="/admin">Verwaltung</a></li><li>Symbole</li></ul></nav>
+<h2>Symbole für das Körperschema</h2>
+{{if .Saved}}<p class="ok" role="status">Gespeichert.</p>{{end}}
+{{with .Error}}<p class="error" role="alert">{{.}}</p>{{end}}
+<p class="muted">Diese Zeichen erscheinen im Befund als Stempel auf dem Körperschema (Modus „Stempel“) und in der Legende. Die Schmerzquelle (P1, P2, …) ist fest und wird über den Modus „Schmerzquelle“ gesetzt.</p>
+
+<h3>Verfügbare Symbole</h3>
+<div class="tablewrap"><table class="list">
+  <thead><tr><th>Zeichen</th><th>Name</th><th>Herkunft</th><th></th></tr></thead>
+  <tbody>
+  {{range .Symbols}}
+    <tr><td class="sym-preview">{{.Char}}</td><td>{{.Name}}</td>
+      <td>{{if hasPrefix .Key "custom-"}}eigenes{{else}}eingebaut{{end}}</td>
+      <td>{{if hasPrefix .Key "custom-"}}<form method="post" action="/admin/symbole/{{.Key}}/loeschen" class="inline"><button type="submit" class="link" title="Symbol entfernen">✕</button></form>{{end}}</td></tr>
+  {{end}}
+  </tbody>
+</table></div>
+
+<h3>Eigenes Symbol hinzufügen</h3>
+<form method="post" action="/admin/symbole" class="row">
+  <input name="char" maxlength="4" required placeholder="Zeichen / Emoji, z. B. ★" aria-label="Zeichen">
+  <input name="name" maxlength="40" required placeholder="Name, z. B. Muskelkater" aria-label="Name">
+  <button type="submit">Hinzufügen</button>
+</form>
+<p class="muted">Empfehlung: ein einzelnes Emoji oder Symbol verwenden – es wird in der gewählten Farbe und Größe auf das Körperschema gesetzt.</p>
+{{end}}

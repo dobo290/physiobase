@@ -79,11 +79,13 @@
 
   const symButtons = [...document.querySelectorAll(".body-tools .sym")];
   const chars = Object.fromEntries(symButtons.map((b) => [b.dataset.sym, b.textContent]));
-  let sym = symButtons.find((b) => b.classList.contains("active"))?.dataset.sym || "pain";
+  let sym = symButtons.find((b) => b.classList.contains("active"))?.dataset.sym || (symButtons[0]?.dataset.sym || "");
+  let symCh = symButtons.find((b) => b.classList.contains("active"))?.dataset.ch || (symButtons[0]?.dataset.ch || "");
   symButtons.forEach((b) => b.addEventListener("click", () => {
     symButtons.forEach((x) => x.classList.remove("active"));
     b.classList.add("active");
     sym = b.dataset.sym;
+    symCh = b.dataset.ch || b.textContent;
   }));
   const color = document.getElementById("stamp-color");
   const size = document.getElementById("stamp-size");
@@ -97,7 +99,7 @@
     t.setAttribute("fill", s.c);
     t.setAttribute("text-anchor", "middle");
     t.setAttribute("dominant-baseline", "central");
-    t.textContent = s.s === "pain" ? "⚡P" + (s.n || 1) : (chars[s.s] || "?");
+    t.textContent = s.s === "pain" ? "⚡P" + (s.n || 1) : (s.ch || chars[s.s] || "?");
     svg.appendChild(t);
   };
   const appendPath = (svg, dr) => {
@@ -193,7 +195,7 @@
     svg.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       if (mode === "stempel") {
-        const s = { v: view, ...ptAt(svg, e), s: sym, c: color?.value || "#d32f2f", z: +(size?.value || 2) };
+        const s = { v: view, ...ptAt(svg, e), s: sym, c: color?.value || "#d32f2f", z: +(size?.value || 2), ch: symCh };
         stamps.push(s); appendStamp(svg, s);
         undoStack.push({ view, type: "stamp", st: s }); redoStack.length = 0;
         save(); updateArrows();
