@@ -53,6 +53,7 @@
 {{end}}
 {{if ne .Path "/login"}}
 <footer class="container site-footer">
+  <span class="muted">PhysioBase {{.Version}}{{if .Demo}} · Demo{{end}}</span>
   {{with .Me}}<span class="muted">{{.Name}}</span> · <a href="/konto">Konto</a> · {{end}}<form method="post" action="/logout" class="inline"><button type="submit" class="link">Abmelden</button></form>
 </footer>
 {{end}}

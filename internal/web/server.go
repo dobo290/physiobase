@@ -18,6 +18,8 @@ import (
 
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/yuin/goldmark"
+
+	"forge.gpl-nas.de/physiobase/internal/version"
 	"github.com/yuin/goldmark/extension"
 
 	physiobase "forge.gpl-nas.de/physiobase"
@@ -343,6 +345,7 @@ func (s *Server) render(w http.ResponseWriter, r *http.Request, page string, sta
 	if u, ok := currentUser(r); ok {
 		data["Me"] = u
 	}
+	data["Version"] = version.Version
 	data["PasskeyLogin"] = s.wa != nil
 	if s.cfg.Demo {
 		today, week, total := s.demoInfo()
