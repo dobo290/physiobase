@@ -204,8 +204,12 @@ func symbol(key string) Symbol {
 	return Symbols[0]
 }
 
-// StampSize in viewBox-Einheiten (Bilder sind ca. 80 px breit).
-func StampSize(z int) float64 { return []float64{0, 7, 11, 16}[max(1, min(3, z))] }
+// StampFrac liefert die Symbolgröße relativ zur Höhe der Ansicht, damit die
+// Symbole unabhängig von der Bildauflösung gleich groß erscheinen.
+func StampFrac(z int) float64 { return []float64{0, 0.055, 0.08, 0.11}[max(1, min(3, z))] }
+
+// StampSize in viewBox-Einheiten der Ansicht.
+func StampSize(v View, z int) float64 { return StampFrac(z) * float64(v.H) }
 
 func (d Data) StampsFor(view int) []StampView {
 	v := Views[view]
@@ -215,7 +219,7 @@ func (d Data) StampsFor(view int) []StampView {
 			continue
 		}
 		sym := symbol(s.S)
-		out = append(out, StampView{X: s.X * float64(v.W), Y: s.Y * float64(v.H), Size: StampSize(s.Z), Char: sym.Char, Color: s.C, Name: sym.Name})
+		out = append(out, StampView{X: s.X * float64(v.W), Y: s.Y * float64(v.H), Size: StampSize(v, s.Z), Char: sym.Char, Color: s.C, Name: sym.Name})
 	}
 	return out
 }

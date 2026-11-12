@@ -63,7 +63,8 @@
   let stamps = safeParse(hiddenStamps.value || "[]");
   let drawings = safeParse(hiddenDraw.value || "[]");
   const NS = "http://www.w3.org/2000/svg";
-  const SIZES = [0, 7, 11, 16]; // gleich wie befund.StampSize
+  const SIZES = [0, 0.055, 0.08, 0.11]; // Symbolgröße relativ zur Höhe (wie befund.StampFrac)
+  const LINEW = [0, 0.012, 0.02, 0.03]; // Basis-Strärke relativ zur Höhe (Größenwahl wirkt auch beim Zeichnen)
   const svgs = [...document.querySelectorAll("svg[data-view]")];
   const svgFor = (view) => svgs.find((sv) => +sv.dataset.view === view);
 
@@ -87,10 +88,11 @@
   const size = document.getElementById("stamp-size");
 
   const appendStamp = (svg, s) => {
+    const h = +svg.dataset.h;
     const t = document.createElementNS(NS, "text");
     t.setAttribute("x", (s.x * +svg.dataset.w).toFixed(1));
     t.setAttribute("y", (s.y * +svg.dataset.h).toFixed(1));
-    t.setAttribute("font-size", SIZES[s.z] || 11);
+    t.setAttribute("font-size", (h * (SIZES[s.z] || SIZES[2])).toFixed(1));
     t.setAttribute("fill", s.c);
     t.setAttribute("text-anchor", "middle");
     t.setAttribute("dominant-baseline", "central");
@@ -122,25 +124,15 @@
   const undoStack = [], redoStack = [];
   const undoBtn = document.getElementById("btn-undo");
   const redoBtn = document.getElementById("btn-redo");
-  // Bedingte Felder (z. B. "Nozizeptiver Subtyp" nur bei "nozizeptiv")
-  const updateDep = () => {
-    document.querySelectorAll(".fld[data-depends-on]").forEach((fld) => {
-      const src = document.querySelector(`[name="${fld.dataset.dependsOn}"]`);
-      const show = !src || src.value === fld.dataset.dependsValue;
-      fld.classList.toggle("dep-hidden", !show);
-    });
-  };
-  document.addEventListener("change", (e) => { if (e.target.matches("select")) updateDep(); });
-  updateDep();
-
   const updateArrows = () => { undoBtn.disabled = undoStack.length === 0; redoBtn.disabled = redoStack.length === 0; };
   const clamp01 = (v) => Math.min(1, Math.max(0, v));
   const ptAt = (svg, ev) => { const r = svg.getBoundingClientRect(); return { x: +clamp01((ev.clientX - r.left) / r.width).toFixed(4), y: +clamp01((ev.clientY - r.top) / r.height).toFixed(4) }; };
-  const strokeW = (ev) => { const p = (ev.pressure || 0.5) || 0.5; return +(0.012 + 0.035 * Math.min(1, Math.max(0, p))).toFixed(4); }; // Stift-Druck → Breite
 
   svgs.forEach((svg) => {
     const view = +svg.dataset.view;
+    const w = +svg.dataset.w, h = +svg.dataset.h;
     redraw(svg, view);
+
     svg.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       if (mode === "stempel") {
@@ -150,15 +142,38 @@
         save(); updateArrows();
         return;
       }
+      // Zeichnen: live ein Pfad-Element, das bei jeder Bewegung wächst
       svg.setPointerCapture(e.pointerId);
-      const stroke = { v: view, c: color?.value || "#000000", w: strokeW(e), pts: [ptAt(svg, e)] };
-      const move = (ev) => { ev.preventDefault(); stroke.pts.push(ptAt(svg, ev)); };
+      const z = +(size?.value || 2);
+      const stroke = { v: view, c: color?.value || "#000000", w: LINEW[z], pts: [ptAt(svg, e)] };
+      const pathEl = document.createElementNS(NS, "path");
+      pathEl.setAttribute("stroke", stroke.c);
+      pathEl.setAttribute("fill", "none");
+      pathEl.setAttribute("stroke-linecap", "round");
+      pathEl.setAttribute("stroke-linejoin", "round");
+      svg.appendChild(pathEl);
+      const updatePath = () => {
+        let d = "";
+        stroke.pts.forEach((p, i) => { d += (i ? "L " : "M ") + (p.x * w).toFixed(1) + " " + (p.y * h).toFixed(1) + " "; });
+        pathEl.setAttribute("d", d);
+        pathEl.setAttribute("stroke-width", Math.max(0.5, (stroke.w * (0.5 + (stroke.pressure || 0.5))) * h).toFixed(1));
+      };
+      updatePath();
+      const move = (ev) => {
+        ev.preventDefault();
+        stroke.pressure = ev.pressure || 0.5;
+        const p = ptAt(svg, ev);
+        const last = stroke.pts[stroke.pts.length - 1];
+        if (last && Math.abs(p.x - last.x) < 0.003 && Math.abs(p.y - last.y) < 0.003) return; // Rauschen filtern
+        stroke.pts.push(p);
+        updatePath();
+      };
       const up = (ev) => {
         svg.removeEventListener("pointermove", move);
         svg.removeEventListener("pointerup", up);
         svg.removeEventListener("pointercancel", up);
-        if (stroke.pts.length < 2) return;
-        drawings.push(stroke); appendPath(svg, stroke);
+        if (stroke.pts.length < 2) { pathEl.remove(); return; }
+        drawings.push(stroke);
         undoStack.push({ view, type: "draw", st: stroke }); redoStack.length = 0;
         save(); updateArrows();
       };
