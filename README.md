@@ -27,12 +27,15 @@ conveniences; everything else works without it.
 - **Knowledge base**: conditions, tests/assessments, exercises, treatment
   protocols and notes. Markdown content, tags, body regions, images, videos
   and PDFs, source references, and links between entries.
-- **Included assessments**: Berg Balance Scale, Mini-BESTest, Functional Ambulation
-  Categories and Trunk Control Test come as ready test entries with scale, scoring
-  notes and reference. Only instruments that are free to use are shipped; anything
-  that needs a licence, registration or training (DEMMI, DGI, FGA, TIS …) is added
-  by the practice itself. Original forms always stay with the practice.
-  `physiobase seed-assessments` adds the entries to an existing database.
+- **Included assessments** (free to use, evidence-based): Berg Balance Scale,
+  Mini-BESTest, Functional Ambulation Categories, Trunk Control Test, Timed Up and
+  Go, 10 m walk test, 6-minute walk test, 30-second chair stand, five times sit to
+  stand, 4-stage balance test, functional reach, SPPB, numeric pain rating scale and
+  the Patient-Specific Functional Scale – each with scale, scoring notes, cut-offs
+  and reference. Anything that needs a licence, registration or training (DEMMI,
+  DGI, FGA, TIS, most PROM questionnaires) is added by the practice itself; original
+  forms always stay with the practice. `physiobase seed-assessments` adds the entries
+  to an existing database.
 - **Search**: full text (SQLite FTS5) with prefix matching and diacritics
   folding: `knie` finds *Kniegelenk*, `ubung` finds *Übung*.
 - **Exercise handouts**: pick exercises, set dosage and a personal note,

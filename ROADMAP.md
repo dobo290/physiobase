@@ -84,10 +84,12 @@ Guiding principles for every decision:
       lists every test, typing filters letter by letter, arrow keys and Enter pick
       one; entries can be deleted from the knowledge list and appointments from the
       overview, each with the confirmation step (0.12.0)~~
-- [x] ~~**Free assessments included** - Berg Balance Scale, Mini-BESTest, Functional
-      Ambulation Categories and Trunk Control Test as ready test entries with scale,
-      scoring notes and reference; licensed instruments stay with the practice.
-      `physiobase seed-assessments` adds them to an existing database (0.12.0)~~
+- [x] ~~**Free assessments included** - 14 free, evidence-based instruments (Berg
+      Balance Scale, Mini-BESTest, FAC, Trunk Control Test, TUG, 10 m walk test,
+      6MWT, 30 s chair stand, 5xSTS, 4-stage balance, functional reach, SPPB, NRS,
+      PSFS) with scale, cut-offs and reference; licensed instruments stay with the
+      practice. `physiobase seed-assessments` adds them to an existing database
+      (0.13.0)~~
 - [x] ~~**Two-factor sign-in** - optional TOTP per user (Google Authenticator, Aegis,
       1Password, Vaultwarden …), QR code for setup, eight one-time recovery codes,
       admin reset when the device is lost (0.10.0)~~
