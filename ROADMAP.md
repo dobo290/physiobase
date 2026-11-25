@@ -54,8 +54,35 @@ Guiding principles for every decision:
       whether invoices are written in PhysioBase (own numbering, PDF) or handed to
       an external tool such as Firefly III; the billed state and the invoice
       reference stay in PhysioBase either way *(mid term)*
-- [ ] **Remedy positions and prices** - remedy catalogue positions and prices,
-      payment status for self-payers and private patients *(mid term)*
+- [ ] **Remedy positions and prices per payer** - the position and price lists are
+      not the same for every payer, so each gets its own:
+      | Payer | Positions | Prices |
+      |---|---|---|
+      | GKV | Heilmittelkatalog positions (KG, MT, MLD, KG-ZNS, groups …) | Vergütung per Land (regional differs per Landesverband) |
+      | BG / gesetzliche UV | UV positions 8101–8107 ff. (own catalogue) | UV-Gebührenverzeichnis |
+      | Bundeswehr | GKV positions (Heilfürsorge) | bundeseinheitliche Vergütungssätze |
+      | Private / self-payers | GKV positions as a starting point | own prices (GOÄ/§ 6 or practice rate) |
+      Payment status and open invoices stay with the prescription. *(mid term)*
+- [ ] **Contract documents and annexes, always current** *(mid term)*
+      - The rules behind the catalogue are kept in the app, not just linked: the
+        annexes of the § 125 SGB V contract (Anlage 1 Leistungsbeschreibung,
+        Anlage 2 Vergütung, Anlage 3 notwendige Angaben auf der Verordnung,
+        Anlage 4 Fortbildung, Anlage 5 Zulassungsvoraussetzung, Anlage 7 technische
+        Voraussetzungen), the G-BA Heilmittel-Richtlinie with the Heilmittelkatalog,
+        and the equivalents for BG/UV and Bundeswehr.
+      - Each document is stored with **version, valid-from date, source URL and a
+        checksum**, so the app can say what it is quoting and when it was fetched.
+      - The Leistungsbeschreibung of a position is shown where the position is
+        chosen (prescription, appointment, billing), together with the links to the
+        official PDF.
+      - **Kept current:** a scheduled check asks the official sources (gkv-heilmittel.de,
+        gkv-spitzenverband.de, vdek, DGUV, Bundeswehr) whether a newer version exists
+        and reports it on the admin page; the admin confirms the update, nothing is
+        replaced silently. A status badge shows "current as of TT.MM.JJJJ" and turns
+        red when a check has not run for longer than a month.
+      - The official PDF stays the authoritative document; the app keeps the
+        version reference and its own short description, no re-publication of
+        protected full texts.
 
 ## Clinical documentation
 
@@ -79,7 +106,10 @@ Guiding principles for every decision:
       diagnosis, prescription and billing forms, with the catalogue version stored
       on every record so old assessments keep their codes.
       The lists are fetched on demand and stored locally - the practice keeps
-      working offline and never depends on a cloud service at runtime. *(mid term)*
+      working offline and never depends on a cloud service at runtime. ICD-10-GM
+      and OPS start a new catalogue year on 1 January: the admin gets a reminder,
+      the new catalogue is imported alongside the old one, and records keep the
+      version they were coded with. *(mid term)*
 - [ ] **ICD-10 / ICF codes** - structured diagnosis and functioning codes on the
       assessment, searchable and usable for statistics. The diagnosis field of a
       prescription is prepared for this. *(mid term)*
