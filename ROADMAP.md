@@ -1,6 +1,6 @@
 # Roadmap
 
-**Last updated:** 2026-11-25
+**Last updated:** 25.11.2026
 
 **Legend:** `[x]` done · `[ ]` planned · 🚧 currently in progress
 
