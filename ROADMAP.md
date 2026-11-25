@@ -96,18 +96,21 @@ Guiding principles for every decision:
       - Optional per licence: certificate number and valid-until date, so an
         expiring qualification is visible in time. Expired licences can still be
         recorded but are shown as expired.
-      - **The licence requirement applies to statutory patients (GKV) only.** It
-        comes from the GKV Rahmenvertrag (§ 125 SGB V), so it is a property of the
-        booking, not of the therapist: private patients, self-payers, Beihilfe and
-        BG are booked without a licence filter. The payer of the prescription (or
-        of the patient) decides; the therapist's licences are shown as information
-        either way.
-      - Booking a statutory appointment: choosing the treatment type filters the
-        therapist list to those licensed for it (also in the prescription form when
-        the treatment method is set per appointment); an expired licence does not
-        count. If nobody is licensed, the form says so instead of silently
-        offering everyone. Bookings for private patients and self-payers keep the
-        full list.
+      - **The licence requirement is a property of the payer/contract, not of the
+        therapist.** Verified against the current rules:
+        | Payer | Licence required? | Basis |
+        |---|---|---|
+        | GKV (statutory) | **yes** | GKV Rahmenvertrag § 125 SGB V; certificate positions for MT, MLD, KG-ZNS … |
+        | BG / gesetzliche Unfallversicherung | **yes** | UV-Vereinbarung: own positions 8101–8107, but the same certificate positions (MT 260 h, Bobath/Vojta/PNF 120 h for 8103). Missing qualification = no claim to payment. |
+        | Bundeswehr (Heilfürsorge) | **yes** | Truppenarzt prescription, billed at the uniform federal rates (vdek rates) to the Heilfürsorge office; vdek admission and the GKV catalogue apply, so certificate positions count. |
+        | Private patients, self-payers, Beihilfe | **no** | no Rahmenvertrag binding |
+        The admin can flip the flag per payer, because the contracts change.
+      - Booking: choosing the treatment type filters the therapist list to those
+        licensed for it (also in the prescription form when the treatment method is
+        set per appointment); an expired licence does not count. If nobody is
+        licensed, the form says so instead of silently offering everyone. Bookings
+        for payers without licence requirement keep the full list, and the
+        therapist's licences are shown as information.
       - Existing appointments keep their therapist; nothing is rewritten in
         hindsight.
       - Seed list (admin can edit all of it): Manuelle Therapie (MT), Manuelle
