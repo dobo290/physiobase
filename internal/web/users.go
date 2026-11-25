@@ -256,17 +256,36 @@ func (s *Server) publicBase(r *http.Request) string {
 // ---------- /konto (eigenes Konto) ----------
 
 func (s *Server) account(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	s.showAccount(w, r, http.StatusOK, map[string]any{
+		"Error": q.Get("fehler"), "Saved": q.Get("gespeichert") == "1",
+	})
+}
+
+// showAccount rendert die Kontoseite samt Passkeys und Zwei-Faktor-Status.
+func (s *Server) showAccount(w http.ResponseWriter, r *http.Request, status int, data map[string]any) {
 	me, _ := currentUser(r)
 	pks, err := s.st.Passkeys(r.Context(), me.ID)
 	if err != nil {
 		s.fail(w, r, err)
 		return
 	}
-	q := r.URL.Query()
-	s.render(w, r, "account", http.StatusOK, map[string]any{
-		"U": me, "PK": pks, "PasskeysOn": s.wa != nil,
-		"Error": q.Get("fehler"), "Saved": q.Get("gespeichert") == "1",
-	})
+	secret, enabled, err := s.st.TOTPState(r.Context(), me.ID)
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
+	left, err := s.st.RecoveryCodesLeft(r.Context(), me.ID)
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
+	data["U"], data["PK"], data["PasskeysOn"] = me, pks, s.wa != nil
+	data["TOTPEnabled"], data["CodesLeft"] = enabled, left
+	if !enabled {
+		data["TOTPSecret"] = secret // laufende Einrichtung (noch nicht scharf)
+	}
+	s.render(w, r, "account", status, data)
 }
 
 func (s *Server) accountPassword(w http.ResponseWriter, r *http.Request) {

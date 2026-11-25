@@ -1,0 +1,22 @@
+{{define "title"}}Zwei-Faktor-Anmeldung{{end}}
+{{define "content"}}
+<p class="muted login-version">PhysioBase {{.Version}}</p>
+<article class="narrow">
+  <h2>Zwei-Faktor-Anmeldung</h2>
+  <p class="muted">Angemeldet als <strong>{{.Username}}</strong>. Gib den sechsstelligen Code aus deiner Authenticator-App ein.</p>
+  {{with .Error}}<p class="error" role="alert">{{.}}</p>{{end}}
+  <form method="post" action="/login/2fa">
+    <label>Code <input name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required autofocus></label>
+    <button type="submit">Anmelden</button>
+  </form>
+  <details>
+    <summary>Kein Gerät zur Hand?</summary>
+    <form method="post" action="/login/2fa">
+      <label>Wiederherstellungscode <input name="recovery" autocomplete="off" placeholder="xxxx-xxxx"></label>
+      <button type="submit" class="secondary">Mit Wiederherstellungscode anmelden</button>
+    </form>
+    <p class="muted">Jeder Code gilt einmal. Danach im Konto neue Codes erzeugen, indem die Zwei-Faktor-Anmeldung neu eingerichtet wird.</p>
+  </details>
+  <form method="post" action="/login/2fa/abbrechen" class="inline"><button type="submit" class="link">Abbrechen</button></form>
+</article>
+{{end}}

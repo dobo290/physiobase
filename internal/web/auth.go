@@ -132,7 +132,9 @@ func publicPath(p string) bool {
 	// /kalender/ ist der Abo-Feed für Kalender-Apps: geschützt durch den geheimen Token im Pfad.
 	// /einrichten/ sind Einmal-Links für neue Benutzer; /passkey/login/ die Passkey-Anmeldung.
 	// /passkey/registrieren/ prüft selbst: angemeldet ODER gültiger Einrichtungs-Link (neue Benutzer).
-	return p == "/login" || p == "/healthz" || strings.HasPrefix(p, "/static/") || strings.HasPrefix(p, "/kalender/") ||
+	// /login/2fa ist der zweite Schritt der Anmeldung (Einmalcode).
+	return p == "/login" || p == "/healthz" || strings.HasPrefix(p, "/login/2fa") ||
+		strings.HasPrefix(p, "/static/") || strings.HasPrefix(p, "/kalender/") ||
 		strings.HasPrefix(p, "/branding/") || strings.HasPrefix(p, "/einrichten/") || strings.HasPrefix(p, "/passkey/login/") ||
 		strings.HasPrefix(p, "/passkey/registrieren/")
 }
@@ -200,6 +202,12 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 		s.log.Warn("fehlgeschlagene anmeldung", "remote", r.RemoteAddr)
 		time.Sleep(time.Second)
 		s.render(w, r, "login", http.StatusUnauthorized, map[string]any{"Error": "Benutzername oder Passwort falsch."})
+		return
+	}
+	// Zwei-Faktor-Anmeldung: erst der Einmalcode, dann die Sitzung.
+	if u.TOTPEnabled {
+		s.startTwoFactor(w, r, u)
+		http.Redirect(w, r, "/login/2fa", http.StatusSeeOther)
 		return
 	}
 	s.startSession(w, r, u)

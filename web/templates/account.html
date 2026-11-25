@@ -22,6 +22,47 @@
   {{else}}<p class="muted">Passkeys gehen nur über die HTTPS-Adresse der Praxis.</p>{{end}}
 </article>
 
+<article id="2fa">
+  <h3>Zwei-Faktor-Anmeldung</h3>
+  {{if .TOTPEnabled}}
+  <p class="ok">Aktiv. Bei der Anmeldung mit Passwort wird zusätzlich ein Code aus deiner Authenticator-App verlangt.</p>
+  <p class="muted">Noch nutzbare Wiederherstellungscodes: {{.CodesLeft}}</p>
+  <form method="post" action="/konto/2fa/loeschen">
+    {{if $u.PasswordHash}}<label>Aktuelles Passwort <input type="password" name="current" required autocomplete="current-password"></label>{{end}}
+    <button type="submit" class="danger">Zwei-Faktor-Anmeldung abschalten</button>
+  </form>
+  <small class="muted">Die Anmeldung mit Passkey braucht keinen Code – Fingerabdruck, Gesicht oder Geräte-PIN sind schon ein zweiter Faktor.</small>
+  {{else if .TOTPSecret}}
+  <p>Scanne den QR-Code mit einer Authenticator-App (Google Authenticator, Aegis, 1Password, Bitwarden/Vaultwarden …)
+     und gib danach den angezeigten sechsstelligen Code ein.</p>
+  <div class="tosetup">
+    <img class="qr" src="/konto/2fa/qr.svg" alt="QR-Code für die Authenticator-App" width="220" height="220">
+    <div>
+      <p class="muted">Kein QR-Code zur Hand? Dann das Geheimnis in der App eintippen:</p>
+      <p class="mono secret">{{.TOTPSecret}}</p>
+      <p class="muted">Konto: <strong>{{$u.Username}}</strong></p>
+    </div>
+  </div>
+  <form method="post" action="/konto/2fa/bestaetigen">
+    <label>Code aus der App <input name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required autofocus></label>
+    <button type="submit">Aktivieren</button>
+  </form>
+  <form method="post" action="/konto/2fa/abbrechen" class="inline"><button type="submit" class="link">Einrichtung verwerfen</button></form>
+  {{else}}
+  <p class="muted">Optional: Anmeldung mit Passwort <em>und</em> einem sechsstelligen Code aus einer Authenticator-App
+     (zeitbasiert, TOTP – Standard RFC 6238). Schützt auch dann, wenn das Passwort bekannt wird.</p>
+  <form method="post" action="/konto/2fa/start"><button type="submit" class="secondary">Zwei-Faktor-Anmeldung einrichten</button></form>
+  {{end}}
+  {{if .Codes}}
+  <div class="ok-block">
+    <h4>Wiederherstellungscodes</h4>
+    <p>Jeder Code gilt <strong>genau einmal</strong> – für den Fall, dass das Gerät verloren geht.
+       Jetzt notieren oder ausdrucken: sie werden nicht wieder angezeigt.</p>
+    <ul class="codes">{{range .Codes}}<li class="mono">{{.}}</li>{{end}}</ul>
+  </div>
+  {{end}}
+</article>
+
 <article>
   <h3>{{if $u.PasswordHash}}Passwort ändern{{else}}Passwort festlegen{{end}}</h3>
   <form method="post" action="/konto/passwort">

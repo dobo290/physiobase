@@ -336,6 +336,20 @@ ALTER TABLE patients ADD COLUMN payer_private INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE patients ADD COLUMN payer_beihilfe INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE patients ADD COLUMN payer_bg INTEGER NOT NULL DEFAULT 0;
 `},
+	{11, `
+-- Optionale Zwei-Faktor-Anmeldung (TOTP): Geheimnis bis zur Bestaetigung, dann aktiv
+ALTER TABLE users ADD COLUMN totp_secret TEXT NOT NULL DEFAULT '';
+ALTER TABLE users ADD COLUMN totp_enabled INTEGER NOT NULL DEFAULT 0;
+
+-- Wiederherstellungscodes: nur als Hash gespeichert, jeder genau einmal nutzbar
+CREATE TABLE totp_recovery (
+    id        INTEGER PRIMARY KEY,
+    user_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    code_hash TEXT NOT NULL,
+    used_at   INTEGER
+);
+CREATE INDEX idx_totp_recovery_user ON totp_recovery(user_id);
+`},
 }
 
 func migrate(db *sql.DB) error {

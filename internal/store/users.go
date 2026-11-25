@@ -24,6 +24,7 @@ type User struct {
 	Created                             time.Time
 	LastLogin                           time.Time // Nullzeit = nie
 	Passkeys                            int       // nur in Users()
+	TOTPEnabled                         bool      // Zwei-Faktor-Anmeldung aktiv
 }
 
 func (u User) IsAdmin() bool { return u.Role == "admin" }
@@ -44,12 +45,13 @@ type Passkey struct {
 	LastUsed     time.Time
 }
 
-const userCols = `id, username, display_name, password_hash, role, active, session_version, webauthn_id, created_at, COALESCE(last_login_at, 0)`
+const userCols = `id, username, display_name, password_hash, role, active, session_version, webauthn_id, created_at,
+	COALESCE(last_login_at, 0), totp_enabled`
 
 func scanUser(sc scanner) (User, error) {
 	var u User
 	var c, l int64
-	err := sc.Scan(&u.ID, &u.Username, &u.DisplayName, &u.PasswordHash, &u.Role, &u.Active, &u.SessionVersion, &u.WebAuthnID, &c, &l)
+	err := sc.Scan(&u.ID, &u.Username, &u.DisplayName, &u.PasswordHash, &u.Role, &u.Active, &u.SessionVersion, &u.WebAuthnID, &c, &l, &u.TOTPEnabled)
 	u.Created = time.Unix(c, 0)
 	if l > 0 {
 		u.LastLogin = time.Unix(l, 0)
@@ -75,7 +77,7 @@ func (s *Store) Users(ctx context.Context) ([]User, error) {
 		var u User
 		var c, l int64
 		if err := rows.Scan(&u.ID, &u.Username, &u.DisplayName, &u.PasswordHash, &u.Role, &u.Active, &u.SessionVersion,
-			&u.WebAuthnID, &c, &l, &u.Passkeys); err != nil {
+			&u.WebAuthnID, &c, &l, &u.TOTPEnabled, &u.Passkeys); err != nil {
 			return nil, err
 		}
 		u.Created = time.Unix(c, 0)

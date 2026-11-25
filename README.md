@@ -67,7 +67,10 @@ conveniences; everything else works without it.
   needed). New users get a one-time setup link (24 hours) and create their own
   passkey or password on their own device. Deactivating a user, changing a
   password or logging out ends that user's sessions on every device. The last
-  active admin cannot be removed.
+  active admin cannot be removed. Optionally each user adds a **second factor**:
+  time-based one-time codes (TOTP, RFC 6238) from any authenticator app – set up
+  with a QR code in the account page, with eight single-use recovery codes and an
+  admin reset when a device is lost.
 - **Administration under `/admin`** (deliberately not linked in the app, admins
   only, everyone else gets 404): user management including other users'
   passkeys, and the settings below.
@@ -201,6 +204,11 @@ Passkeys need `PHYSIOBASE_BASE_URL` set to the `https://` address of the app.
   deactivating a user ends that user's sessions everywhere.
 - Passkeys use WebAuthn via go-webauthn with discoverable credentials. Setup
   links are random, stored only as a hash, valid 24 hours and usable once.
+- The optional second factor is TOTP (HMAC-SHA1, 6 digits, 30 s, ±30 s tolerance)
+  with the secret stored per user and recovery codes stored only as SHA-256
+  hashes, each usable once. Turning it off asks for the password again; admins
+  can reset it for a user who lost their device. A passkey counts as the second
+  factor on its own, so passkey sign-in skips the code.
 - Logins are rate limited: at most two bcrypt checks run at once, and each
   failed attempt waits a second.
 - Strict Content Security Policy: no inline scripts or styles, and

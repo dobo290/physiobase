@@ -44,6 +44,19 @@
   {{if .HasLink}}<small class="muted">Ein Link ist gültig bis {{date .LinkExpires}} {{.LinkExpires.Format "15:04"}} – ein neuer ersetzt ihn.</small>{{end}}
 </article>
 
+<article id="2fa">
+  <h3>Zwei-Faktor-Anmeldung</h3>
+  {{if $u.TOTPEnabled}}
+  <p class="ok">Aktiv (Authenticator-App, TOTP).</p>
+  <form method="post" action="/admin/benutzer/{{$u.ID}}/2fa">
+    <p class="muted">Zurücksetzen, wenn Gerät oder Wiederherstellungscodes verloren sind. Die Person kann danach wieder nur mit Passwort anmelden und die Anmeldung neu einrichten.</p>
+    <button type="submit" class="danger">Zwei-Faktor-Anmeldung zurücksetzen</button>
+  </form>
+  {{else}}
+  <p class="muted">Nicht aktiv. Einrichten kann {{$u.Name}} selbst im eigenen Konto{{if .Me}} (<a href="/konto#2fa">/konto</a>){{end}}.</p>
+  {{end}}
+</article>
+
 <article>
   <h3>Passwort zurücksetzen</h3>
   <form method="post" action="/admin/benutzer/{{$u.ID}}/passwort" class="row">

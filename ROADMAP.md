@@ -1,6 +1,6 @@
 # Roadmap
 
-**Last updated:** 2025-11-25
+**Last updated:** 2026-11-25
 
 **Legend:** `[x]` done · `[ ]` planned · 🚧 currently in progress
 
@@ -80,6 +80,9 @@ Guiding principles for every decision:
 
 ## Done
 
+- [x] ~~**Two-factor sign-in** - optional TOTP per user (Google Authenticator, Aegis,
+      1Password, Vaultwarden …), QR code for setup, eight one-time recovery codes,
+      admin reset when the device is lost (0.9.4)~~
 - [x] ~~**Roadmap tab in the forge** - this file is shown as a tab in the project
       view, including the open/done counter~~
 - [x] ~~**Extended patient master data** - address, occupation, insurance, family

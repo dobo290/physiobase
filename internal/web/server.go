@@ -64,7 +64,7 @@ func New(ctx context.Context, cfg *config.Config, st *store.Store, log *slog.Log
 	}
 	s.wa = wa
 	for _, p := range []string{
-		"index", "entry", "edit", "handouts", "handout", "login", "patients", "patient", "befund", "compare", "summary", "appointments", "appointment", "settings",
+		"index", "entry", "edit", "handouts", "handout", "login", "login_2fa", "patients", "patient", "befund", "compare", "summary", "appointments", "appointment", "settings",
 		"admin", "admin_users", "admin_user", "admin_symbols", "account", "setup", "patient_test",
 		"admin", "admin_users", "admin_user", "account", "setup",
 	} {
@@ -92,6 +92,9 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /healthz", s.health)
 	mux.HandleFunc("GET /login", s.loginForm)
 	mux.HandleFunc("POST /login", s.login)
+	mux.HandleFunc("GET /login/2fa", s.loginTwoFactorForm)
+	mux.HandleFunc("POST /login/2fa", s.loginTwoFactor)
+	mux.HandleFunc("POST /login/2fa/abbrechen", s.loginTwoFactorCancel)
 	mux.HandleFunc("POST /logout", s.logout)
 
 	mux.HandleFunc("GET /{$}", s.index)
@@ -182,10 +185,16 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /admin/benutzer/{id}/abmelden", s.adminOnly(s.adminEndSessions))
 	mux.HandleFunc("POST /admin/benutzer/{id}/loeschen", s.adminOnly(s.adminDeleteUser))
 	mux.HandleFunc("POST /admin/passkey/{pid}/loeschen", s.adminOnly(s.adminDeletePasskey))
+	mux.HandleFunc("POST /admin/benutzer/{id}/2fa", s.adminOnly(s.adminResetTOTP))
 
 	mux.HandleFunc("GET /konto", s.account)
 	mux.HandleFunc("POST /konto/passwort", s.accountPassword)
 	mux.HandleFunc("POST /konto/passkey/{pid}/loeschen", s.accountDeletePasskey)
+	mux.HandleFunc("GET /konto/2fa/qr.svg", s.totpQRCode)
+	mux.HandleFunc("POST /konto/2fa/start", s.accountTOTPStart)
+	mux.HandleFunc("POST /konto/2fa/bestaetigen", s.accountTOTPConfirm)
+	mux.HandleFunc("POST /konto/2fa/abbrechen", s.accountTOTPCancel)
+	mux.HandleFunc("POST /konto/2fa/loeschen", s.accountTOTPDisable)
 	mux.HandleFunc("GET /einrichten/{token}", s.setupPage)
 	mux.HandleFunc("POST /einrichten/{token}/passwort", s.setupPassword)
 	mux.HandleFunc("POST /passkey/registrieren/start", s.passkeyRegisterBegin)
