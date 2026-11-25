@@ -139,7 +139,7 @@
   </form>
 </article>
 
-<details class="danger">
+<details class="danger" id="loeschen"{{if .AskDelete}} open{{end}}>
   <summary>Eintrag löschen …</summary>
   <form method="post" action="/eintrag/{{$e.ID}}/loeschen">
     <p>„{{$e.Title}}“ mit allen Medien, Quellen und Verknüpfungen endgültig löschen?</p>

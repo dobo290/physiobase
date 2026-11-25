@@ -21,11 +21,14 @@
 {{if .Entries}}
 <div class="cards">
 {{range .Entries}}
-  <a class="card" href="/eintrag/{{.ID}}">
-    <span class="kind kind-{{.Kind}}">{{kindLabel .Kind}}</span>{{with .Region}} <span class="region">{{.}}</span>{{end}}
-    <strong>{{.Title}}</strong>
-    {{with .Summary}}<span class="summary">{{.}}</span>{{end}}
-  </a>
+  <div class="card-shell">
+    <a class="card" href="/eintrag/{{.ID}}">
+      <span class="kind kind-{{.Kind}}">{{kindLabel .Kind}}</span>{{with .Region}} <span class="region">{{.}}</span>{{end}}
+      <strong>{{.Title}}</strong>
+      {{with .Summary}}<span class="summary">{{.}}</span>{{end}}
+    </a>
+    <a class="card-delete" href="/eintrag/{{.ID}}?loeschen=1#loeschen" title="Löschen" aria-label="{{.Title}} löschen">✕</a>
+  </div>
 {{end}}
 </div>
 {{else}}

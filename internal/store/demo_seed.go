@@ -7,6 +7,22 @@ import (
 	"time"
 )
 
+// SeedDemoOnce legt die Demo-Daten nur an, wenn noch keine Patienten
+// existieren – so hat eine frisch gestartete Demo sofort Inhalte.
+func (s *Store) SeedDemoOnce(ctx context.Context) (bool, error) {
+	ps, err := s.Patients(ctx, "", false)
+	if err != nil {
+		return false, err
+	}
+	if len(ps) > 0 {
+		return false, nil
+	}
+	if err := s.SeedDemo(ctx); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // SeedDemo legt drei Beispiel-Behandler und drei Beispiel-Patienten an.
 // Wird nur im Demo-Modus aufgerufen (nach ResetDemo + Seed).
 func (s *Store) SeedDemo(ctx context.Context) error {

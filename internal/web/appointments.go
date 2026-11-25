@@ -226,7 +226,10 @@ func (s *Server) showAppointment(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
-	s.render(w, r, "appointment", http.StatusOK, map[string]any{"A": a, "Therapists": therapists, "Error": r.URL.Query().Get("fehler")})
+	s.render(w, r, "appointment", http.StatusOK, map[string]any{
+		"A": a, "Therapists": therapists, "Error": r.URL.Query().Get("fehler"),
+		"AskDelete": r.URL.Query().Get("loeschen") == "1", // Löschblock gleich geöffnet
+	})
 }
 
 func (s *Server) saveAppointment(w http.ResponseWriter, r *http.Request) {

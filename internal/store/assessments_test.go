@@ -69,17 +69,15 @@ func TestAssessmentSearchTerms(t *testing.T) {
 	}
 	// So, wie es in Praxis und Demo getippt wird: Abkürzung oder Wortanfang.
 	cases := map[string]string{
-		"Berg":      "Berg Balance Scale (BBS)",
-		"BBS":       "Berg Balance Scale (BBS)",
-		"berg bal":  "Berg Balance Scale (BBS)",
-		"DEMMI":     "de Morton Mobility Index (DEMMI)",
-		"DGI":       "DGI F (Fassung F)", // erstes Ergebnis alphabetisch
-		"FGA":       "Functional Gait Assessment (FGA)",
-		"FAC":       "Functional Ambulation Categories (FAC)",
-		"Mini-BEST": "Mini-BESTest",
-		"TIS":       "TIS F (Fassung F)",
-		"Trunk":     "Trunk Control Test (TCT)",
-		"Gait":      "Manual Gait Index (MGI)",
+		"Berg":       "Berg Balance Scale (BBS)",
+		"BBS":        "Berg Balance Scale (BBS)",
+		"berg bal":   "Berg Balance Scale (BBS)",
+		"FAC":        "Functional Ambulation Categories (FAC)",
+		"Ambulation": "Functional Ambulation Categories (FAC)",
+		"Mini-BEST":  "Mini-BESTest",
+		"BESTest":    "Mini-BESTest",
+		"Trunk":      "Trunk Control Test (TCT)",
+		"TCT":        "Trunk Control Test (TCT)",
 	}
 	for q, want := range cases {
 		hits, err := s.SearchTests(ctx, q, 20)

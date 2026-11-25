@@ -28,6 +28,7 @@
       <a href="/termin/{{.ID}}" class="small-link">Bearbeiten</a>
       <form method="post" action="/termin/{{.ID}}/absagen" class="inline"><input type="hidden" name="back" value="termine">
         <button type="submit" class="link small-link">{{if .Cancelled}}Wieder zusagen{{else}}Absagen{{end}}</button></form>
+      <a href="/termin/{{.ID}}?loeschen=1#loeschen" class="small-link" title="Termin löschen">✕</a>
     </span>
   </div>
   {{end}}

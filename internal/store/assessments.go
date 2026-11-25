@@ -4,13 +4,15 @@ import "context"
 
 // Standardisierte Assessments als mitgelieferte Tests.
 //
-// Urheberrecht: Die Einträge enthalten nur eine eigene Kurzbeschreibung,
-// Punktespanne, Auswertungsrichtung und die Literaturstelle. Die Originalbögen
-// (Aufgabenformulierungen, Tabellen, Auswertungsblätter) sind geschützt und
-// werden hier bewusst weder abgedruckt noch als Fragebogen hinterlegt – die
-// Praxis dokumentiert die Punktwerte ihres lizenzierten Bogens.
+// Urheberrecht: Mitgeliefert werden ausschließlich Verfahren, die ohne Lizenz
+// und ohne Anmeldung frei verfügbar sind (Berg Balance Scale, Mini-BESTest,
+// Functional Ambulation Categories, Trunk Control Test). Verfahren mit
+// Lizenz-, Registrierungs- oder Schulungspflicht (z. B. DEMMI, DGI, FGA, TIS)
+// gehören nicht ins Repository – die Praxis legt sie selbst an.
 //
-// Die Namen der Verfahren selbst sind Fachbegriffe und dürfen genannt werden.
+// Auch bei den freien Verfahren stehen hier nur eine eigene Kurzbeschreibung,
+// Punktespanne, Auswertungsrichtung und die Literaturstelle; die Originalbögen
+// bleiben bei der Praxis.
 
 // SeedAssessments legt die mitgelieferten Assessments an, sofern noch kein Test
 // mit demselben Titel existiert. Mehrfaches Aufrufen ändert nichts.
@@ -44,76 +46,6 @@ Originalformulare sind urheberrechtlich geschützt und werden nicht mitgeliefert
 var assessmentEntries = []Entry{
 	{
 		Kind:   "test",
-		Title:  "de Morton Mobility Index (DEMMI)",
-		Region: "Gang",
-		Tags:   "Assessment, Mobilität, Geriatrie, Verlauf, DEMMI",
-		Summary: "Mobilitätstest für ältere und geriatrische Patienten: 15 alltagsnahe Aufgaben " +
-			"vom Liegen bis zum freien Gehen, als Rasch-Skala auf 0–100 Punkte abgebildet.",
-		Body: `## Ziel
-Mobilität objektiv und verlaufsfähig erfassen – auch bei Patienten, die noch im
-Bett oder am Stuhl sitzen und deshalb mit Gehtests nicht erreichbar sind.
-
-## Durchführung
-15 Aufgaben in fester Reihenfolge (Liegen, Sitzen, Transfer, Stehen, Gehen) mit
-klaren Start- und Abbruchregeln. Hilfsmittel sind erlaubt und werden notiert.
-
-## Auswertung
-Rohpunkte werden über die veröffentlichte Umrechnungstabelle auf eine Skala von
-**0–100** abgebildet, höher = besser. Für den Verlauf zählt die Differenz, nicht
-der Einzelwert.
-
-## Quelle
-de Morton NA, Davidson M, Keating JL. The de Morton Mobility Index (DEMMI):
-an essential health index for an ageing world. *J Clin Epidemiol.* 2008.
-` + nutzung,
-	},
-	{
-		Kind:   "test",
-		Title:  "Dynamic Gait Index (DGI)",
-		Region: "Gang",
-		Tags:   "Assessment, Gang, Gleichgewicht, Sturzrisiko, Verlauf, DGI",
-		Summary: "Acht Gangaufgaben (Tempo, Kopfdrehen, Drehen, Hindernis, Treppe), je 0–3 Punkte, " +
-			"Summe 0–24; Werte ab 19 und darunter sprechen für ein erhöhtes Sturzrisiko.",
-		Body: `## Ziel
-Gang auf verschiedenen Anforderungsstufen beurteilen, besonders bei Patienten mit
-Gleichgewichts- oder Sturzproblemen.
-
-## Durchführung
-Acht Aufgaben nach Protokoll (Gehen auf ebener Strecke, Tempowechsel, Kopf drehen,
-Drehen, Hindernis übersteigen, Treppe), Hilfsmittel notieren. Jede Aufgabe wird mit
-**0–3** bewertet.
-
-## Auswertung
-Summe **0–24**, höher = besser. Ein Wert von **19 oder weniger** weist auf ein
-erhöhtes Sturzrisiko hin; die einzelne Aufgabe zeigt, wo es hakt.
-
-## Quelle
-Shumway-Cook A, Woollacott M. *Motor Control: Theory and Practical Applications.* 1995.
-` + nutzung,
-	},
-	{
-		Kind:   "test",
-		Title:  "DGI F (Fassung F)",
-		Region: "Gang",
-		Tags:   "Assessment, Gang, Gleichgewicht, Sturzrisiko, Verlauf, DGI, DGI-F",
-		Summary: "Fassung F des Dynamic Gait Index, wie sie in der Praxis verwendet wird. " +
-			"Durchführung und Punktwerte nach dem eigenen Praxisbogen.",
-		Body: `## Ziel
-Gang und Gleichgewicht unter Alltagsanforderungen beurteilen, in der Fassung F des DGI.
-
-## Durchführung
-Aufgaben des Praxisbogens in fester Reihenfolge, Hilfsmittel notieren.
-
-## Auswertung
-Punktwerte je Aufgabe und Summe dokumentieren; dieselbe Fassung wie beim Vorwert
-verwenden, sonst ist der Verlauf nicht vergleichbar.
-
-## Quelle
-Praxisbogen „DGI F“. Grundlage: Shumway-Cook A, Woollacott M. *Motor Control.* 1995.
-` + nutzung,
-	},
-	{
-		Kind:   "test",
 		Title:  "Functional Ambulation Categories (FAC)",
 		Region: "Gang",
 		Tags:   "Assessment, Gang, Selbstständigkeit, Verlauf, FAC",
@@ -140,54 +72,6 @@ assessment in the neurologically impaired. *Phys Ther.* 1984.
 	},
 	{
 		Kind:   "test",
-		Title:  "Functional Gait Assessment (FGA)",
-		Region: "Gang",
-		Tags:   "Assessment, Gang, Gleichgewicht, Sturzrisiko, Verlauf, FGA",
-		Summary: "Zehn Gangaufgaben mit höherem Anspruch als der DGI (u. a. Gehen mit engem " +
-			"Stand und rückwärts), je 0–3 Punkte, Summe 0–30.",
-		Body: `## Ziel
-Gang unter schwierigen Bedingungen prüfen, gut geeignet bei neurologischen
-Patienten und zur Sturzrisiko-Einschätzung.
-
-## Durchführung
-Zehn Aufgaben nach Protokoll (u. a. Tempo, Kopfdrehen, enger Stand, rückwärts
-gehen, Treppe), je **0–3 Punkte**, Hilfsmittel notieren.
-
-## Auswertung
-Summe **0–30**, höher = besser. Ein Wert von **22 oder weniger** spricht für ein
-erhöhtes Sturzrisiko.
-
-## Quelle
-Wrisley DM, Marchetti GF, Kuharsky DK, Whitney SL. Reliability, internal
-consistency, and validity of data obtained with the Functional Gait Assessment.
-*Phys Ther.* 2004.
-` + nutzung,
-	},
-	{
-		Kind:   "test",
-		Title:  "Manual Gait Index (MGI)",
-		Region: "Gang",
-		Tags:   "Assessment, Gang, Beobachtung, Verlauf, MGI",
-		Summary: "Manuelle Beurteilung des Gangbilds anhand von Beobachtungskriterien " +
-			"(Schrittlänge, Tempo, Symmetrie, Rumpf, Hilfsmittel).",
-		Body: `## Ziel
-Das Gangbild strukturiert beschreiben und Veränderungen im Verlauf zeigen.
-
-## Durchführung
-Patient geht eine feste Strecke, Beobachtung von beiden Seiten und von vorn; die
-Kriterien und ihre Gewichtung folgen dem Praxisbogen.
-
-## Auswertung
-Teilwerte und Summe dokumentieren, derselbe Bogen wie beim Vorwert. Zusätzlich
-notieren, ob ein Hilfsmittel benutzt wurde.
-
-## Quelle
-Praxisbogen „Manual Gait Index“. Für Veröffentlichungen bitte die Originalarbeit
-der verwendeten Fassung zitieren.
-` + nutzung,
-	},
-	{
-		Kind:   "test",
 		Title:  "Mini-BESTest",
 		Region: "Gleichgewicht",
 		Tags:   "Assessment, Gleichgewicht, Sturzrisiko, Verlauf, Mini-BESTest",
@@ -208,51 +92,6 @@ Gleichgewichts betroffen ist – hilfreicher für die Therapieplanung als die Su
 ## Quelle
 Franchignoni F, Horak F, Godi M, Nardone A, Giordano A. Using psychometric
 techniques to improve the Mini-BESTest: a Rasch analysis. *Eur J Phys Rehabil Med.* 2010.
-` + nutzung,
-	},
-	{
-		Kind:   "test",
-		Title:  "Trunk Impairment Scale (TIS)",
-		Region: "Gleichgewicht",
-		Tags:   "Assessment, Rumpf, Gleichgewicht, Schlaganfall, Verlauf, TIS",
-		Summary: "Rumpfkontrolle im Sitzen in drei Bereichen (statisch, dynamisch, Koordination), " +
-			"Summe 0–23.",
-		Body: `## Ziel
-Rumpfkontrolle als Grundlage von Sitzen, Transfer und Gang beurteilen, vor allem
-nach Schlaganfall.
-
-## Durchführung
-Aufgaben im Sitz ohne Lehne in drei Bereichen: statisches Sitzen, dynamisches
-Sitzen (aktiv und passiv), Koordination der Rumpfbewegung.
-
-## Auswertung
-Summe **0–23**, höher = besser. Auch die drei Bereichssummen dokumentieren, weil
-sie unterschiedliche Defizite abbilden.
-
-## Quelle
-Verheyden G, Nieuwboer A, Mertin J, Preger R, Kiekens C, De Weerdt W. The Trunk
-Impairment Scale: a new tool to measure motor impairment of the trunk after stroke.
-*Clin Rehabil.* 2004.
-` + nutzung,
-	},
-	{
-		Kind:   "test",
-		Title:  "TIS F (Fassung F)",
-		Region: "Gleichgewicht",
-		Tags:   "Assessment, Rumpf, Gleichgewicht, Verlauf, TIS, TIS-F",
-		Summary: "Fassung F der Trunk Impairment Scale, wie sie in der Praxis verwendet wird. " +
-			"Durchführung und Punktwerte nach dem eigenen Praxisbogen.",
-		Body: `## Ziel
-Rumpfkontrolle im Sitzen beurteilen, in der Fassung F der TIS.
-
-## Durchführung
-Aufgaben des Praxisbogens in fester Reihenfolge, im Sitz ohne Lehne.
-
-## Auswertung
-Teilwerte und Summe dokumentieren; dieselbe Fassung wie beim Vorwert verwenden.
-
-## Quelle
-Praxisbogen „TIS F“. Grundlage: Verheyden G et al. *Clin Rehabil.* 2004.
 ` + nutzung,
 	},
 	{

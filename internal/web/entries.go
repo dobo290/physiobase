@@ -111,6 +111,7 @@ func (s *Server) showEntry(w http.ResponseWriter, r *http.Request) {
 	data := map[string]any{
 		"E": e, "Groups": groups, "Linkable": linkable, "Sources": sources,
 		"Media": media, "Handouts": handouts, "Added": r.URL.Query().Get("handout"),
+		"AskDelete": r.URL.Query().Get("loeschen") == "1", // Löschblock gleich geöffnet
 	}
 	if e.Kind == "test" {
 		q, ok := befund.ParseQuestionnaire(e.Schema)

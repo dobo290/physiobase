@@ -92,6 +92,15 @@ func run() error {
 			}
 		}
 	}
+	if cfg.Demo {
+		seeded, err := st.SeedDemoOnce(ctx)
+		if err != nil {
+			return fmt.Errorf("demo-daten: %w", err)
+		}
+		if seeded {
+			log.Info("demo-patienten angelegt")
+		}
+	}
 	srv, err := web.New(ctx, cfg, st, log)
 	if err != nil {
 		return err

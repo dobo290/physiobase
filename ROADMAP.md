@@ -80,11 +80,14 @@ Guiding principles for every decision:
 
 ## Done
 
-- [x] ~~**Standard assessments included** - DEMMI, DGI (incl. version F), FAC, FGA,
-      Manual Gait Index, Mini-BESTest, TIS (incl. version F), Trunk Control Test and
-      Berg Balance Scale as ready-to-use test entries with scoring, reference and a
-      copyright note; `physiobase seed-assessments` adds them to an existing database
-      (0.11.0)~~
+- [x] ~~**Faster test search and deleting from lists** - clicking the search field
+      lists every test, typing filters letter by letter, arrow keys and Enter pick
+      one; entries can be deleted from the knowledge list and appointments from the
+      overview, each with the confirmation step (0.12.0)~~
+- [x] ~~**Free assessments included** - Berg Balance Scale, Mini-BESTest, Functional
+      Ambulation Categories and Trunk Control Test as ready test entries with scale,
+      scoring notes and reference; licensed instruments stay with the practice.
+      `physiobase seed-assessments` adds them to an existing database (0.12.0)~~
 - [x] ~~**Two-factor sign-in** - optional TOTP per user (Google Authenticator, Aegis,
       1Password, Vaultwarden …), QR code for setup, eight one-time recovery codes,
       admin reset when the device is lost (0.10.0)~~

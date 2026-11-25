@@ -24,7 +24,7 @@
     <small class="muted">Änderungen erscheinen im Kalender des Patienten beim nächsten Abgleich (meist innerhalb einer Stunde).</small>
   </form>
 </article>
-<details class="danger">
+<details class="danger" id="loeschen"{{if .AskDelete}} open{{end}}>
   <summary>Termin löschen …</summary>
   <form method="post" action="/termin/{{$a.ID}}/loeschen">
     <p>Besser „Abgesagt“ anhaken – dann sieht der Patient die Absage im Kalender. Gelöschte Termine verschwinden einfach.</p>
