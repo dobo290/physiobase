@@ -34,7 +34,9 @@ Guiding principles for every decision:
         note.
       - Appointments and treatment method are **optional**: a blank prescription
         ("Blankorezept") allows choosing the method and the number of units per
-        appointment.
+        appointment. The treatment method comes from the treatment types an admin
+        maintains; therapists are filtered by their licence (see "Therapists,
+        treatment types and licences").
       - Everything that belongs to the treatment hangs off the prescription:
         assessments, sessions, tests, documents, summaries and appointments. The
         patient page opens the newest active prescription and keeps an "all data"
@@ -84,6 +86,31 @@ Guiding principles for every decision:
 
 ## Practice workflow
 
+- [ ] **Therapists, treatment types and licences** *(next)*
+      - Own admin page listing every therapist with the treatment types they are
+        licensed for (matrix of therapists × treatment types).
+      - Treatment types are maintained by the admin, not hardcoded: name,
+        abbreviation (MT, PNF, Bobath, MLD …), whether a licence is required, and
+        whether it is a group therapy. Common German GKV qualifications are
+        pre-filled (see below).
+      - Optional per licence: certificate number and valid-until date, so an
+        expiring qualification is visible in time. Expired licences can still be
+        recorded but are shown as expired and are not offered for new
+        appointments.
+      - Booking an appointment: choosing the treatment type filters the therapist
+        list to those licensed for it (also in the prescription form when the
+        treatment method is set per appointment). If nobody is licensed, the form
+        says so instead of silently offering everyone.
+      - Existing appointments keep their therapist; nothing is rewritten in
+        hindsight.
+      - Seed list (admin can edit all of it): Manuelle Therapie (MT), Manuelle
+        Lymphdrainage (MLD), Komplexe physikalische Entstauungstherapie (KPE),
+        KG-ZNS (Bobath, PNF, Vojta), KG-ZNS Kinder / Kinder-Bobath, Atemtherapie,
+        Physio-Akupunktmassage (APM), Funktionelle Bewegungslehre (FBL),
+        Rückenschule/KGG (group), plus licence-free positions such as klassische
+        Massage, Wärme-/Kältetherapie, Elektrotherapie and Inhalation. Private
+        extras (osteopathy, craniosacral, sports physiotherapy) are added by the
+        practice itself.
 - [ ] **Recall list** - patients whose next appointment or follow-up assessment is
       due, with a reminder function *(next)*
 - [ ] **Consents and signatures** - capture forms digitally and store them in the
