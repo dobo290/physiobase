@@ -19,6 +19,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	_ "time/tzdata" // Zeitzonen fest einbauen: das Laufzeit-Image braucht kein tzdata-Paket
 
 	"forge.gpl-nas.de/physiobase/internal/config"
 	"forge.gpl-nas.de/physiobase/internal/database"

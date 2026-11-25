@@ -6,9 +6,9 @@ COPY . .
 RUN go vet ./... \
  && CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o /physiobase ./cmd/physiobase
 
-# Laufzeit: Alpine + statisches Binary. Templates/CSS sind eingebettet.
+# Laufzeit: Alpine + statisches Binary. Templates/CSS und die Zeitzonendaten
+# stecken im Binary (time/tzdata), deshalb kein apk und kein Netzwerk im Build.
 FROM mirror.gcr.io/library/alpine:3.21
-RUN apk add --no-cache tzdata
 COPY --from=build /physiobase /usr/local/bin/physiobase
 ENV PHYSIOBASE_DATA_DIR=/data PHYSIOBASE_PORT=8080 TZ=Europe/Berlin
 VOLUME ["/data"]
