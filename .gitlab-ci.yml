@@ -37,7 +37,7 @@ test:
   script:
     - go vet ./...
     - go install gotest.tools/gotestsum@latest
-    - ~/go/bin/gotestsum --format testname --junitfile report.xml --
+    - $(go env GOPATH)/bin/gotestsum --format testname --junitfile report.xml --
       -race -shuffle=on -count=1 -timeout=900s -covermode=atomic -coverprofile=coverage.out ./...
     - go tool cover -func=coverage.out | tail -1
   coverage: '/total:\s+(\d+\.\d+)%/'
