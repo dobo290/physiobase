@@ -118,15 +118,15 @@ func TestDeleteEntryCascade(t *testing.T) {
 	}
 }
 
-// TestDeleteFromListAndAppointments: Liste verlinkt das Löschen, Terminübersicht
-// bietet es je Zeile an und der Löschblock ist geöffnet.
+// TestDeleteFromListAndAppointments: Die Wissensliste bleibt ohne Lösch-Kreuz,
+// die Terminübersicht bietet das Löschen je Zeile an.
 func TestDeleteFromListAndAppointments(t *testing.T) {
 	ts, c := newServer(t)
 	login(t, c, ts.URL)
 
 	_, index := body(t, c, ts.URL+"/?art=test")
-	if !strings.Contains(index, "?loeschen=1#loeschen") {
-		t.Error("Lösch-Link an den Karten fehlt")
+	if strings.Contains(index, "card-delete") {
+		t.Error("Lösch-Kreuz ist wieder in der Wissensliste")
 	}
 
 	// Patient und Termin anlegen (Sammel-Eingabe: t.appt.<i>.*)
@@ -156,5 +156,80 @@ func TestDeleteFromListAndAppointments(t *testing.T) {
 	// Der Patient steht weiter im Formular "Neue Termine", der Termin selbst nicht mehr.
 	if _, after := body(t, c, ts.URL+"/termine?von=2030-05-01"); strings.Contains(after, "/termin/"+id) {
 		t.Error("gelöschter Termin steht noch in der Übersicht")
+	}
+}
+
+// TestStaticAssetVersion: Skripte und Styles tragen die Versionsnummer, damit
+// ein neuer Stand nicht aus dem Browsercache läuft.
+func TestStaticAssetVersion(t *testing.T) {
+	ts, c := newServer(t)
+	login(t, c, ts.URL)
+	post(c, ts.URL+"/patienten", url.Values{"name": {"Cache Test"}})
+
+	for _, path := range []string{"/", "/patient/1"} {
+		_, page := body(t, c, ts.URL+path)
+		for _, want := range []string{"/static/style.css?v=", "/static/befund.js?v="} {
+			if !strings.Contains(page, want) {
+				t.Errorf("%s: %q fehlt", path, want)
+			}
+		}
+	}
+	// Die Testsuche im Befund muss wirklich ausgeliefert werden (stand früher
+	// zwischen den define-Blöcken und kam im Browser nie an).
+	post(c, ts.URL+"/patient/1/befund", url.Values{})
+	_, befund := body(t, c, ts.URL+"/befund/1")
+	if !strings.Contains(befund, "/static/test-search.js?v=") {
+		t.Error("Testsuche-Skript fehlt im Befund")
+	}
+	if n := strings.Count(befund, "test-search.js"); n != 1 {
+		t.Errorf("Testsuche-Skript %d-mal eingebunden, erwartet 1", n)
+	}
+	if _, patient := body(t, c, ts.URL+"/patient/1"); !strings.Contains(patient, "/static/test-search.js?v=") {
+		t.Error("Testsuche-Skript fehlt in der Patientenübersicht")
+	}
+}
+
+// TestRemovePatientTest: Test samt Durchführungen vom Patienten entfernen,
+// Ergebnisse im Befund bleiben.
+func TestRemovePatientTest(t *testing.T) {
+	ts, c := newServer(t)
+	login(t, c, ts.URL)
+	post(c, ts.URL+"/patienten", url.Values{"name": {"Entfern Test"}})
+
+	hits := apiTests(t, c, ts.URL, "q=Fragebogen")
+	if len(hits) == 0 {
+		t.Fatal("kein Test vorhanden")
+	}
+	eid := strconv.FormatInt(hits[0].ID, 10)
+	if r, _ := post(c, ts.URL+"/patient/1/test", url.Values{"test_id": {eid}}); r.StatusCode != http.StatusSeeOther {
+		t.Fatalf("verknüpfen: %d", r.StatusCode)
+	}
+	if r, _ := post(c, ts.URL+"/patient/1/test/"+eid, url.Values{"date": {"2026-04-01"}, "v.0": {"3"}}); r.StatusCode != http.StatusSeeOther {
+		t.Fatalf("Durchführung: %d", r.StatusCode)
+	}
+
+	// ✕-Link und Bestätigungsblock
+	_, page := body(t, c, ts.URL+"/patient/1")
+	if !strings.Contains(page, "?entfernen="+eid) {
+		t.Fatal("Entfernen-Link fehlt")
+	}
+	_, confirm := body(t, c, ts.URL+"/patient/1?entfernen="+eid)
+	if !strings.Contains(confirm, "/patient/1/test/"+eid+"/entfernen") {
+		t.Fatal("Bestätigungsformular fehlt")
+	}
+
+	if r, _ := post(c, ts.URL+"/patient/1/test/"+eid+"/entfernen", nil); r.StatusCode != http.StatusSeeOther {
+		t.Fatalf("entfernen: %d", r.StatusCode)
+	}
+	_, after := body(t, c, ts.URL+"/patient/1")
+	if strings.Contains(after, "/patient/1/test/"+eid) {
+		t.Error("Test steht noch am Patienten")
+	}
+	if strings.Contains(after, "?entfernen="+eid) {
+		t.Error("Entfernen-Link noch vorhanden")
+	}
+	// Der Test selbst bleibt in der Wissensdatenbank.
+	if code, _ := body(t, c, ts.URL+"/eintrag/"+eid); code != http.StatusOK {
+		t.Errorf("Eintrag wurde mitgelöscht: %d", code)
 	}
 }

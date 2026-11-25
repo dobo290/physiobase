@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <title>{{template "title" .}} · {{.Practice}}</title>
-<link rel="stylesheet" href="/static/pico.min.css">
-<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/pico.min.css?v={{.Version}}">
+<link rel="stylesheet" href="/static/style.css?v={{.Version}}">
 <link rel="icon" href="{{.Logo}}">
-<script src="/static/befund.js" defer></script>
-<script src="/static/passkey.js" defer></script>
-{{if .Demo}}<script src="/static/demo.js" defer></script>{{end}}
+<script src="/static/befund.js?v={{.Version}}" defer></script>
+<script src="/static/passkey.js?v={{.Version}}" defer></script>
+{{if .Demo}}<script src="/static/demo.js?v={{.Version}}" defer></script>{{end}}
 </head>
 <body>
 <header class="container">

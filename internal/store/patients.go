@@ -353,6 +353,13 @@ func (s *Store) UnlinkPatientTest(ctx context.Context, pid, eid int64) error {
 	return err
 }
 
+// DeleteTestRuns entfernt alle Durchführungen eines Tests bei einem Patienten.
+func (s *Store) DeleteTestRuns(ctx context.Context, pid, eid int64) error {
+	_, err := s.db.ExecContext(ctx,
+		`DELETE FROM test_runs WHERE patient_id = ? AND entry_id = ?`, pid, eid)
+	return err
+}
+
 // AddTestRun speichert eine Testdurchführung.
 func (s *Store) AddTestRun(ctx context.Context, pid, eid int64, date, data string) error {
 	if date == "" {

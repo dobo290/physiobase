@@ -9,7 +9,9 @@ import "context"
 // Berg Balance Scale, Mini-BESTest, Functional Ambulation Categories, Trunk
 // Control Test, Timed Up and Go, 10-Meter-Gehtest, 6-Minuten-Gehtest,
 // 30-Sekunden-Aufsteh-Test, Five Times Sit to Stand, 4-Stufen-Balance-Test,
-// Functional Reach Test, SPPB, Numerische Schmerzskala und PSFS.
+// Functional Reach Test, SPPB und PSFS.
+// Schmerz (NRS) und PSFS stehen im Befund bereits ausführlicher – die NRS
+// deshalb nicht zusätzlich als eigener Test.
 // Verfahren mit Lizenz-, Registrierungs- oder Schulungspflicht (z. B. DEMMI,
 // DGI, FGA, TIS, die meisten PROM-Fragebögen) gehören nicht ins Repository –
 // die Praxis legt sie selbst an.
@@ -350,30 +352,6 @@ bereits bedeutsam.
 ## Quelle
 Guralnik JM, Simonsick EM, Ferrucci L, et al. A short physical performance battery
 assessing lower extremity function. *J Gerontol.* 1994.
-` + nutzung,
-	},
-	{
-		Kind:   "test",
-		Title:  "Numerische Schmerzskala (NRS 0–10)",
-		Region: "Allgemein",
-		Tags:   "Assessment, Schmerz, Verlauf, NRS",
-		Summary: "Schmerzstärke als Zahl von 0 (kein Schmerz) bis 10 (stärkster " +
-			"vorstellbarer Schmerz) – in Ruhe, bei Belastung und als Verlauf.",
-		Body: `## Ziel
-Schmerzstärke einfach und verlaufsfähig dokumentieren.
-
-## Durchführung
-Patient nennt eine Zahl zwischen 0 und 10. Immer dieselbe Frage und dieselbe
-Situation (Ruhe, Bewegung, Nacht) erheben, sonst ist der Verlauf nicht vergleichbar.
-
-## Auswertung
-**0–10**, kleiner = besser. Etwa **2 Punkte** Änderung gelten als klinisch relevant.
-Zusätzlich dokumentieren, ob der Schmerz durch die Therapie besser beeinflussbar ist.
-
-## Quelle
-Jensen MP, Karoly P, Braver S. The measurement of clinical pain intensity: a
-comparison of six methods. *Pain.* 1986. Zur Relevanz der Änderung:
-Farrar JT, et al. *Pain.* 2001.
 ` + nutzung,
 	},
 	{

@@ -127,6 +127,18 @@
     <ul id="test-suggest-p" class="suggest" hidden></ul>
   </div>
   {{if .Tests}}
+  {{with .RemoveTest}}
+  <div class="confirm-box">
+    <p>Test <strong>{{.Title}}</strong> von {{$.P.Name}} entfernen? Alle Durchführungen dieses Tests werden gelöscht.
+       Ergebnisse in Befunden bleiben erhalten.</p>
+    <div class="actions">
+      <form method="post" action="/patient/{{$.P.ID}}/test/{{.EntryID}}/entfernen" class="inline">
+        <button type="submit" class="danger">Entfernen</button>
+      </form>
+      <a role="button" class="secondary outline" href="/patient/{{$.P.ID}}#tests">Abbrechen</a>
+    </div>
+  </div>
+  {{end}}
   <div class="tablewrap"><table class="list">
     <thead><tr><th>Test</th><th>Letztes Ergebnis</th><th class="hide-sm">Datum</th><th class="hide-sm">Quelle</th><th></th></tr></thead>
     <tbody>{{range .Tests}}
@@ -137,6 +149,7 @@
         <td class="hide-sm">{{if eq .Source "Befund"}}<a href="/befund/{{.BefundID}}">Befund</a>{{else if .Source}}{{.Source}}{{end}}</td>
         <td class="actions">
           <a role="button" class="secondary outline small" href="/patient/{{$.P.ID}}/test/{{.EntryID}}">{{if .Date}}erneut durchführen{{else}}durchführen{{end}}</a>
+          <a class="remove-test" href="/patient/{{$.P.ID}}?entfernen={{.EntryID}}#tests" title="Test entfernen" aria-label="{{.Title}} entfernen">✕</a>
         </td>
       </tr>
     {{end}}</tbody>
@@ -282,5 +295,5 @@
     </details>
   </div>
 </details>
+<script src="/static/test-search.js?v={{.Version}}" defer></script>
 {{end}}
-<script src="/static/test-search.js" defer></script>

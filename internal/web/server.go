@@ -137,6 +137,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /patient/{id}/test", s.linkPatientTest)
 	mux.HandleFunc("GET /patient/{id}/test/{eid}", s.runTestForm)
 	mux.HandleFunc("POST /patient/{id}/test/{eid}", s.saveTestRun)
+	mux.HandleFunc("POST /patient/{id}/test/{eid}/entfernen", s.removePatientTest)
 	mux.HandleFunc("POST /patient/{id}/verlauf", s.addSession)
 	mux.HandleFunc("POST /verlauf/{id}/loeschen", s.deleteSession)
 	mux.HandleFunc("POST /patient/{id}/wissen", s.linkPatientEntry)

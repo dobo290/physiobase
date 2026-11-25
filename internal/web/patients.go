@@ -157,9 +157,22 @@ func (s *Server) showPatient(w http.ResponseWriter, r *http.Request) {
 			Tests: fmt.Sprint(len(d.Tables["measures"])), Pain: befund.PainSummary(d),
 		})
 	}
+	// Bestätigung zum Entfernen eines Tests (?entfernen=<test-id>#tests)
+	var removeTest *patientTest
+	if v := r.URL.Query().Get("entfernen"); v != "" {
+		if eid, err := strconv.ParseInt(v, 10, 64); err == nil {
+			for i := range ptests {
+				if ptests[i].EntryID == eid {
+					removeTest = &ptests[i]
+					break
+				}
+			}
+		}
+	}
 	s.render(w, r, "patient", http.StatusOK, map[string]any{
 		"P": p, "Befunde": bs, "Sessions": sessions, "Linked": linked, "Linkable": linkable,
-		"Handouts": handouts, "Trend": trend, "Today": time.Now().Format("2006-01-02"),
+		"RemoveTest": removeTest,
+		"Handouts":   handouts, "Trend": trend, "Today": time.Now().Format("2006-01-02"),
 		"Docs": docs, "DocCategories": s.lines("doc_categories"), "Summaries": summaries, "Appt": appt, "QHist": qhist, "Tests": ptests,
 		"Error": r.URL.Query().Get("fehler"),
 	})

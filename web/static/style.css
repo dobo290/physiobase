@@ -38,12 +38,6 @@ button.link:hover { color: var(--pico-del-color); }
 .card { display: flex; flex-direction: column; gap: .3rem; padding: 1rem; border-radius: var(--pico-border-radius);
         background: var(--pico-card-background-color); box-shadow: var(--pico-card-box-shadow); text-decoration: none; color: inherit; }
 .card:hover { outline: 2px solid var(--pico-primary-border); }
-.card-shell { position: relative; }
-.card-shell .card { height: 100%; }
-.card-delete { position: absolute; top: .35rem; right: .45rem; padding: 0 .35rem; border-radius: 999px;
-               font-size: .85em; line-height: 1.4; text-decoration: none; color: var(--pico-muted-color);
-               background: var(--pico-card-background-color); border: 1px solid transparent; }
-.card-delete:hover, .card-delete:focus { color: var(--pico-del-color); border-color: var(--pico-del-color); }
 .card strong { color: var(--pico-primary); }
 .card .summary { font-size: .88em; color: var(--pico-muted-color); }
 
@@ -287,6 +281,14 @@ tr.inactive td { opacity: .55; }
 .setup-link { border-left: 4px solid var(--pico-ins-color); }
 .passkey-login { text-align: center; margin-top: 1rem; }
 .passkey-login button { width: 100%; }
+
+/* ---------- Test von einem Patienten entfernen ---------- */
+.confirm-box { border-left: 4px solid var(--pico-del-color); background: var(--pico-code-background-color);
+               padding: .8rem 1rem; border-radius: var(--pico-border-radius); margin: 0 0 .8rem; }
+.confirm-box p { margin: 0 0 .6rem; }
+a.remove-test { display: inline-block; margin-left: .4rem; padding: 0 .3rem; text-decoration: none;
+                color: var(--pico-muted-color); border-radius: .3rem; }
+a.remove-test:hover, a.remove-test:focus { color: var(--pico-del-color); }
 
 /* ---------- Zwei-Faktor-Anmeldung ---------- */
 .tosetup { display: flex; gap: 1.2rem; flex-wrap: wrap; align-items: flex-start; margin: 1rem 0; }

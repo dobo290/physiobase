@@ -1,5 +1,4 @@
 {{define "title"}}{{.B.Title}} – {{.P.Name}}{{end}}
-<script src="/static/test-search.js" defer></script>
 {{define "content"}}
 {{$d := .D}}
 <nav aria-label="breadcrumb"><ul>
@@ -162,6 +161,7 @@
     <form method="post" action="/befund/{{.B.ID}}/loeschen"><button type="submit" class="danger">Endgültig löschen</button></form>
   </details>
 </div>
+<script src="/static/test-search.js?v={{.Version}}" defer></script>
 {{end}}
 
-<script src="/static/test-search.js" defer></script>
+

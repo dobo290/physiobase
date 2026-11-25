@@ -204,6 +204,31 @@ func (s *Server) saveTestRun(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/patient/"+strconv.FormatInt(pid, 10)+"#tests", http.StatusSeeOther)
 }
 
+// removePatientTest entfernt einen Test samt Durchführungen von einem Patienten.
+// Der Befund bleibt unverändert, dort dokumentierte Ergebnisse bleiben erhalten.
+func (s *Server) removePatientTest(w http.ResponseWriter, r *http.Request) {
+	pid, ok := pathID(r, "id")
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	eid, ok := pathID(r, "eid")
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	if err := s.st.DeleteTestRuns(r.Context(), pid, eid); err != nil {
+		s.fail(w, r, err)
+		return
+	}
+	if err := s.st.UnlinkPatientTest(r.Context(), pid, eid); err != nil {
+		s.fail(w, r, err)
+		return
+	}
+	s.log.Info("test vom patienten entfernt", "patient", pid, "test", eid, "von", s.who(r))
+	redirect(w, r, "/patient/%d#tests", pid)
+}
+
 // linkPatientTest verknüpft einen Test direkt aus der Patientenübersicht.
 func (s *Server) linkPatientTest(w http.ResponseWriter, r *http.Request) {
 	if !limitForm(w, r) {

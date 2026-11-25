@@ -30,8 +30,8 @@ conveniences; everything else works without it.
 - **Included assessments** (free to use, evidence-based): Berg Balance Scale,
   Mini-BESTest, Functional Ambulation Categories, Trunk Control Test, Timed Up and
   Go, 10 m walk test, 6-minute walk test, 30-second chair stand, five times sit to
-  stand, 4-stage balance test, functional reach, SPPB, numeric pain rating scale and
-  the Patient-Specific Functional Scale – each with scale, scoring notes, cut-offs
+  stand, 4-stage balance test, functional reach, SPPB and the Patient-Specific
+  Functional Scale – each with scale, scoring notes, cut-offs
   and reference. Anything that needs a licence, registration or training (DEMMI,
   DGI, FGA, TIS, most PROM questionnaires) is added by the practice itself; original
   forms always stay with the practice. `physiobase seed-assessments` adds the entries
