@@ -13,7 +13,6 @@ Guiding principles for every decision:
 
 ## 🚧 In progress
 
-- [ ] 🚧 **Roadmap tab in the forge** - show this file as a tab in the project view
 - [ ] 🚧 **Test history as a chart** - score of a test over time in the patient
       profile, with trend indicator and comparison to the previous assessment
 
@@ -81,6 +80,8 @@ Guiding principles for every decision:
 
 ## Done
 
+- [x] ~~**Roadmap tab in the forge** - this file is shown as a tab in the project
+      view, including the open/done counter~~
 - [x] ~~**Extended patient master data** - address, occupation, insurance, family
       doctor, other physicians, self-payer / private / subsidy / employers'
       liability (0.9.3)~~
