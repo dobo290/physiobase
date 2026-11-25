@@ -2,7 +2,11 @@
 
 **Last updated:** 25.11.2026
 
-**Legend:** `[x]` done · `[ ]` planned · 🚧 currently in progress
+**Legend:** `[x]` done · `[ ]` planned · 🚧 currently in progress ·
+*(next)* = coming in the next releases · *(mid term)* · *(long term)*
+
+The sections group the work by kind: clinical documentation, prescriptions and
+billing, reference data, practice workflow, security and operations, platform.
 
 Guiding principles for every decision:
 
@@ -18,35 +22,54 @@ Guiding principles for every decision:
 - [ ] 🚧 **Test history as a chart** - score of a test over time in the patient
       profile, with trend indicator and comparison to the previous assessment
 
-## Next
+## Prescriptions, billing and invoices
+
+- [ ] **Prescriptions as the folder for a course of treatment** *(next)*
+      - Every patient has at least one prescription; a patient without a
+        prescription does not exist. The first prescription is created together
+        with the patient.
+      - A prescription holds: date, diagnosis, treatment method (Behandlungsart),
+        prescribed number of appointments/units, frequency, payer, prescribing
+        doctor, validity, billed flag with date and invoice number, status and a
+        note.
+      - Appointments and treatment method are **optional**: a blank prescription
+        ("Blankorezept") allows choosing the method and the number of units per
+        appointment.
+      - Everything that belongs to the treatment hangs off the prescription:
+        assessments, sessions, tests, documents, summaries and appointments. The
+        patient page opens the newest active prescription and keeps an "all data"
+        view across prescriptions.
+      - Follow-up prescriptions (Verlängerung / Folgeverordnung) chain under the
+        previous one (`parent_id`). The previous prescription is closed when the
+        follow-up starts, whether or not appointments are left over; **leftover
+        units are never carried over** - nothing may be billed that was not
+        provided.
+      - Unit counter ("4 of 6"), warning when the prescribed number is exceeded or
+        the prescription expires.
+      - The demo gets two example prescriptions including a follow-up.
+- [ ] **Invoices and billing** - invoice number, amount, date and payer per
+      prescription, plus an overview of open and billed prescriptions. Still open
+      whether invoices are written in PhysioBase (own numbering, PDF) or handed to
+      an external tool such as Firefly III; the billed state and the invoice
+      reference stay in PhysioBase either way *(mid term)*
+- [ ] **Remedy positions and prices** - remedy catalogue positions and prices,
+      payment status for self-payers and private patients *(mid term)*
+
+## Clinical documentation
 
 - [ ] **Assessment search** - full text search across assessments (diagnosis,
-      notes), not only across the knowledge base
-- [ ] **Handout templates** - save sets of exercises as a template and apply them
-      to a patient in one click
+      notes), not only across the knowledge base *(next)*
 - [ ] **Report export** - medical report / summary as a clean PDF with practice
-      logo and header
-- [ ] **Recall list** - patients whose next appointment or follow-up assessment is
-      due, with a reminder function
-- [ ] **Audit log** - who changed or viewed which assessment and when (GDPR
-      accountability, useful for handovers)
-
-## Mid term
-
-- [ ] **Prescription management** - remedy prescriptions with validity period,
-      number of sessions, approval status and remaining budget per patient
-- [ ] **Billing** - remedy catalogue positions, prices, invoices for self-payers
-      and private patients, payment status
-- [ ] **Questionnaire by link** - the patient fills in a test in the browser
-      before the visit (one-time link, no account)
-- [ ] **Patient self-booking** - public calendar link for appointment requests,
-      confirmed by the practice
-- [ ] **Consents and signatures** - capture forms digitally and store them in the
-      patient file
-- [ ] **Appointment reminders** - e-mail reminder before the appointment, only
-      with documented consent
+      logo and header *(next)*
+- [ ] **Handout templates** - save sets of exercises as a template and apply them
+      to a patient in one click *(next)*
 - [ ] **Attachments for tests and assessments** - e.g. photo of the test setup or
-      a measurement report as PDF
+      a measurement report as PDF *(mid term)*
+- [ ] **Questionnaire by link** - the patient fills in a test in the browser
+      before the visit (one-time link, no account) *(mid term)*
+
+## Reference data and standards
+
 - [ ] **Official code lists via official APIs** - import the ICD-10-GM (WHO, BfArM),
       ICF, OPS, ATC, the German remedy catalogue (Heilmittelkatalog) and remedy
       prices from the official interfaces (WHO APIs, BundesAPI and the German
@@ -54,39 +77,56 @@ Guiding principles for every decision:
       diagnosis, prescription and billing forms, with the catalogue version stored
       on every record so old assessments keep their codes.
       The lists are fetched on demand and stored locally - the practice keeps
-      working offline and never depends on a cloud service at runtime.
+      working offline and never depends on a cloud service at runtime. *(mid term)*
 - [ ] **ICD-10 / ICF codes** - structured diagnosis and functioning codes on the
-      assessment, searchable and usable for statistics
-- [ ] **Dashboard** - case numbers, utilisation, open assessments, due follow-ups,
-      no-show rate
-- [ ] **Backup and restore in the UI** - back up, download and restore without a
-      shell, including the status of the last backup
+      assessment, searchable and usable for statistics. The diagnosis field of a
+      prescription is prepared for this. *(mid term)*
 
-## Long term / ideas
+## Practice workflow
+
+- [ ] **Recall list** - patients whose next appointment or follow-up assessment is
+      due, with a reminder function *(next)*
+- [ ] **Consents and signatures** - capture forms digitally and store them in the
+      prescription *(mid term)*
+- [ ] **Appointment reminders** - e-mail reminder before the appointment, only
+      with documented consent *(mid term)*
+- [ ] **Patient self-booking** - public calendar link for appointment requests,
+      confirmed by the practice *(mid term)*
+- [ ] **Dashboard** - case numbers, utilisation, open prescriptions, due
+      follow-ups, no-show rate *(mid term)*
+
+## Security, data protection and operations
+
+- [ ] **Audit log** - who changed or viewed which assessment and when (GDPR
+      accountability, useful for handovers) *(next)*
+- [ ] **Backup and restore in the UI** - back up, download and restore without a
+      shell, including the status of the last backup *(mid term)*
+- [ ] **Opt-in encryption** - encrypted database and media (passphrase at start),
+      encrypted backups, optional field-level encryption for particularly
+      sensitive data *(long term)*
+- [ ] **Retention periods and deletion concept** - configurable deadlines,
+      reminders for archiving and a deletion log *(long term)*
+
+## Platform and engineering
 
 - [ ] **Internationalisation** - the project must be translatable into other
       languages: externalise all UI strings and document templates (German as the
       default, English and Dutch next - the KNGF guidelines are published in
       Dutch), per-patient output language for questionnaires, and a documented
-      translation workflow so the community can contribute languages
+      translation workflow so the community can contribute languages *(long term)*
 - [ ] **Other therapy professions** - besides physiotherapy also occupational
       therapy, speech therapy and further remedy professions, with separate
-      assessment schemas, test collections and handouts per profession
+      assessment schemas, test collections and handouts per profession *(long term)*
+- [ ] **Multi-tenancy** - several practitioners with separate data sets in one
+      instance *(long term)*
+- [ ] **Offline-capable UI (PWA)** - record assessments in the treatment room
+      without a stable Wi-Fi connection and synchronise later *(long term)*
+- [ ] **Analytics** - anonymised statistics over your own caseload *(long term)*
+- [ ] **Import from other systems** - CSV/Excel for patient master data and
+      digitisation of paper files *(long term)*
 - [ ] **Telematics infrastructure (TI)** - connector and KIM for the secure
       exchange of medical letters and findings, card terminals (eHBA / SMC-B) and,
-      as far as available for remedy providers, electronic prescriptions
-- [ ] **Opt-in encryption** - encrypted database and media (passphrase at start),
-      encrypted backups, optional field-level encryption for particularly
-      sensitive data
-- [ ] **Offline-capable UI (PWA)** - record assessments in the treatment room
-      without a stable Wi-Fi connection and synchronise later
-- [ ] **Analytics** - anonymised statistics over your own caseload
-- [ ] **Multi-tenancy** - several practitioners with separate data sets in one
-      instance
-- [ ] **Import from other systems** - CSV/Excel for patient master data and
-      digitisation of paper files
-- [ ] **Retention periods and deletion concept** - configurable deadlines,
-      reminders for archiving and a deletion log
+      as far as available for remedy providers, electronic prescriptions *(long term)*
 
 ## Done
 
