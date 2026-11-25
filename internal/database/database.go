@@ -304,6 +304,26 @@ CREATE TABLE setup_tokens (
 -- Fragebogen-/Schema-Attribut für Tests (JSON im Bereich befund.Questionnaire)
 ALTER TABLE entries ADD COLUMN schema TEXT NOT NULL DEFAULT "";
 `},
+	{9, `
+-- Tests, die einem Patienten zugeordnet sind (unabhaengig von einem Befund)
+CREATE TABLE patient_tests (
+    patient_id INTEGER NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+    entry_id   INTEGER NOT NULL REFERENCES entries(id) ON DELETE CASCADE,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+    PRIMARY KEY (patient_id, entry_id)
+) WITHOUT ROWID;
+
+-- Einzeldurchfuehrungen eines Tests (ohne Befund)
+CREATE TABLE test_runs (
+    id         INTEGER PRIMARY KEY,
+    patient_id INTEGER NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+    entry_id   INTEGER NOT NULL REFERENCES entries(id) ON DELETE CASCADE,
+    date       TEXT NOT NULL,
+    data       TEXT NOT NULL DEFAULT '{}',
+    created_at INTEGER NOT NULL DEFAULT (unixepoch())
+);
+CREATE INDEX idx_test_runs_patient ON test_runs(patient_id, entry_id, date);
+`},
 }
 
 func migrate(db *sql.DB) error {
