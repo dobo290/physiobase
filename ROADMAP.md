@@ -95,12 +95,19 @@ Guiding principles for every decision:
         pre-filled (see below).
       - Optional per licence: certificate number and valid-until date, so an
         expiring qualification is visible in time. Expired licences can still be
-        recorded but are shown as expired and are not offered for new
-        appointments.
-      - Booking an appointment: choosing the treatment type filters the therapist
-        list to those licensed for it (also in the prescription form when the
-        treatment method is set per appointment). If nobody is licensed, the form
-        says so instead of silently offering everyone.
+        recorded but are shown as expired.
+      - **The licence requirement applies to statutory patients (GKV) only.** It
+        comes from the GKV Rahmenvertrag (§ 125 SGB V), so it is a property of the
+        booking, not of the therapist: private patients, self-payers, Beihilfe and
+        BG are booked without a licence filter. The payer of the prescription (or
+        of the patient) decides; the therapist's licences are shown as information
+        either way.
+      - Booking a statutory appointment: choosing the treatment type filters the
+        therapist list to those licensed for it (also in the prescription form when
+        the treatment method is set per appointment); an expired licence does not
+        count. If nobody is licensed, the form says so instead of silently
+        offering everyone. Bookings for private patients and self-payers keep the
+        full list.
       - Existing appointments keep their therapist; nothing is rewritten in
         hindsight.
       - Seed list (admin can edit all of it): Manuelle Therapie (MT), Manuelle
