@@ -8,7 +8,9 @@ Guiding principles for every decision:
 
 - One static Go binary, one SQLite file, no cloud dependency.
 - Pages rendered on the server; JavaScript only where it adds real value.
-- Data stays where it belongs: on your own server.
+- Data stays where it belongs: on your own server. Official reference data
+  (ICD-10-GM, ICF, remedy catalogue, prices) is imported from official sources and
+  kept locally, so no feature needs an internet connection at runtime.
 - German user interface today, built so that other languages can be added.
 
 ## 🚧 In progress
@@ -45,6 +47,14 @@ Guiding principles for every decision:
       with documented consent
 - [ ] **Attachments for tests and assessments** - e.g. photo of the test setup or
       a measurement report as PDF
+- [ ] **Official code lists via official APIs** - import the ICD-10-GM (WHO, BfArM),
+      ICF, OPS, ATC, the German remedy catalogue (Heilmittelkatalog) and remedy
+      prices from the official interfaces (WHO APIs, BundesAPI and the German
+      health-data endpoints) as versioned lists: searchable pickers in assessment,
+      diagnosis, prescription and billing forms, with the catalogue version stored
+      on every record so old assessments keep their codes.
+      The lists are fetched on demand and stored locally - the practice keeps
+      working offline and never depends on a cloud service at runtime.
 - [ ] **ICD-10 / ICF codes** - structured diagnosis and functioning codes on the
       assessment, searchable and usable for statistics
 - [ ] **Dashboard** - case numbers, utilisation, open assessments, due follow-ups,
