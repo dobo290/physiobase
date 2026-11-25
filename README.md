@@ -20,7 +20,7 @@ conveniences; everything else works without it.
 
 ![Knowledge base](docs/preview-wissen.png)
 
-> **🗺️ Roadmap:** geplante Funktionen und Nicht-Ziele stehen in [ROADMAP.md](ROADMAP.md).
+> **🗺️ Roadmap:** planned features, non-goals and the release process are in [ROADMAP.md](ROADMAP.md).
 
 ## Features
 
