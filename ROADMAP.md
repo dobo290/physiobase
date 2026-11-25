@@ -82,7 +82,7 @@ Guiding principles for every decision:
 
 - [x] ~~**Two-factor sign-in** - optional TOTP per user (Google Authenticator, Aegis,
       1Password, Vaultwarden …), QR code for setup, eight one-time recovery codes,
-      admin reset when the device is lost (0.9.4)~~
+      admin reset when the device is lost (0.10.0)~~
 - [x] ~~**Roadmap tab in the forge** - this file is shown as a tab in the project
       view, including the open/done counter~~
 - [x] ~~**Extended patient master data** - address, occupation, insurance, family
@@ -103,10 +103,47 @@ Guiding principles for every decision:
 - [x] ~~Proprietary, licensed test content in the repository~~ - instruments are
       entered by the practice itself
 
+## Versioning
+
+Semantic versioning, pre-1.0 with a fixed rule so the numbers stay informative:
+
+| Change | Version |
+|---|---|
+| New feature, new field, new page, database migration | `0.<minor>.0` – 0.10.0, 0.11.0, 0.12.0 … |
+| Bug fix only, no new function, no migration | `0.<minor>.<patch>` – 0.10.1, 0.10.2 … |
+| First stable release | `1.0.0` |
+
+Rules:
+
+- A migration always means a new minor version, so "do I need a backup before
+  updating?" depends only on the second number.
+- Patch releases never change the database schema and never remove a feature, so
+  they are safe on a running practice.
+- Breaking changes are allowed before 1.0.0, but they are called out in the
+  release notes.
+- Dates in the repository, in releases and in the app: `TT.MM.JJJJ`. Units metric.
+
+### What 1.0.0 requires
+
+- Data model settled: no migration that rewrites patient data, only additive ones.
+- Backup and restore in the UI, tested on a real copy of a practice database.
+- Reports, handouts and summaries printed without manual fixes.
+- Every "Next" item on this roadmap done or moved to a later release on purpose.
+- One full release cycle (four weeks) on the live practice instance without a
+  data-loss incident.
+
+After 1.0.0 the same table applies with the major digit in front: features bump
+`1.<minor>.0`, fixes `1.<minor>.<patch>`, breaking changes `2.0.0`.
+
 ## Release process
 
-1. Bump `internal/version/version.go` (patch/minor).
-2. `go vet ./... && go test ./...`, format with `gofumpt`.
+1. `internal/version/version.go` bump according to the table above.
+2. Format, lint and test locally the way CI does: `gofumpt -l -extra .`,
+   `go vet ./...`, `golangci-lint run ./...`, `govulncheck ./...`,
+   `go test -race -count=1 ./...`.
 3. Commit and annotated tag `vX.Y.Z`, push `master` and the tag.
-4. CI builds and publishes `forge.gpl-nas.de/physiobase:vX.Y.Z` and `:latest`.
-5. Live instance: `podman-compose pull && systemctl restart physio`.
+4. Watch the pipeline on the forge (tidy, format, lint, vulncheck, test, build, image).
+5. CI publishes `forge.gpl-nas.de/physiobase:vX.Y.Z` and `:latest`.
+6. Update the running instances: pull image, `systemctl restart physio`; rebuild the
+   demo image (`podman build -t localhost/physiobase-demo .`), restart
+   `physiobase-demo`; check `healthz` and the version on the login page of both.
