@@ -1,6 +1,7 @@
 package web
 
 import (
+	"net/http"
 	"net/url"
 	"strings"
 	"testing"
@@ -41,7 +42,7 @@ func TestRouteMatrix(t *testing.T) {
 			t.Fatalf("%s anonym: %v", path, err)
 		}
 		res.Body.Close()
-		if !strings.HasPrefix(path, "/api/") && res.StatusCode != 303 && res.StatusCode != 401 {
+		if !strings.HasPrefix(path, "/api/") && res.StatusCode != http.StatusSeeOther && res.StatusCode != http.StatusUnauthorized {
 			t.Errorf("%s anonym: Status %d, erwartet 303/401", path, res.StatusCode)
 		}
 
@@ -52,10 +53,10 @@ func TestRouteMatrix(t *testing.T) {
 		}
 		res.Body.Close()
 		if shared[path] {
-			if res.StatusCode != 200 {
+			if res.StatusCode != http.StatusOK {
 				t.Errorf("%s Benutzer: Status %d, erwartet 200", path, res.StatusCode)
 			}
-		} else if res.StatusCode != 404 {
+		} else if res.StatusCode != http.StatusNotFound {
 			t.Errorf("%s Benutzer: Status %d, erwartet 404 (Verwaltung versteckt)", path, res.StatusCode)
 		}
 
@@ -65,7 +66,7 @@ func TestRouteMatrix(t *testing.T) {
 			t.Fatalf("%s Admin: %v", path, err)
 		}
 		res.Body.Close()
-		if res.StatusCode != 200 {
+		if res.StatusCode != http.StatusOK {
 			t.Errorf("%s Admin: Status %d, erwartet 200", path, res.StatusCode)
 		}
 	}
@@ -84,7 +85,7 @@ func TestNotFoundAndBadIDs(t *testing.T) {
 			t.Fatalf("%s: %v", path, err)
 		}
 		res.Body.Close()
-		if res.StatusCode != 404 {
+		if res.StatusCode != http.StatusNotFound {
 			t.Errorf("%s: Status %d, erwartet 404", path, res.StatusCode)
 		}
 	}
