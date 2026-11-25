@@ -20,6 +20,8 @@ conveniences; everything else works without it.
 
 ![Knowledge base](docs/preview-wissen.png)
 
+> **🗺️ Roadmap:** geplante Funktionen und Nicht-Ziele stehen in [ROADMAP.md](ROADMAP.md).
+
 ## Features
 
 - **Knowledge base**: conditions, tests/assessments, exercises, treatment

@@ -19,15 +19,15 @@ func (s *Store) SeedDemo(ctx context.Context) error {
 		name, dob, phone, notes string
 	}{
 		{
-			"Erika Musterfrau", "1969-04-12", "07361 123456",
+			"Erika Musterfrau", "12.04.1969", "07361 123456",
 			"Zustand nach Hüft-TEP rechts (03/2026). Ziele: Gangbild, Treppensteigen, Alltagssicherheit.",
 		},
 		{
-			"Jonas Beispielmann", "1994-09-03", "07361 654321",
+			"Jonas Beispielmann", "03.09.1994", "07361 654321",
 			"Chronischer unspezifischer Rückenschmerz, Büroarbeit. Ziel: Kraftaufbau, Bewegungsangst abbauen.",
 		},
 		{
-			"Hilde Mustermann", "1961-11-27", "07361 998877",
+			"Hilde Mustermann", "27.11.1961", "07361 998877",
 			"Parkinson-Syndrom, Sturzangst. Ziel: Gleichgewicht, Ganginitiierung, Sturzprophylaxe.",
 		},
 	}
