@@ -29,12 +29,23 @@ type Message struct {
 }
 
 // ValidAddress prüft eine einzelne Empfängeradresse (keine Listen, keine Header-Injektion).
+// Die Domain muss einen Punkt enthalten: "a@b" ist keine Adresse, an die eine
+// Patienten-Zusammenfassung gehen soll.
 func ValidAddress(s string) bool {
 	if strings.ContainsAny(s, "\r\n,;") {
 		return false
 	}
 	a, err := mail.ParseAddress(s)
-	return err == nil && a.Address == s
+	if err != nil || a.Address != s {
+		return false
+	}
+	at := strings.LastIndex(s, "@")
+	if at < 1 || at == len(s)-1 {
+		return false
+	}
+	domain := s[at+1:]
+	return strings.Contains(domain, ".") && !strings.HasPrefix(domain, ".") &&
+		!strings.HasSuffix(domain, ".") && !strings.Contains(domain, "..")
 }
 
 // Build erzeugt die komplette MIME-Nachricht (multipart/alternative).

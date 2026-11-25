@@ -222,6 +222,17 @@ Guiding principles for every decision:
 
 ## Done
 
+- [x] ~~**Test hardening and reproducible image** - migration test from every
+      intermediate schema version, backup/restore round trip with
+      `integrity_check`, five fuzz targets for input that comes from outside
+      (assessment JSON, questionnaire schemas, legacy import files, TOTP codes),
+      SMTP delivery against a fake server (which caught `a@b` being accepted as an
+      address), route/permission matrix for 15 routes and a 404 test for unknown
+      ids; CI now runs `-shuffle=on`, writes a coverage report as an artifact,
+      runs the fuzz targets with a short budget, sets `go mod verify`, and treats
+      `govulncheck` as blocking again; base images are pinned by digest and the
+      binary builds reproducibly (`-buildvcs=false -buildid=`, verified by two
+      identical builds) (0.13.2)~~
 - [x] ~~**Faster test search and deleting from lists** - clicking the search field
       lists every test, typing filters letter by letter, arrow keys and Enter pick
       one; entries can be deleted from the knowledge list and appointments from the

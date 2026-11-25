@@ -231,6 +231,14 @@ Passkeys need `PHYSIOBASE_BASE_URL` set to the `https://` address of the app.
   secret scanning run on GitHub; every release pipeline also scans the container
   image with Trivy (HIGH/CRITICAL reported). Security reports go through the
   private advisory channel, see [SECURITY.md](SECURITY.md).
+- Tests: unit and HTTP-level tests against the real router and a real SQLite file,
+  a migration test that walks every intermediate schema version, a backup/restore
+  round trip, a route/permission matrix, an SMTP test against a local fake server
+  and fuzz targets for everything that comes from outside (assessment JSON,
+  questionnaire schemas, legacy imports, TOTP codes). The pipeline runs them with
+  `-race -shuffle=on`, publishes a coverage report as an artifact and treats
+  `govulncheck` as blocking. Base images are pinned by digest and the binary is
+  reproducible, so the same sources give the same binary.
 - Uploaded files are only served if they belong to an entry in the database.
 - Email goes only to the single address stored for the patient, only with
   recorded consent, and addresses are validated against header injection.

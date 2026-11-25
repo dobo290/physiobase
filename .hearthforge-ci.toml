@@ -27,7 +27,7 @@ go install golang.org/x/vuln/cmd/govulncheck@latest
 [[steps]]
 name = "tidy"
 # The checkout has no .git, so compare copies instead of using git diff.
-run_sh = "cd project && cp go.mod /tmp/go.mod && cp go.sum /tmp/go.sum && go mod tidy && diff /tmp/go.mod go.mod && diff /tmp/go.sum go.sum"
+run_sh = "cd project && cp go.mod /tmp/go.mod && cp go.sum /tmp/go.sum && go mod tidy && diff /tmp/go.mod go.mod && diff /tmp/go.sum go.sum && go mod verify"
 
 [[steps]]
 name = "format"
@@ -39,12 +39,34 @@ run_sh = "cd project && golangci-lint run ./..."
 
 [[steps]]
 name = "vulncheck"
-warn_on_fail = true
+# Blocking on purpose: govulncheck only fails when a known vulnerability is
+# reachable from our code.
 run_sh = "cd project && govulncheck ./..."
 
 [[steps]]
 name = "test"
-run_sh = "cd project && go test -race -count=1 ./..."
+# -shuffle=on deckt Tests auf, die nur wegen ihrer Reihenfolge gruen sind.
+# Coverage ist ein Hinweis, keine Schwelle: die Datei landet als Artefakt im Lauf.
+run_sh = """
+cd project
+go test -race -shuffle=on -count=1 -timeout=900s -covermode=atomic -coverprofile=coverage.out ./...
+go tool cover -func=coverage.out | tail -1
+"""
+publish_file = ["/ci/build/project/coverage.out"]
+
+[[steps]]
+name = "fuzz"
+# Kurzes Fuzzing der Eingaben, die von aussen kommen (DB-JSON, Importdateien,
+# Fragebogen-Schemata, TOTP-Codes). Ein Fund ist ein echter Fehler und bricht ab.
+run_sh = """
+cd project
+for target in FuzzParse FuzzParseQuestionnaire FuzzParseLegacy; do
+  go test -count=1 -run '^$' -fuzz "^${target}$" -fuzztime=10s ./internal/befund/
+done
+for target in FuzzVerify FuzzNormalize; do
+  go test -count=1 -run '^$' -fuzz "^${target}$" -fuzztime=10s ./internal/otp/
+done
+"""
 
 [[steps]]
 name = "build"
