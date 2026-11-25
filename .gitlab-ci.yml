@@ -1,0 +1,42 @@
+# GitLab-Pipeline: Tests und Sicherheits-Scans.
+#
+# Das Image wird weiterhin in der eigenen Forge-CI gebaut (Hearthforge) – hier
+# geht es nur um Tests und die Auswertung im GitLab-Tab "Secure".
+#
+# Enthalten: SAST (Semgrep, u. a. Go), Secret Detection, Dependency Scanning
+# (go.mod) und die Test-Suite mit Race-Detector.
+stages:
+  - test
+  - security
+
+default:
+  image: mirror.gcr.io/library/golang:1.27.4
+  interruptible: true
+
+include:
+  - template: Jobs/SAST.gitlab-ci.yml
+  - template: Jobs/Secret-Detection.gitlab-ci.yml
+  - template: Jobs/Dependency-Scanning.gitlab-ci.yml
+
+variables:
+  # Go-Cache zwischen den Läufen
+  GOFLAGS: -buildvcs=false
+  # Scans nicht doppelt auf Tags und MRs laufen lassen
+  AST_ENABLE_MR_PIPELINES: "true"
+
+# go vet + Tests mit Race-Detector, wie in der eigenen CI
+test:
+  stage: test
+  cache:
+    key: go-$CI_COMMIT_REF_SLUG
+    paths:
+      - .gocache/
+  variables:
+    GOCACHE: $CI_PROJECT_DIR/.gocache
+  script:
+    - go vet ./...
+    - go test -race -count=1 ./...
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
