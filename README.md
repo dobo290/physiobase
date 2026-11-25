@@ -283,17 +283,31 @@ Germany. They chose the features, set the clinical direction (for example an
 ICF-oriented, evidence-based assessment with red/yellow flag screening and
 outcome measures) and are responsible for the clinical content.
 
-That clinical content includes the structure and wording of the assessment
-form, the red/yellow flag lists, the suggested assessment instruments, the
-sample knowledge entries and the patient summary templates. It was drafted
-by the model from general physiotherapy knowledge, not taken from a specific
-guideline or textbook. If you use PhysioBase in your own practice, check it
-against current guidelines and your own professional judgement. The software
-supports documentation; it does not make clinical decisions.
+Before this Go rewrite the maintainer built and used the same tool for more
+than two years as a plain HTML/JavaScript application, written entirely without
+AI assistance. The conversion into this Go project – data model, server-rendered
+pages, migrations, tests and documentation – was done with AI support.
 
-The code is checked by automated tests, `go vet`, golangci-lint (including
-gosec), gofumpt and govulncheck on every push. That catches many mistakes,
-but not all. Review it before you trust it with patient data.
+## Disclaimer on productive use with real data
+
+PhysioBase is pre-1.0 (beta) and has not been through a long field trial. Use it
+with real patient data only if you accept that:
+
+- **The clinical content is a draft.** The structure and wording of the
+  assessment form, the red/yellow flag lists, the suggested instruments, the
+  sample knowledge entries and the patient summary templates were drafted from
+  general physiotherapy knowledge, not from a specific guideline or textbook.
+  Check them against current guidelines and your own professional judgement.
+- **The software documents; it does not decide.** It supports your documentation
+  and never replaces diagnosis, therapy planning or your professional
+  responsibility.
+- **Automated checks are a net, not a proof.** Every push runs tests, `go vet`,
+  golangci-lint (including gosec), gofumpt and govulncheck, but that catches many
+  mistakes and not all of them. Test the version you deploy with your own data.
+- **Keep control of your data.** Keep the automatic daily backups (or your own),
+  check that a restore works, and follow your legal duties for health data
+  (access control, consent, deletion periods). The software gives you the means;
+  the responsibility stays with the practice.
 
 ## License
 
