@@ -23,7 +23,7 @@ if [ -z "$WIKI_REPO" ]; then
 fi
 
 # WIKI_URL erlaubt eine abweichende URL (Test mit lokalem Repository).
-WIKI_URL="${WIKI_URL:-https://${WIKI_REPO}.wiki.git}"
+WIKI_URL="${WIKI_URL:-https://github.com/${WIKI_REPO}.wiki.git}"
 
 version=$(sed -nE 's/^const Version = "([^"]+)".*/\1/p' internal/version/version.go | head -1)
 stand=$(sed -nE 's/^\*\*Last updated:\*\* (.*)$/\1/p' ROADMAP.md | head -1)
