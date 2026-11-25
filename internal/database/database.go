@@ -324,6 +324,18 @@ CREATE TABLE test_runs (
 );
 CREATE INDEX idx_test_runs_patient ON test_runs(patient_id, entry_id, date);
 `},
+	{10, `
+-- Erweiterte Stammdaten
+ALTER TABLE patients ADD COLUMN address TEXT NOT NULL DEFAULT '';
+ALTER TABLE patients ADD COLUMN job TEXT NOT NULL DEFAULT '';
+ALTER TABLE patients ADD COLUMN doctor TEXT NOT NULL DEFAULT '';
+ALTER TABLE patients ADD COLUMN doctors TEXT NOT NULL DEFAULT '';
+ALTER TABLE patients ADD COLUMN insurance TEXT NOT NULL DEFAULT '';
+ALTER TABLE patients ADD COLUMN payer_self INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE patients ADD COLUMN payer_private INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE patients ADD COLUMN payer_beihilfe INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE patients ADD COLUMN payer_bg INTEGER NOT NULL DEFAULT 0;
+`},
 }
 
 func migrate(db *sql.DB) error {

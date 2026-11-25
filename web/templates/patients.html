@@ -33,6 +33,22 @@
         <input name="dob" placeholder="Geburtsdatum / Alter" aria-label="Geburtsdatum">
         <input name="phone" placeholder="Telefon (optional)" aria-label="Telefon">
       </div>
+      <input name="address" placeholder="Adresse (optional)" aria-label="Adresse">
+      <div class="grid">
+        <input name="job" placeholder="Beruf / Tätigkeit" aria-label="Beruf">
+        <input name="insurance" placeholder="Krankenkasse" aria-label="Krankenkasse">
+      </div>
+      <div class="grid">
+        <input name="doctor" placeholder="Hausarzt" aria-label="Hausarzt">
+        <input name="doctors" placeholder="Weitere Ärzte" aria-label="Weitere Ärzte">
+      </div>
+      <fieldset>
+        <legend>Abrechnung</legend>
+        <label class="consent"><input type="checkbox" name="payer_self" value="1"> Selbstzahler</label>
+        <label class="consent"><input type="checkbox" name="payer_private" value="1"> Privatpatient</label>
+        <label class="consent"><input type="checkbox" name="payer_beihilfe" value="1"> Beihilfe</label>
+        <label class="consent"><input type="checkbox" name="payer_bg" value="1"> Berufsgenossenschaft (BG)</label>
+      </fieldset>
       <input type="email" name="email" placeholder="E-Mail (optional)" aria-label="E-Mail" autocomplete="off">
       <label class="consent"><input type="checkbox" name="email_consent" value="1"> Einverstanden mit Zusammenfassungen per E-Mail</label>
       <button type="submit">Anlegen</button>

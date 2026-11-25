@@ -342,3 +342,39 @@ func TestPatientTestFromOverview(t *testing.T) {
 		t.Error("Erneut-Button fehlt")
 	}
 }
+
+func TestPatientMasterData(t *testing.T) {
+	ts, c := newServer(t)
+	post(c, ts.URL+"/login", url.Values{"username": {"admin"}, "password": {"geheim123"}})
+
+	post(c, ts.URL+"/patienten", url.Values{
+		"name": {"Stamm Daten"}, "dob": {"1975"}, "phone": {"0123"},
+		"address": {"Hauptstr. 1, 73430 Aalen"}, "job": {"Bürokauffrau"},
+		"insurance": {"AOK BW"}, "doctor": {"Dr. Meier"}, "doctors": {"Dr. Schulz (Ortho)"},
+		"payer_private": {"1"}, "payer_beihilfe": {"1"},
+	})
+
+	code, page := body(t, c, ts.URL+"/patient/1")
+	if code != 200 {
+		t.Fatalf("Patientenseite: %d", code)
+	}
+	for _, want := range []string{
+		"Hauptstr. 1, 73430 Aalen", "Bürokauffrau", "AOK BW",
+		"Dr. Meier", "Dr. Schulz", "Privat", "Beihilfe",
+		`name="payer_private" value="1" checked`,
+	} {
+		if !strings.Contains(page, want) {
+			t.Errorf("Stammdaten fehlen: %q", want)
+		}
+	}
+
+	// Änderung speichern
+	post(c, ts.URL+"/patient/1", url.Values{
+		"name": {"Stamm Daten"}, "dob": {"1975"}, "address": {"Neue Str. 2"},
+		"job": {"Lehrerin"}, "insurance": {"Barmer"}, "payer_self": {"1"},
+	})
+	_, page = body(t, c, ts.URL+"/patient/1")
+	if !strings.Contains(page, "Neue Str. 2") || !strings.Contains(page, "Lehrerin") || !strings.Contains(page, "Selbstzahler") {
+		t.Error("Änderung der Stammdaten nicht gespeichert")
+	}
+}

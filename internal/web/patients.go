@@ -39,6 +39,19 @@ func (s *Server) listPatients(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// patientMeta liest die erweiterten Stammdaten aus dem Formular.
+func patientMeta(r *http.Request, p *store.Patient) {
+	p.Address = formText(r, "address")
+	p.Job = formText(r, "job")
+	p.Doctor = formText(r, "doctor")
+	p.Doctors = formText(r, "doctors")
+	p.Insurance = formText(r, "insurance")
+	p.PayerSelf = r.FormValue("payer_self") == "1"
+	p.PayerPrivate = r.FormValue("payer_private") == "1"
+	p.PayerBeihilfe = r.FormValue("payer_beihilfe") == "1"
+	p.PayerBG = r.FormValue("payer_bg") == "1"
+}
+
 func (s *Server) createPatient(w http.ResponseWriter, r *http.Request) {
 	if !limitForm(w, r) {
 		return
@@ -47,6 +60,7 @@ func (s *Server) createPatient(w http.ResponseWriter, r *http.Request) {
 		Name: formText(r, "name"), Dob: formText(r, "dob"), Phone: formText(r, "phone"),
 		Email: formText(r, "email"), EmailConsent: r.FormValue("email_consent") == "1",
 	}
+	patientMeta(r, &p)
 	if p.Name == "" {
 		http.Error(w, "Name fehlt", http.StatusBadRequest)
 		return
@@ -164,6 +178,7 @@ func (s *Server) updatePatient(w http.ResponseWriter, r *http.Request) {
 		ID: id, Name: formText(r, "name"), Dob: formText(r, "dob"), Phone: formText(r, "phone"), Notes: formText(r, "notes"),
 		Email: formText(r, "email"), EmailConsent: r.FormValue("email_consent") == "1",
 	}
+	patientMeta(r, &p)
 	if p.Name == "" {
 		http.Error(w, "Name fehlt", http.StatusBadRequest)
 		return

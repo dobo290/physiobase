@@ -195,3 +195,46 @@ func TestPatientTestsAndRuns(t *testing.T) {
 		t.Fatalf("nach Unlink noch %d Einträge", len(linked))
 	}
 }
+
+func TestSeedDemo(t *testing.T) {
+	ctx := context.Background()
+	s := newStore(t)
+	if _, err := s.Seed(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.SeedDemo(ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	ths, err := s.Therapists(ctx, false)
+	if err != nil || len(ths) != 3 {
+		t.Fatalf("Behandler: %v (%d), erwartet 3", err, len(ths))
+	}
+	ps, err := s.Patients(ctx, "", false)
+	if err != nil || len(ps) != 3 {
+		t.Fatalf("Patienten: %v (%d), erwartet 3", err, len(ps))
+	}
+
+	// erster Patient: zwei Tests mit je einem Lauf
+	var first int64
+	for _, p := range ps {
+		if p.Name == "Erika Musterfrau" {
+			first = p.ID
+		}
+	}
+	if first == 0 {
+		t.Fatal("Beispielpatient fehlt")
+	}
+	linked, err := s.PatientTests(ctx, first)
+	if err != nil || len(linked) != 2 {
+		t.Fatalf("verknüpfte Tests: %v (%d), erwartet 2", err, len(linked))
+	}
+	latest, err := s.LatestTestRuns(ctx, first)
+	if err != nil || len(latest) != 2 {
+		t.Fatalf("Läufe: %v (%d), erwartet 2", err, len(latest))
+	}
+	bs, err := s.Befunde(ctx, first)
+	if err != nil || len(bs) != 1 {
+		t.Fatalf("Befunde: %v (%d), erwartet 1", err, len(bs))
+	}
+}

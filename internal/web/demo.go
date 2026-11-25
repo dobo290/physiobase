@@ -134,6 +134,9 @@ func (s *Server) resetDemo(ctx context.Context, w http.ResponseWriter) {
 	if _, err := s.st.Seed(ctx); err != nil {
 		s.log.Error("demo-seed", "err", err)
 	}
+	if err := s.st.SeedDemo(ctx); err != nil {
+		s.log.Error("demo-seed-demo", "err", err)
+	}
 	s.setCookie(w, "", -1)
 	s.log.Info("demo zurückgesetzt")
 }

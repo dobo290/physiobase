@@ -5,6 +5,16 @@
 <header class="patient-head">
   <h1>{{$p.Name}}{{if $p.Archived}} <small class="muted">(archiviert)</small>{{end}}</h1>
   <p class="muted">{{with $p.Dob}}geb. {{.}}{{end}}{{with $p.Phone}} · {{.}}{{end}}{{with $p.Email}} · {{.}}{{if not $p.EmailConsent}} (keine E-Mail-Einwilligung){{end}}{{end}}</p>
+  {{if or $p.Address $p.Job $p.Insurance $p.Doctor $p.Doctors $p.PayerSelf $p.PayerPrivate $p.PayerBeihilfe $p.PayerBG}}
+  <p class="muted">
+    {{with $p.Address}}{{.}}<br>{{end}}
+    {{with $p.Job}}Beruf: {{.}}{{end}}{{with $p.Insurance}}{{if $p.Job}} · {{end}}Kasse: {{.}}{{end}}
+    {{with $p.Doctor}}<br>Hausarzt: {{.}}{{end}}{{with $p.Doctors}} · weitere: {{.}}{{end}}
+    {{if or $p.PayerSelf $p.PayerPrivate $p.PayerBeihilfe $p.PayerBG}}<br>Abrechnung:
+      {{if $p.PayerSelf}}Selbstzahler{{end}}{{if $p.PayerPrivate}}{{if $p.PayerSelf}} · {{end}}Privat{{end}}{{if $p.PayerBeihilfe}}{{if or $p.PayerSelf $p.PayerPrivate}} · {{end}}Beihilfe{{end}}{{if $p.PayerBG}}{{if or $p.PayerSelf $p.PayerPrivate $p.PayerBeihilfe}} · {{end}}BG{{end}}
+    {{end}}
+  </p>
+  {{end}}
 </header>
 
 <article id="befunde">
@@ -235,6 +245,22 @@
       <label>Geburtsdatum/Alter <input name="dob" value="{{$p.Dob}}"></label>
       <label>Telefon <input name="phone" value="{{$p.Phone}}"></label>
     </div>
+    <label>Adresse <input name="address" value="{{$p.Address}}" placeholder="Straße, PLZ Ort"></label>
+    <div class="grid">
+      <label>Beruf / Tätigkeit <input name="job" value="{{$p.Job}}" placeholder="z. B. Bürokauffrau"></label>
+      <label>Krankenkasse <input name="insurance" value="{{$p.Insurance}}" placeholder="z. B. AOK Baden-Württemberg"></label>
+    </div>
+    <div class="grid">
+      <label>Hausarzt <input name="doctor" value="{{$p.Doctor}}" placeholder="Name, Praxis"></label>
+      <label>Weitere Ärzte <input name="doctors" value="{{$p.Doctors}}" placeholder="z. B. Orthopäde, Neurologe"></label>
+    </div>
+    <fieldset>
+      <legend>Abrechnung</legend>
+      <label class="consent"><input type="checkbox" name="payer_self" value="1"{{if $p.PayerSelf}} checked{{end}}> Selbstzahler</label>
+      <label class="consent"><input type="checkbox" name="payer_private" value="1"{{if $p.PayerPrivate}} checked{{end}}> Privatpatient</label>
+      <label class="consent"><input type="checkbox" name="payer_beihilfe" value="1"{{if $p.PayerBeihilfe}} checked{{end}}> Beihilfe</label>
+      <label class="consent"><input type="checkbox" name="payer_bg" value="1"{{if $p.PayerBG}} checked{{end}}> Berufsgenossenschaft (BG)</label>
+    </fieldset>
     <label>E-Mail <input type="email" name="email" value="{{$p.Email}}" autocomplete="off"></label>
     <label class="consent"><input type="checkbox" name="email_consent" value="1"{{if $p.EmailConsent}} checked{{end}}>
       Patient ist einverstanden, Zusammenfassungen mit Gesundheitsinformationen per E-Mail zu erhalten
