@@ -154,6 +154,7 @@ After 1.0.0 the same table applies with the major digit in front: features bump
    of them; check that every remote reports success.
 4. Watch the pipeline on the forge (tidy, format, lint, vulncheck, test, build, image).
 5. CI publishes `forge.gpl-nas.de/physiobase:vX.Y.Z` and `:latest`.
-6. Update the running instances: pull image, `systemctl restart physio`; rebuild the
-   demo image (`podman build -t localhost/physiobase-demo .`), restart
-   `physiobase-demo`; check `healthz` and the version on the login page of both.
+6. Update both running instances from the published image – never build locally:
+   `podman-compose pull && systemctl restart physio` and the same in
+   `/nvme/container/physio-demo`. Then check `healthz` and the version on the login
+   page of both.
