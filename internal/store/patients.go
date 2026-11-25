@@ -300,3 +300,101 @@ func (s *Store) HandoutPatient(ctx context.Context, hid int64) (int64, string, e
 func (s *Store) QuestionnaireTests(ctx context.Context) ([]Entry, error) {
 	return s.entries(ctx, `SELECT `+entryCols+` FROM entries e WHERE e.kind = 'test' AND e.schema <> '' ORDER BY e.title COLLATE NOCASE`)
 }
+
+// ---------- Tests am Patienten ----------
+
+// TestRun ist eine einzelne Durchführung eines Tests (ohne Befund).
+type TestRun struct {
+	ID        int64
+	PatientID int64
+	EntryID   int64
+	Date      string
+	Data      string
+}
+
+// PatientTests liefert die einem Patienten zugeordneten Tests (alphabetisch).
+func (s *Store) PatientTests(ctx context.Context, pid int64) ([]Entry, error) {
+	return s.entries(ctx, `SELECT `+entryCols+` FROM patient_tests pt
+		JOIN entries e ON e.id = pt.entry_id
+		WHERE pt.patient_id = ? ORDER BY e.title COLLATE NOCASE`, pid)
+}
+
+// LinkPatientTest ordnet einen Test dem Patienten zu (idempotent).
+func (s *Store) LinkPatientTest(ctx context.Context, pid, eid int64) error {
+	_, err := s.db.ExecContext(ctx,
+		`INSERT OR IGNORE INTO patient_tests (patient_id, entry_id) VALUES (?, ?)`, pid, eid)
+	return err
+}
+
+// UnlinkPatientTest entfernt die Zuordnung.
+func (s *Store) UnlinkPatientTest(ctx context.Context, pid, eid int64) error {
+	_, err := s.db.ExecContext(ctx,
+		`DELETE FROM patient_tests WHERE patient_id = ? AND entry_id = ?`, pid, eid)
+	return err
+}
+
+// AddTestRun speichert eine Testdurchführung.
+func (s *Store) AddTestRun(ctx context.Context, pid, eid int64, date, data string) error {
+	if date == "" {
+		date = time.Now().Format("2006-01-02")
+	}
+	_, err := s.db.ExecContext(ctx,
+		`INSERT INTO test_runs (patient_id, entry_id, date, data) VALUES (?, ?, ?, ?)`,
+		pid, eid, date, data)
+	return err
+}
+
+// TestRuns liefert alle Durchführungen eines Tests (neueste zuerst).
+func (s *Store) TestRuns(ctx context.Context, pid, eid int64) ([]TestRun, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT id, patient_id, entry_id, date, data
+		FROM test_runs WHERE patient_id = ? AND entry_id = ? ORDER BY date DESC, id DESC`, pid, eid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []TestRun
+	for rows.Next() {
+		var r TestRun
+		if err := rows.Scan(&r.ID, &r.PatientID, &r.EntryID, &r.Date, &r.Data); err != nil {
+			return nil, err
+		}
+		out = append(out, r)
+	}
+	return out, rows.Err()
+}
+
+// LatestTestRuns liefert je Test die neueste Durchführung.
+func (s *Store) LatestTestRuns(ctx context.Context, pid int64) (map[int64]TestRun, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT r.id, r.patient_id, r.entry_id, r.date, r.data
+		FROM test_runs r
+		JOIN (SELECT entry_id, MAX(date) AS d FROM test_runs WHERE patient_id = ? GROUP BY entry_id) m
+		  ON m.entry_id = r.entry_id AND m.d = r.date
+		WHERE r.patient_id = ?
+		ORDER BY r.id DESC`, pid, pid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[int64]TestRun{}
+	for rows.Next() {
+		var r TestRun
+		if err := rows.Scan(&r.ID, &r.PatientID, &r.EntryID, &r.Date, &r.Data); err != nil {
+			return nil, err
+		}
+		if _, ok := out[r.EntryID]; !ok {
+			out[r.EntryID] = r
+		}
+	}
+	return out, rows.Err()
+}
+
+// SearchTests sucht Tests nach Titel (für das Suchfeld im Befund).
+func (s *Store) SearchTests(ctx context.Context, q string, limit int) ([]Entry, error) {
+	if limit <= 0 || limit > 50 {
+		limit = 20
+	}
+	return s.entries(ctx, `SELECT `+entryCols+` FROM entries e
+		WHERE e.kind = 'test' AND e.title LIKE ? COLLATE NOCASE
+		ORDER BY e.title COLLATE NOCASE LIMIT ?`, "%"+q+"%", limit)
+}

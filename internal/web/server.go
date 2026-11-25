@@ -122,6 +122,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /handout/{id}/uebung/{eid}/loeschen", s.removeHandoutItem)
 	mux.HandleFunc("GET /handout/{id}/druck", s.printHandout)
 
+	mux.HandleFunc("GET /api/tests", s.apiSearchTests)
 	mux.HandleFunc("GET /patienten", s.listPatients)
 	mux.HandleFunc("POST /patienten", s.createPatient)
 	mux.HandleFunc("POST /patienten/import", s.importBefunde)

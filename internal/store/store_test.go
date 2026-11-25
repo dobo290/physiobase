@@ -133,3 +133,65 @@ func TestHandoutOrderAndCopy(t *testing.T) {
 		t.Error("Kopie unvollständig")
 	}
 }
+
+func TestPatientTestsAndRuns(t *testing.T) {
+	ctx := context.Background()
+	s := newStore(t)
+	if _, err := s.Seed(ctx); err != nil {
+		t.Fatal(err)
+	}
+	pid, err := s.CreatePatient(ctx, Patient{Name: "Test Person", Dob: "1990-01-01"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	tests, err := s.SearchTests(ctx, "", 5)
+	if err != nil || len(tests) == 0 {
+		t.Fatalf("SearchTests: %v (%d Treffer)", err, len(tests))
+	}
+	eid := tests[0].ID
+
+	// Verknüpfen ist idempotent
+	if err := s.LinkPatientTest(ctx, pid, eid); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.LinkPatientTest(ctx, pid, eid); err != nil {
+		t.Fatal(err)
+	}
+	linked, err := s.PatientTests(ctx, pid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(linked) != 1 || linked[0].ID != eid {
+		t.Fatalf("PatientTests = %d Einträge, erwartet 1", len(linked))
+	}
+
+	// Durchführungen: neuester Lauf gewinnt
+	if err := s.AddTestRun(ctx, pid, eid, "2026-01-01", `{"values":["1"]}`); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.AddTestRun(ctx, pid, eid, "2026-03-01", `{"values":["3"]}`); err != nil {
+		t.Fatal(err)
+	}
+	runs, err := s.TestRuns(ctx, pid, eid)
+	if err != nil || len(runs) != 2 {
+		t.Fatalf("TestRuns: %v (%d)", err, len(runs))
+	}
+	if runs[0].Date != "2026-03-01" {
+		t.Fatalf("neuester Lauf = %q, erwartet 2026-03-01", runs[0].Date)
+	}
+	latest, err := s.LatestTestRuns(ctx, pid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if lr, ok := latest[eid]; !ok || lr.Date != "2026-03-01" {
+		t.Fatalf("LatestTestRuns: %+v", latest)
+	}
+
+	// Entknüpfen
+	if err := s.UnlinkPatientTest(ctx, pid, eid); err != nil {
+		t.Fatal(err)
+	}
+	if linked, _ := s.PatientTests(ctx, pid); len(linked) != 0 {
+		t.Fatalf("nach Unlink noch %d Einträge", len(linked))
+	}
+}
