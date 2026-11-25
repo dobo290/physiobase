@@ -2,12 +2,18 @@ package store
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"time"
 )
 
 // SeedDemo legt drei Beispiel-Behandler und drei Beispiel-Patienten an.
 // Wird nur im Demo-Modus aufgerufen (nach ResetDemo + Seed).
 func (s *Store) SeedDemo(ctx context.Context) error {
+	// Standardisierte Assessments: Grundlage für Suche, Verknüpfung und Verlauf.
+	if _, err := s.SeedAssessments(ctx); err != nil {
+		return err
+	}
 	therapists := []string{"Anna Berger (PT)", "Tobias Kern (PT)", "Miriam Stolz (PT)"}
 	for _, name := range therapists {
 		if _, err := s.db.ExecContext(ctx, `INSERT INTO therapists (name, active) VALUES (?, 1)`, name); err != nil {
@@ -109,5 +115,38 @@ func (s *Store) SeedDemo(ctx context.Context) error {
 			return err
 		}
 	}
+	// Zwei Assessments mit Verlauf bzw. offen verknüpfen (Suche + Verknüpfung zeigen)
+	if len(ids) > 2 {
+		if id, err := s.assessmentID(ctx, "Berg Balance Scale"); err == nil && id > 0 {
+			if err := s.LinkPatientTest(ctx, ids[2], id); err != nil {
+				return err
+			}
+		}
+	}
+	if len(ids) > 0 {
+		if id, err := s.assessmentID(ctx, "Functional Ambulation Categories"); err == nil && id > 0 {
+			if err := s.LinkPatientTest(ctx, ids[0], id); err != nil {
+				return err
+			}
+			if err := s.AddTestRun(ctx, ids[0], id,
+				time.Now().AddDate(0, 0, -3).Format("2006-01-02"),
+				`{"note":"mit Unterarmgehstütze links"}`); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
+}
+
+// assessmentID findet die ID eines mitgelieferten Assessments über den
+// Titel-Anfang. 0 = nicht vorhanden.
+func (s *Store) assessmentID(ctx context.Context, prefix string) (int64, error) {
+	var id int64
+	err := s.db.QueryRowContext(ctx,
+		`SELECT id FROM entries WHERE kind = 'test' AND title LIKE ? ORDER BY id LIMIT 1`,
+		prefix+"%").Scan(&id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, nil
+	}
+	return id, err
 }

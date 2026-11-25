@@ -215,7 +215,8 @@ func TestSeedDemo(t *testing.T) {
 		t.Fatalf("Patienten: %v (%d), erwartet 3", err, len(ps))
 	}
 
-	// erster Patient: zwei Tests mit je einem Lauf
+	// erster Patient: zwei Punkt-Fragebögen mit je einem Lauf, dazu ein
+	// mitgeliefertes Assessment (FAC) mit einer Durchführung
 	var first int64
 	for _, p := range ps {
 		if p.Name == "Erika Musterfrau" {
@@ -226,12 +227,12 @@ func TestSeedDemo(t *testing.T) {
 		t.Fatal("Beispielpatient fehlt")
 	}
 	linked, err := s.PatientTests(ctx, first)
-	if err != nil || len(linked) != 2 {
-		t.Fatalf("verknüpfte Tests: %v (%d), erwartet 2", err, len(linked))
+	if err != nil || len(linked) != 3 {
+		t.Fatalf("verknüpfte Tests: %v (%d), erwartet 3", err, len(linked))
 	}
 	latest, err := s.LatestTestRuns(ctx, first)
-	if err != nil || len(latest) != 2 {
-		t.Fatalf("Läufe: %v (%d), erwartet 2", err, len(latest))
+	if err != nil || len(latest) != 3 {
+		t.Fatalf("Läufe: %v (%d), erwartet 3", err, len(latest))
 	}
 	bs, err := s.Befunde(ctx, first)
 	if err != nil || len(bs) != 1 {

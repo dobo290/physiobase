@@ -1,8 +1,9 @@
 // physiobase – Wissensdatenbank für die Physiotherapie.
 //
-//	physiobase                 Server starten (Konfiguration über PHYSIOBASE_*)
-//	physiobase hash-password   bcrypt-Hash für PHYSIOBASE_PASSWORD_HASH (Passwort über stdin)
-//	physiobase healthcheck     /healthz prüfen (für den Container-HEALTHCHECK)
+//	physiobase                   Server starten (Konfiguration über PHYSIOBASE_*)
+//	physiobase hash-password     bcrypt-Hash für PHYSIOBASE_PASSWORD_HASH (Passwort über stdin)
+//	physiobase healthcheck       /healthz prüfen (für den Container-HEALTHCHECK)
+//	physiobase seed-assessments  mitgelieferte Assessments nachtragen (idempotent)
 package main
 
 import (
@@ -32,8 +33,10 @@ func main() {
 			os.Exit(hashPassword())
 		case "healthcheck":
 			os.Exit(healthcheck())
+		case "seed-assessments":
+			os.Exit(seedAssessments())
 		default:
-			fmt.Fprintf(os.Stderr, "unbekannter Befehl %q (hash-password, healthcheck)\n", os.Args[1])
+			fmt.Fprintf(os.Stderr, "unbekannter Befehl %q (hash-password, healthcheck, seed-assessments)\n", os.Args[1])
 			os.Exit(2)
 		}
 	}
@@ -82,6 +85,11 @@ func run() error {
 			return fmt.Errorf("beispieldaten: %w", err)
 		} else if seeded {
 			log.Info("beispieleinträge angelegt")
+			if n, err := st.SeedAssessments(ctx); err != nil {
+				return fmt.Errorf("assessments: %w", err)
+			} else if n > 0 {
+				log.Info("assessments angelegt", "anzahl", n)
+			}
 		}
 	}
 	srv, err := web.New(ctx, cfg, st, log)
@@ -115,6 +123,33 @@ func run() error {
 		}
 	}
 	return nil
+}
+
+// seedAssessments trägt die mitgelieferten Assessments in eine bestehende
+// Installation nach. Mehrfaches Aufrufen ist harmlos.
+func seedAssessments() int {
+	cfg, err := config.Load()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 1
+	}
+	db, err := database.Open(cfg.DBPath)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 1
+	}
+	defer func() {
+		if err := database.Close(db); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+		}
+	}()
+	n, err := store.New(db).SeedAssessments(context.Background())
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 1
+	}
+	fmt.Printf("%d Assessments angelegt\n", n)
+	return 0
 }
 
 func hashPassword() int {

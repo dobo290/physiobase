@@ -80,6 +80,11 @@ Guiding principles for every decision:
 
 ## Done
 
+- [x] ~~**Standard assessments included** - DEMMI, DGI (incl. version F), FAC, FGA,
+      Manual Gait Index, Mini-BESTest, TIS (incl. version F), Trunk Control Test and
+      Berg Balance Scale as ready-to-use test entries with scoring, reference and a
+      copyright note; `physiobase seed-assessments` adds them to an existing database
+      (0.11.0)~~
 - [x] ~~**Two-factor sign-in** - optional TOTP per user (Google Authenticator, Aegis,
       1Password, Vaultwarden …), QR code for setup, eight one-time recovery codes,
       admin reset when the device is lost (0.10.0)~~
