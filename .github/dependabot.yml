@@ -1,0 +1,29 @@
+# Dependabot: Sicherheits- und Versions-Updates für Go und die Workflows.
+# Die Container-Basis-Images stehen im Containerfile; Dependabot erkennt nur
+# "Dockerfile", deshalb werden sie im Release-Ablauf von Hand gepflegt.
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "05:30"
+      timezone: Europe/Berlin
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: deps
+    groups:
+      go:
+        patterns: ["*"]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ["*"]

@@ -57,3 +57,18 @@ name = "image"
 #   forge.gpl-nas.de/physiobase:latest  (öffentlich pullbar, REGISTRY_PULL=public)
 [steps.build_image]
 tags = ["$CI_COMMIT_SHORT_SHA", "$CI_COMMIT_TAG", "latest"]
+
+[[steps]]
+name = "image-scan"
+# Schwachstellen im ausgelieferten Image. HIGH/CRITICAL werden gemeldet, brechen
+# den Build aber noch nicht ab (warn_on_fail + --exit-code 0). Zum Blockieren:
+# warn_on_fail entfernen und --exit-code 1 setzen.
+warn_on_fail = true
+run_sh = """
+set -euo pipefail
+TRIVY_VERSION=0.76.2
+curl -sSfL -o /tmp/trivy.tar.gz "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
+tar -xzf /tmp/trivy.tar.gz -C /tmp trivy
+/tmp/trivy image --quiet --no-progress --cache-dir /tmp/trivy-cache \
+  --severity HIGH,CRITICAL --exit-code 0 "${CI_REGISTRY}:${CI_COMMIT_SHORT_SHA}"
+"""

@@ -227,6 +227,10 @@ Passkeys need `PHYSIOBASE_BASE_URL` set to the `https://` address of the app.
 - Strict Content Security Policy: no inline scripts or styles, and
   `script-src 'self'`.
 - Cross-site POSTs are rejected through Go's `http.CrossOriginProtection`.
+- Supply chain: Dependabot alerts and security updates, CodeQL code scanning and
+  secret scanning run on GitHub; every release pipeline also scans the container
+  image with Trivy (HIGH/CRITICAL reported). Security reports go through the
+  private advisory channel, see [SECURITY.md](SECURITY.md).
 - Uploaded files are only served if they belong to an entry in the database.
 - Email goes only to the single address stored for the patient, only with
   recorded consent, and addresses are validated against header injection.
