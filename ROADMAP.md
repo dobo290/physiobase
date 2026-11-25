@@ -230,6 +230,10 @@ Guiding principles for every decision:
       single run, the same date stays with the single run) and corrupt data. A
       `Makefile` wraps the container-based checks (`make test|check|fuzz|coverage`)
       (0.13.3)~~
+- [x] ~~**Test suite without artificial waits** - the brute-force pauses after a failed
+      attempt and the bcrypt cost are configurable (`PHYSIOBASE_TEST_NO_DELAY`,
+      `PHYSIOBASE_BCRYPT_COST`), set by the test suite itself; production keeps the
+      real values. `make test` now runs in about 20-25 s (0.13.4)~~
 - [x] ~~**Test hardening and reproducible image** - migration test from every
       intermediate schema version, backup/restore round trip with
       `integrity_check`, five fuzz targets for input that comes from outside

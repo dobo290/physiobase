@@ -11,8 +11,10 @@ import (
 	"net/http/cookiejar"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 
 	"forge.gpl-nas.de/physiobase/internal/config"
@@ -25,8 +27,20 @@ func newServer(t *testing.T) (*httptest.Server, *http.Client) {
 	return newServerCfg(t, nil)
 }
 
+// noDelayOnce setzt den Schalter genau einmal pro Testprozess.
+var noDelayOnce sync.Once
+
 func newServerCfg(t *testing.T, mod func(*config.Config)) (*httptest.Server, *http.Client) {
 	t.Helper()
+	// Künstliche Verzögerungen (Brute-Force-Bremse) raus: Sonst warten die Tests
+	// sekundenlang auf einer Sperre, die sie selbst auslösen. Über sync.Once statt
+	// t.Setenv, weil die Tests parallel laufen dürfen.
+	noDelayOnce.Do(func() {
+		_ = os.Setenv("PHYSIOBASE_TEST_NO_DELAY", "1")
+		// bcrypt-Kosten senken: Die Tests erzeugen viele Hashes; mit Kosten 4
+		// dauert der Lauf Sekunden statt Minuten. Die Produktion bleibt bei 12.
+		_ = os.Setenv("PHYSIOBASE_BCRYPT_COST", "4")
+	})
 	dir := t.TempDir()
 	db, err := database.Open(filepath.Join(dir, "t.db"))
 	if err != nil {

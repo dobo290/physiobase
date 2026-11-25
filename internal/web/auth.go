@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -174,7 +175,7 @@ func (s *Server) loginForm(w http.ResponseWriter, r *http.Request) {
 
 // Vergleichs-Hash für unbekannte Benutzernamen (gleiche Laufzeit wie ein echter Vergleich).
 var dummyHash = sync.OnceValue(func() []byte {
-	h, _ := bcrypt.GenerateFromPassword([]byte(randomHex(16)), 12)
+	h, _ := bcrypt.GenerateFromPassword([]byte(randomHex(16)), bcryptCost)
 	return h
 })
 
@@ -200,7 +201,7 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 	passOK := bcrypt.CompareHashAndPassword(hash, []byte(r.PostFormValue("password"))) == nil
 	if err != nil || !u.Active || u.PasswordHash == "" || !passOK {
 		s.log.Warn("fehlgeschlagene anmeldung", "remote", r.RemoteAddr)
-		time.Sleep(time.Second)
+		s.pause(time.Second)
 		s.render(w, r, "login", http.StatusUnauthorized, map[string]any{"Error": "Benutzername oder Passwort falsch."})
 		return
 	}
@@ -231,9 +232,19 @@ func (s *Server) logout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
+// bcryptCost ist der Aufwand für Passwort-Hashes. 12 kostet absichtlich Zeit
+// (Brute-Force-Bremse). Tests setzen PHYSIOBASE_BCRYPT_COST niedriger, weil sie
+// in einem Lauf hunderte Hashes erzeugen.
+var bcryptCost = func() int {
+	if v, err := strconv.Atoi(os.Getenv("PHYSIOBASE_BCRYPT_COST")); err == nil && v >= bcrypt.MinCost && v <= bcrypt.MaxCost {
+		return v
+	}
+	return 12
+}()
+
 // HashPassword wird vom Unterbefehl "hash-password" und von der Benutzerverwaltung benutzt.
 func HashPassword(pw string) (string, error) {
-	h, err := bcrypt.GenerateFromPassword([]byte(pw), 12)
+	h, err := bcrypt.GenerateFromPassword([]byte(pw), bcryptCost)
 	return string(h), err
 }
 

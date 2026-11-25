@@ -119,7 +119,7 @@ func (s *Server) loginTwoFactor(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if !ok {
-			time.Sleep(time.Second)
+			s.pause(time.Second)
 			s.render(w, r, "login_2fa", http.StatusUnauthorized,
 				map[string]any{"Username": u.Username, "Error": "Dieser Wiederherstellungscode gilt nicht (oder wurde schon benutzt)."})
 			return
@@ -130,7 +130,7 @@ func (s *Server) loginTwoFactor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !otp.Verify(secret, formText(r, "code"), time.Now()) {
-		time.Sleep(time.Second)
+		s.pause(time.Second)
 		s.render(w, r, "login_2fa", http.StatusUnauthorized,
 			map[string]any{"Username": u.Username, "Error": "Der Code stimmt nicht oder ist abgelaufen."})
 		return
@@ -213,7 +213,7 @@ func (s *Server) accountTOTPConfirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !otp.Verify(secret, formText(r, "code"), time.Now()) {
-		time.Sleep(time.Second)
+		s.pause(time.Second)
 		redirect(w, r, "/konto?fehler=%s", urlPathEscape("Der Code stimmt nicht. Uhrzeit des Geräts prüfen und den aktuellen Code eingeben."))
 		return
 	}
@@ -254,7 +254,7 @@ func (s *Server) accountTOTPDisable(w http.ResponseWriter, r *http.Request) {
 	}
 	me, _ := currentUser(r)
 	if me.PasswordHash != "" && !s.passwordMatches(me, r.FormValue("current")) {
-		time.Sleep(time.Second)
+		s.pause(time.Second)
 		redirect(w, r, "/konto?fehler=%s", urlPathEscape("Das aktuelle Passwort stimmt nicht."))
 		return
 	}

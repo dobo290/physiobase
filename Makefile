@@ -10,11 +10,14 @@
 
 GO_IMAGE  ?= golang:1.27.4
 CPUS      ?= $(shell nproc 2>/dev/null || echo 4)
+# Mehr als 16 parallele Tests bringen nichts (Streit um Ports und SQLite-Dateien).
+PARALLEL  ?= $(shell n=$$(nproc 2>/dev/null || echo 4); [ $$n -gt 16 ] && echo 16 || echo $$n)
 JOBS      ?= $(CPUS)
-PARALLEL  ?= $(CPUS)
 GOMAXPROCS ?= $(CPUS)
 CACHE_VOL := -v $(HOME)/.cache/physiobase-go:/go
-RUN        = podman run --rm -v "$(CURDIR)":/src:Z $(CACHE_VOL) -w /src \
+# -gcflags/-ldflags bleiben Standard; GOFLAGS ohne -buildvcs, damit der Build-Cache
+# (auf NVMe) auch fuer Testbinaries greift.
+RUN        = podman run --rm -v "$(CURDIR)":/src $(CACHE_VOL) -w /src \
               -e GOFLAGS=-buildvcs=false -e GOCACHE=/go/build -e GOPATH=/go \
               -e GOMAXPROCS=$(GOMAXPROCS) --cpus=$(CPUS) --memory=8g $(GO_IMAGE)
 

@@ -280,7 +280,11 @@ make coverage  # coverage.html
 ```
 
 `make` läuft alles im Go-Container (nichts auf dem Host nötig) und nutzt alle
-Kerne; ohne make gehen dieselben Aufrufe auch von Hand:
+Kerne. Zwei Schalter beschleunigen die Tests, ohne das Verhalten der App zu
+ändern: `PHYSIOBASE_TEST_NO_DELAY=1` schaltet die künstlichen Pausen nach
+fehlgeschlagenen Anmeldeversuchen ab, `PHYSIOBASE_BCRYPT_COST=4` senkt die
+bcrypt-Kosten (in Produktion bleibt 12). Beides setzt die Testsuite selbst.
+Ohne make gehen dieselben Aufrufe auch von Hand:
 
 ```sh
 go test -race -shuffle=on -count=1 -parallel 8 ./...

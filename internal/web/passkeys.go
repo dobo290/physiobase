@@ -255,7 +255,7 @@ func (s *Server) passkeyLoginFinish(w http.ResponseWriter, r *http.Request) {
 	cred, err := s.wa.FinishDiscoverableLogin(handler, c.data, r)
 	if err != nil {
 		s.log.Warn("passkey anmeldung fehlgeschlagen", "remote", r.RemoteAddr, "err", err)
-		time.Sleep(time.Second)
+		s.pause(time.Second)
 		jsonErr(w, http.StatusUnauthorized, "Anmeldung mit diesem Passkey nicht möglich.")
 		return
 	}

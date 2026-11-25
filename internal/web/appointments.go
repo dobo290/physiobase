@@ -359,7 +359,7 @@ func (s *Server) calendarFeed(w http.ResponseWriter, r *http.Request) {
 	pid, err := s.st.PatientByCalToken(ctx, token)
 	if err != nil {
 		if errors.Is(err, store.ErrNotFound) {
-			time.Sleep(500 * time.Millisecond) // Raten unattraktiv machen
+			s.pause(500 * time.Millisecond) // Raten unattraktiv machen
 			http.NotFound(w, r)
 			return
 		}

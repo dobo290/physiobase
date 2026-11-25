@@ -295,7 +295,7 @@ func (s *Server) accountPassword(w http.ResponseWriter, r *http.Request) {
 	me, _ := currentUser(r)
 	if me.PasswordHash != "" {
 		if ok := s.passwordMatches(me, r.FormValue("current")); !ok {
-			time.Sleep(time.Second)
+			s.pause(time.Second)
 			redirect(w, r, "/konto?fehler=%s", urlPathEscape("Das aktuelle Passwort stimmt nicht."))
 			return
 		}

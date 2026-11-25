@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -36,9 +37,12 @@ type Server struct {
 
 	sessionKey []byte
 	loginSem   chan struct{}
-	wa         *webauthn.WebAuthn // nil = Passkeys aus (keine HTTPS-Adresse)
-	pk         passkeyState
-	demo       *demoStats // nur im Demo-Modus genutzt
+	// pause ist die künstliche Verzögerung bei fehlgeschlagenen Versuchen
+	// (Brute-Force-Bremse). In Tests über PHYSIOBASE_TEST_NO_DELAY abschaltbar.
+	pause func(time.Duration)
+	wa    *webauthn.WebAuthn // nil = Passkeys aus (keine HTTPS-Adresse)
+	pk    passkeyState
+	demo  *demoStats // nur im Demo-Modus genutzt
 
 	textMu sync.RWMutex
 	texts  map[string]string // eigene Texte (nur Abweichungen vom Standard)
@@ -46,7 +50,15 @@ type Server struct {
 }
 
 func New(ctx context.Context, cfg *config.Config, st *store.Store, log *slog.Logger) (*Server, error) {
-	s := &Server{cfg: cfg, st: st, log: log, pages: map[string]*template.Template{}, loginSem: make(chan struct{}, maxConcurrentLogins)}
+	s := &Server{
+		cfg: cfg, st: st, log: log, pages: map[string]*template.Template{},
+		loginSem: make(chan struct{}, maxConcurrentLogins),
+		pause:    time.Sleep, // Standard: echte Pause
+	}
+	// Künstliche Verzögerungen (Brute-Force-Bremse) in Tests abschaltbar halten.
+	if os.Getenv("PHYSIOBASE_TEST_NO_DELAY") == "1" {
+		s.pause = func(time.Duration) {}
+	}
 	if err := s.loadSessionSecret(ctx); err != nil {
 		return nil, err
 	}
