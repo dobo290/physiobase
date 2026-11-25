@@ -176,6 +176,31 @@ Guiding principles for every decision:
 
 ## Platform and engineering
 
+- [ ] **Guided first start** *(next)*
+      - A setup wizard on the very first start instead of `.env` editing: language,
+        admin account (password or passkey), practice data and logo, time zone,
+        backup count, appointment defaults; e-mail settings stay in the admin area
+        so nothing half-configured is left behind. Every step except language and
+        admin can be skipped, and the whole thing is reachable again from the admin
+        area afterwards.
+      - **Two layers, clear precedence:** the environment (compose/.env) provides
+        defaults, the database holds the live configuration. A value set in the
+        wizard or the admin area wins over `env`; a restart is not needed to change
+        it. The environment is never rewritten by the app - instead the admin page
+        shows where a value comes from ("env" or "database"), offers "reset to the
+        env value", and can export the current settings as an `.env` snippet for
+        documentation or a redeploy.
+      - Replaces the `hash-password` step in the installation docs; the
+        `PHYSIOBASE_USERNAME`/`PASSWORD_HASH` bootstrap keeps working for automated
+        deployments and skips the wizard.
+      - **Security:** the setup route is only reachable while no user exists and
+        closes with a hard 404 afterwards; protected by a one-time token printed to
+        the log, or by `PHYSIOBASE_SETUP_TOKEN` from the compose file; POST-only,
+        `no-store`, rate limited; the token is deleted on completion. The README
+        tells people to run the first start before exposing the instance.
+      - The language step is the first page (German/English buttons, preselected
+        from `Accept-Language`), so a new installation never needs an env variable
+        just to be readable.
 - [ ] **Internationalisation** - the project must be translatable into other
       languages: externalise all UI strings and document templates (German as the
       default, English and Dutch next - the KNGF guidelines are published in
