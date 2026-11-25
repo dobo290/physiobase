@@ -20,6 +20,7 @@ func entryID(t *testing.T, loc string) int64 {
 }
 
 func TestQuestionnaireFlow(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	login(t, c, ts.URL)
 
@@ -95,6 +96,7 @@ func TestQuestionnaireFlow(t *testing.T) {
 }
 
 func TestPainSources(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	login(t, c, ts.URL)
 	post(c, ts.URL+"/patienten", url.Values{"name": {"Pain P."}})

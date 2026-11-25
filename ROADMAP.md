@@ -222,6 +222,14 @@ Guiding principles for every decision:
 
 ## Done
 
+- [x] ~~**Faster test runs and testable logic** - `t.Parallel()` in all web tests
+      plus `-p`/`-parallel` in the pipelines: the suite dropped from ~170 s to ~25 s.
+      `patientTests` and `questionnaireHistory` were split into pure functions
+      (`mergeTestResults`, `buildQuestionnaireHistory`, `applyResult`, `newerThan`)
+      with their own unit tests, including the date rule (a newer assessment beats a
+      single run, the same date stays with the single run) and corrupt data. A
+      `Makefile` wraps the container-based checks (`make test|check|fuzz|coverage`)
+      (0.13.3)~~
 - [x] ~~**Test hardening and reproducible image** - migration test from every
       intermediate schema version, backup/restore round trip with
       `integrity_check`, five fuzz targets for input that comes from outside

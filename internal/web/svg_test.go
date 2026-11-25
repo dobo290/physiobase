@@ -3,6 +3,7 @@ package web
 import "testing"
 
 func TestNormalizeSVG(t *testing.T) {
+	t.Parallel()
 	cases := []struct{ in, want string }{
 		{
 			`<svg width="2000" height="2000" viewBox="0 0 2000 2000"><circle/></svg>`,

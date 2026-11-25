@@ -103,19 +103,28 @@ func (s *Server) questionnaireHistory(ctx context.Context, pid int64) ([]qHistRo
 	if err != nil {
 		return nil, err
 	}
-	defs := map[int64]quizEntry{}
+	defs := make(map[int64]quizEntry, len(qes))
 	for _, q := range qes {
 		defs[q.ID] = q
 	}
+	return buildQuestionnaireHistory(bs, defs), nil
+}
+
+// buildQuestionnaireHistory ist die reine Auswertung hinter questionnaireHistory:
+// je Befund und Fragebogen eine Zeile, chronologisch aufsteigend, dann nach Name.
+// Ohne Datenbank und ohne HTTP, damit es sich einzeln testen lässt.
+func buildQuestionnaireHistory(bs []store.Befund, defs map[int64]quizEntry) []qHistRow {
 	var out []qHistRow
-	// chronologisch aufsteigend (älteste zuerst)
-	for i := len(bs) - 1; i >= 0; i-- {
+	for i := len(bs) - 1; i >= 0; i-- { // neueste zuerst geliefert, wir wollen älteste zuerst
 		b := bs[i]
-		d, _ := befund.Parse(b.Data)
+		d, err := befund.Parse(b.Data)
+		if err != nil {
+			continue
+		}
 		for _, id := range d.QList() {
-			var eid int64
-			if i, err := strconv.ParseInt(id, 10, 64); err == nil {
-				eid = i
+			eid, err := strconv.ParseInt(id, 10, 64)
+			if err != nil {
+				continue
 			}
 			def, ok := defs[eid]
 			if !ok {
@@ -130,7 +139,7 @@ func (s *Server) questionnaireHistory(ctx context.Context, pid int64) ([]qHistRo
 		}
 	}
 	sort.SliceStable(out, func(i, j int) bool { return out[i].Name < out[j].Name })
-	return out, nil
+	return out
 }
 
 // befundQuestionnaires liefert die Fragebögen, die im Befund angezeigt werden:

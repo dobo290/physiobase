@@ -13,6 +13,7 @@ import (
 )
 
 func TestAppointmentsAndCalendar(t *testing.T) {
+	t.Parallel()
 	ts, c := newServerCfg(t, func(cfg *config.Config) {
 		cfg.PublicURL = "https://physio.example.org"
 		cfg.Address = "Musterstraße 1, 50667 Köln"

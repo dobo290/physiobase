@@ -273,7 +273,17 @@ Restore: stop the server, copy a backup to `physiobase.db`, delete
 ## Development
 
 ```sh
-go test -race ./...
+make test      # go test -race -shuffle=on, parallel über alle Kerne
+make check     # format, vet, lint, vulncheck, tests – wie die CI
+make fuzz      # die Fuzz-Targets parallel, je 10 s
+make coverage  # coverage.html
+```
+
+`make` läuft alles im Go-Container (nichts auf dem Host nötig) und nutzt alle
+Kerne; ohne make gehen dieselben Aufrufe auch von Hand:
+
+```sh
+go test -race -shuffle=on -count=1 -parallel 8 ./...
 golangci-lint run ./...
 gofumpt -l -extra .
 ```

@@ -44,13 +44,24 @@ func (s *Server) patientTests(ctx context.Context, pid int64, bs []store.Befund)
 	if err != nil {
 		return nil, err
 	}
+	return mergeTestResults(linked, defs, runs, bs), nil
+}
 
+// mergeTestResults ist die reine Logik hinter patientTests: für jeden dem
+// Patienten zugeordneten Test das neueste Ergebnis bestimmen. Maßstab ist das
+// Datum; bei gleichem Datum gewinnt die Einzeldurchführung. Ohne Datenbank und
+// ohne HTTP, damit sich das einzeln testen lässt.
+func mergeTestResults(linked []store.Entry, defs map[int64]quizEntry,
+	runs map[int64]store.TestRun, bs []store.Befund,
+) []patientTest {
 	out := make(map[int64]*patientTest, len(linked))
 	for _, e := range linked {
-		out[e.ID] = &patientTest{EntryID: e.ID, Title: e.Title}
-		if _, ok := defs[e.ID]; ok {
-			out[e.ID].HasQ = true
+		t := &patientTest{EntryID: e.ID, Title: e.Title}
+		if def, ok := defs[e.ID]; ok {
+			t.HasQ = true
+			t.Max = def.Q.MaxTotal()
 		}
+		out[e.ID] = t
 	}
 
 	// Ergebnisse aus Einzeldurchführungen
@@ -63,11 +74,7 @@ func (s *Server) patientTests(ctx context.Context, pid int64, bs []store.Befund)
 		if err := json.Unmarshal([]byte(run.Data), &f); err != nil {
 			continue
 		}
-		def := defs[id]
-		t.Date, t.Sum, t.Max = run.Date, f.Sum(), def.Q.MaxTotal()
-		t.Complete = f.Missing(def.Q) == 0 && len(f.Values) > 0
-		t.Note = f.Note
-		t.Source = "Test"
+		applyResult(t, run.Date, f, defs[id], "Test", 0)
 	}
 
 	// Ergebnisse aus Befunden (neuester Befund gewinnt, wenn jünger)
@@ -82,19 +89,10 @@ func (s *Server) patientTests(ctx context.Context, pid int64, bs []store.Befund)
 				continue
 			}
 			t, ok := out[id]
-			if !ok {
-				continue
+			if !ok || newerThan(t, b.Date) {
+				continue // Einzellauf ist neuer oder genauso alt
 			}
-			if t.Date >= b.Date && t.Date != "" {
-				continue // Einzellauf ist neuer
-			}
-			f := d.Q[idStr]
-			def := defs[id]
-			t.Date, t.Sum, t.Max = b.Date, f.Sum(), def.Q.MaxTotal()
-			t.Complete = f.Missing(def.Q) == 0 && len(f.Values) > 0
-			t.Note = f.Note
-			t.Source = "Befund"
-			t.BefundID = b.ID
+			applyResult(t, b.Date, d.Q[idStr], defs[id], "Befund", b.ID)
 		}
 	}
 
@@ -103,7 +101,24 @@ func (s *Server) patientTests(ctx context.Context, pid int64, bs []store.Befund)
 		list = append(list, *t)
 	}
 	sortTests(list)
-	return list, nil
+	return list
+}
+
+// newerThan: hat der Test schon ein Ergebnis, das nicht älter als dieses Datum ist?
+func newerThan(t *patientTest, date string) bool {
+	return t.Date != "" && t.Date >= date
+}
+
+// applyResult übernimmt ein Ergebnis in die Zeile der Übersicht.
+func applyResult(t *patientTest, date string, f befund.QFill, def quizEntry, source string, befundID int64) {
+	t.Date, t.Sum = date, f.Sum()
+	if def.ID != 0 {
+		t.Max = def.Q.MaxTotal()
+		t.Complete = f.Missing(def.Q) == 0 && len(f.Values) > 0
+	}
+	t.Note = f.Note
+	t.Source = source
+	t.BefundID = befundID
 }
 
 func sortTests(l []patientTest) {

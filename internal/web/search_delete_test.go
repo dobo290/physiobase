@@ -36,6 +36,7 @@ func apiTests(t *testing.T, c *http.Client, base, query string) []apiTest {
 // TestAPITestsListAndFilter: ohne Suchbegriff kommen Tests (Liste beim Klick ins
 // Feld), mit Suchbegriff wird gefiltert, limit wird beachtet.
 func TestAPITestsListAndFilter(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	login(t, c, ts.URL)
 
@@ -75,6 +76,7 @@ func TestAPITestsListAndFilter(t *testing.T) {
 // TestDeleteEntryCascade: ein Test am Patienten lässt sich löschen; Verknüpfung,
 // Durchführungen und Antworten im Befund verschwinden mit.
 func TestDeleteEntryCascade(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	login(t, c, ts.URL)
 	post(c, ts.URL+"/patienten", url.Values{"name": {"Lösch Test"}})
@@ -121,6 +123,7 @@ func TestDeleteEntryCascade(t *testing.T) {
 // TestDeleteFromListAndAppointments: Die Wissensliste bleibt ohne Lösch-Kreuz,
 // die Terminübersicht bietet das Löschen je Zeile an.
 func TestDeleteFromListAndAppointments(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	login(t, c, ts.URL)
 
@@ -162,6 +165,7 @@ func TestDeleteFromListAndAppointments(t *testing.T) {
 // TestStaticAssetVersion: Skripte und Styles tragen die Versionsnummer, damit
 // ein neuer Stand nicht aus dem Browsercache läuft.
 func TestStaticAssetVersion(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	login(t, c, ts.URL)
 	post(c, ts.URL+"/patienten", url.Values{"name": {"Cache Test"}})
@@ -192,6 +196,7 @@ func TestStaticAssetVersion(t *testing.T) {
 // TestRemovePatientTest: Test samt Durchführungen vom Patienten entfernen,
 // Ergebnisse im Befund bleiben.
 func TestRemovePatientTest(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	login(t, c, ts.URL)
 	post(c, ts.URL+"/patienten", url.Values{"name": {"Entfern Test"}})

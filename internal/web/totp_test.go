@@ -76,6 +76,7 @@ func submit2FA(t *testing.T, c *http.Client, base string, form url.Values, secre
 }
 
 func TestTwoFactorFlow(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	base := ts.URL
 	loginStatus(t, c, base, "admin", "geheim123").Body.Close()
@@ -186,6 +187,7 @@ func TestTwoFactorFlow(t *testing.T) {
 }
 
 func TestTwoFactorDisableNeedsPassword(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	base := ts.URL
 	loginStatus(t, c, base, "admin", "geheim123").Body.Close()
@@ -232,6 +234,7 @@ func TestTwoFactorDisableNeedsPassword(t *testing.T) {
 
 // Das Zwischen-Cookie darf ohne gültige Signatur keine Sitzung erzeugen.
 func TestTwoFactorPendingCookieIsSigned(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	base := ts.URL
 	loginStatus(t, c, base, "admin", "geheim123").Body.Close()

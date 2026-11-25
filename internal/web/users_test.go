@@ -21,6 +21,7 @@ func loginAs(t *testing.T, base, user, pw string) *http.Client {
 }
 
 func TestUserManagement(t *testing.T) {
+	t.Parallel()
 	ts, admin := newServer(t)
 	login(t, admin, ts.URL) // admin aus der Konfiguration = erster Admin
 
@@ -107,6 +108,7 @@ func TestUserManagement(t *testing.T) {
 }
 
 func TestPasskeyEndpoints(t *testing.T) {
+	t.Parallel()
 	// Ohne HTTPS-Adresse: Passkeys aus, saubere Meldung
 	ts, c := newServer(t)
 	if r, _ := post(c, ts.URL+"/passkey/login/start", nil); r.StatusCode != http.StatusServiceUnavailable {

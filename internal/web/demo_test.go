@@ -10,6 +10,7 @@ import (
 )
 
 func TestDemoMode(t *testing.T) {
+	t.Parallel()
 	ts, c := newServerCfg(t, func(cfg *config.Config) {
 		cfg.Demo = true
 		cfg.BaseURL = "https://physiobase.example.org"

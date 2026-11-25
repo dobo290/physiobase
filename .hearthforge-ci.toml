@@ -5,7 +5,7 @@ work_dir = "/ci/build"
 clone_project_to = "/ci/build/project"
 shell_setup = "set -euo pipefail"
 timeout = 1800
-memory_limit = "3g"
+memory_limit = "6g"
 
 cache = [
   { path = "/go/pkg/mod", max_size = "1g" },
@@ -49,7 +49,9 @@ name = "test"
 # Coverage ist ein Hinweis, keine Schwelle: die Datei landet als Artefakt im Lauf.
 run_sh = """
 cd project
-go test -race -shuffle=on -count=1 -timeout=900s -covermode=atomic -coverprofile=coverage.out ./...
+# -p/-parallel: Pakete und Tests parallel über die Kerne der CI-VM.
+go test -race -shuffle=on -count=1 -p 4 -parallel 4 -timeout=900s \
+  -covermode=atomic -coverprofile=coverage.out ./...
 go tool cover -func=coverage.out | tail -1
 """
 publish_file = ["/ci/build/project/coverage.out"]
@@ -60,12 +62,13 @@ name = "fuzz"
 # Fragebogen-Schemata, TOTP-Codes). Ein Fund ist ein echter Fehler und bricht ab.
 run_sh = """
 cd project
-for target in FuzzParse FuzzParseQuestionnaire FuzzParseLegacy; do
-  go test -count=1 -run '^$' -fuzz "^${target}$" -fuzztime=10s ./internal/befund/
-done
-for target in FuzzVerify FuzzNormalize; do
-  go test -count=1 -run '^$' -fuzz "^${target}$" -fuzztime=10s ./internal/otp/
-done
+# Alle Targets gleichzeitig (die VM hat mehrere Kerne).
+( go test -count=1 -run '^$' -fuzz '^FuzzParse$'              -fuzztime=10s ./internal/befund/ ) &
+( go test -count=1 -run '^$' -fuzz '^FuzzParseQuestionnaire$' -fuzztime=10s ./internal/befund/ ) &
+( go test -count=1 -run '^$' -fuzz '^FuzzParseLegacy$'        -fuzztime=10s ./internal/befund/ ) &
+( go test -count=1 -run '^$' -fuzz '^FuzzVerify$'             -fuzztime=10s ./internal/otp/ )    &
+( go test -count=1 -run '^$' -fuzz '^FuzzNormalize$'          -fuzztime=10s ./internal/otp/ )    &
+wait
 """
 
 [[steps]]

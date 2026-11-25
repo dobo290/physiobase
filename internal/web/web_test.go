@@ -92,6 +92,7 @@ func body(t *testing.T, c *http.Client, u string) (int, string) {
 }
 
 func TestAuthFlow(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	if code, _ := body(t, c, ts.URL+"/"); code != http.StatusSeeOther {
 		t.Fatalf("ohne Anmeldung: %d, erwartet Redirect", code)
@@ -126,6 +127,7 @@ func TestAuthFlow(t *testing.T) {
 }
 
 func TestPagesRender(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	post(c, ts.URL+"/login", url.Values{"username": {"admin"}, "password": {"geheim123"}})
 	for _, p := range []string{"/", "/eintrag/1", "/eintrag/3", "/eintrag/1/bearbeiten", "/eintrag/neu?art=uebung", "/handouts", "/handout/1", "/handout/1/druck"} {
@@ -153,6 +155,7 @@ func TestPagesRender(t *testing.T) {
 }
 
 func TestPatientBefundFlow(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	post(c, ts.URL+"/login", url.Values{"username": {"admin"}, "password": {"geheim123"}})
 
@@ -248,6 +251,7 @@ func importFiles(t *testing.T, c *http.Client, base string, files ...[]byte) int
 }
 
 func TestBefundTestSearchAndLink(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	post(c, ts.URL+"/login", url.Values{"username": {"admin"}, "password": {"geheim123"}})
 
@@ -298,6 +302,7 @@ func TestBefundTestSearchAndLink(t *testing.T) {
 }
 
 func TestPatientTestFromOverview(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	post(c, ts.URL+"/login", url.Values{"username": {"admin"}, "password": {"geheim123"}})
 	post(c, ts.URL+"/patienten", url.Values{"name": {"Test Übersicht"}, "dob": {"1965"}})
@@ -344,6 +349,7 @@ func TestPatientTestFromOverview(t *testing.T) {
 }
 
 func TestPatientMasterData(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	post(c, ts.URL+"/login", url.Values{"username": {"admin"}, "password": {"geheim123"}})
 

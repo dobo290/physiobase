@@ -24,6 +24,7 @@ func login(t *testing.T, c *http.Client, base string) {
 }
 
 func TestPrintable(t *testing.T) {
+	t.Parallel()
 	in := "✎ Hinweis oben\n\n## Ihre Beschwerden\n\nKnie tut weh.\n✎ nur für mich\n\n## Leer\n\n✎ nichts\n\n## Übungen\n\n- Wandsitz\n"
 	got := Printable(in)
 	if strings.Contains(got, "✎") || strings.Contains(got, "## Leer") {
@@ -35,6 +36,7 @@ func TestPrintable(t *testing.T) {
 }
 
 func TestPatientDocs(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	login(t, c, ts.URL)
 	post(c, ts.URL+"/patienten", url.Values{"name": {"Doku Test"}})
@@ -88,6 +90,7 @@ func TestPatientDocs(t *testing.T) {
 }
 
 func TestSummaries(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	login(t, c, ts.URL)
 	post(c, ts.URL+"/patienten", url.Values{"name": {"Sam Beispiel"}})
@@ -188,6 +191,7 @@ func fakeSMTP(t *testing.T) (string, func() string) {
 }
 
 func TestSendSummary(t *testing.T) {
+	t.Parallel()
 	addr, received := fakeSMTP(t)
 	host, port, _ := net.SplitHostPort(addr)
 	var p int

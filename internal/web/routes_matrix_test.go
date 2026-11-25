@@ -11,6 +11,7 @@ import (
 // anonym → Anmeldung, angemeldeter Benutzer → kein /admin, Admin → alles.
 // Neue Routen fallen auf, wenn sie hier ergänzt werden müssten.
 func TestRouteMatrix(t *testing.T) {
+	t.Parallel()
 	ts, adminClient := newServer(t)
 	login(t, adminClient, ts.URL)
 	post(adminClient, ts.URL+"/patienten", url.Values{"name": {"Matrix Test"}})
@@ -74,6 +75,7 @@ func TestRouteMatrix(t *testing.T) {
 
 // TestNotFoundAndBadIDs: unbekannte IDs und Pfade dürfen nicht 500 liefern.
 func TestNotFoundAndBadIDs(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	login(t, c, ts.URL)
 	for _, path := range []string{

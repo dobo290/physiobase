@@ -30,6 +30,7 @@ func uploadLogo(t *testing.T, c *http.Client, base, name, content string) string
 }
 
 func TestSettingsTextsAndLogo(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	login(t, c, ts.URL)
 
@@ -92,6 +93,7 @@ func TestSettingsTextsAndLogo(t *testing.T) {
 }
 
 func TestBulkAppointments(t *testing.T) {
+	t.Parallel()
 	ts, c := newServer(t)
 	login(t, c, ts.URL)
 	post(c, ts.URL+"/patienten", url.Values{"name": {"Ben Bulk"}})
