@@ -149,7 +149,9 @@ After 1.0.0 the same table applies with the major digit in front: features bump
 2. Format, lint and test locally the way CI does: `gofumpt -l -extra .`,
    `go vet ./...`, `golangci-lint run ./...`, `govulncheck ./...`,
    `go test -race -count=1 ./...`.
-3. Commit and annotated tag `vX.Y.Z`, push `master` and the tag.
+3. Commit and annotated tag `vX.Y.Z`, then `git push origin master --tags`. `origin`
+   has three push URLs (own forge, GitHub, GitLab), so one push publishes to all
+   of them; check that every remote reports success.
 4. Watch the pipeline on the forge (tidy, format, lint, vulncheck, test, build, image).
 5. CI publishes `forge.gpl-nas.de/physiobase:vX.Y.Z` and `:latest`.
 6. Update the running instances: pull image, `systemctl restart physio`; rebuild the

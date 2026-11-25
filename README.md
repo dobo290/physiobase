@@ -137,7 +137,11 @@ echo 'your-password' | podman run --rm -i forge.gpl-nas.de/physiobase hash-passw
 podman compose up -d        # or: docker compose up -d
 ```
 
-`compose.yml` builds the image, mounts `./data` and publishes port 8080.
+`compose.yml` builds the image, mounts `./data` and publishes port 8080. It also
+mounts `/etc/localtime` read-only and sets `TZ` (host value, otherwise
+`Europe/Berlin`), so dates, appointment times and the ICS feed use the practice's
+time zone including daylight saving. The zone data is embedded in the binary as
+well, so neither a tzdata package nor network access is needed at build time.
 
 ### From source / Docker Hub mirror
 
