@@ -65,7 +65,7 @@ func New(ctx context.Context, cfg *config.Config, st *store.Store, log *slog.Log
 	s.wa = wa
 	for _, p := range []string{
 		"index", "entry", "edit", "handouts", "handout", "login", "patients", "patient", "befund", "compare", "summary", "appointments", "appointment", "settings",
-		"admin", "admin_users", "admin_user", "admin_symbols", "account", "setup",
+		"admin", "admin_users", "admin_user", "admin_symbols", "account", "setup", "patient_test",
 		"admin", "admin_users", "admin_user", "account", "setup",
 	} {
 		t, err := template.New("").Funcs(funcs).ParseFS(physiobase.TemplatesFS, "web/templates/layout.html", "web/templates/partials.html", "web/templates/"+p+".html")
@@ -131,6 +131,9 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /patient/{id}/archiv", s.archivePatient)
 	mux.HandleFunc("POST /patient/{id}/loeschen", s.deletePatient)
 	mux.HandleFunc("POST /patient/{id}/befund", s.newBefund)
+	mux.HandleFunc("POST /patient/{id}/test", s.linkPatientTest)
+	mux.HandleFunc("GET /patient/{id}/test/{eid}", s.runTestForm)
+	mux.HandleFunc("POST /patient/{id}/test/{eid}", s.saveTestRun)
 	mux.HandleFunc("POST /patient/{id}/verlauf", s.addSession)
 	mux.HandleFunc("POST /verlauf/{id}/loeschen", s.deleteSession)
 	mux.HandleFunc("POST /patient/{id}/wissen", s.linkPatientEntry)

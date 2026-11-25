@@ -296,3 +296,49 @@ func TestBefundTestSearchAndLink(t *testing.T) {
 		t.Error("Test ist nach dem Entfernen noch sichtbar")
 	}
 }
+
+func TestPatientTestFromOverview(t *testing.T) {
+	ts, c := newServer(t)
+	post(c, ts.URL+"/login", url.Values{"username": {"admin"}, "password": {"geheim123"}})
+	post(c, ts.URL+"/patienten", url.Values{"name": {"Test Übersicht"}, "dob": {"1965"}})
+
+	_, api := body(t, c, ts.URL+"/api/tests?q=Fragebogen")
+	var hits []struct {
+		ID int64 `json:"id"`
+	}
+	if err := json.Unmarshal([]byte(api), &hits); err != nil || len(hits) == 0 {
+		t.Fatalf("keine Fragebogen-Tests: %v", err)
+	}
+	tid := fmt.Sprintf("%d", hits[0].ID)
+
+	// direkt aus der Übersicht verknüpfen (ohne Befund)
+	r, _ := post(c, ts.URL+"/patient/1/test", url.Values{"test_id": {tid}})
+	if r.StatusCode != http.StatusSeeOther {
+		t.Fatalf("Verknüpfen aus Übersicht: %d", r.StatusCode)
+	}
+	_, page := body(t, c, ts.URL+"/patient/1")
+	if !strings.Contains(page, "noch nicht durchgeführt") {
+		t.Error("Test erscheint nicht in der Übersicht")
+	}
+	if !strings.Contains(page, "/patient/1/test/"+tid) {
+		t.Error("Durchführen-Link fehlt")
+	}
+
+	// Formular öffnen und ausfüllen
+	if code, form := body(t, c, ts.URL+"/patient/1/test/"+tid); code != 200 || !strings.Contains(form, `name="v.0"`) {
+		t.Fatalf("Testformular: %d", code)
+	}
+	r, _ = post(c, ts.URL+"/patient/1/test/"+tid, url.Values{
+		"date": {"2026-02-01"}, "v.0": {"5"}, "v.1": {"4"}, "note": {"mit Hilfsmittel"},
+	})
+	if r.StatusCode != http.StatusSeeOther {
+		t.Fatalf("Durchführung speichern: %d", r.StatusCode)
+	}
+	_, after := body(t, c, ts.URL+"/patient/1")
+	if strings.Contains(after, "noch nicht durchgeführt") {
+		t.Error("Ergebnis wird nicht angezeigt")
+	}
+	if !strings.Contains(after, "erneut durchführen") {
+		t.Error("Erneut-Button fehlt")
+	}
+}

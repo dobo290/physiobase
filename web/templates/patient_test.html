@@ -1,0 +1,40 @@
+{{define "title"}}{{.E.Title}}{{end}}
+{{define "content"}}
+{{$p := .P}}{{$e := .E}}
+<p><a href="/patient/{{$p.ID}}#tests">← zurück zu {{$p.Name}}</a></p>
+<h1>{{$e.Title}}</h1>
+<p class="muted">Testdurchführung für {{$p.Name}}{{with $p.Dob}} ({{.}}){{end}} · {{.Runs}} frühere Durchführung(en)</p>
+{{with .Error}}<p class="error">{{.}}</p>{{end}}
+
+{{if not .HasQ}}
+<article>
+  <p>Für diesen Test sind keine Punktfragen hinterlegt. Du kannst die Durchführung trotzdem dokumentieren.</p>
+</article>
+{{end}}
+
+<form method="post" action="/patient/{{$p.ID}}/test/{{$e.ID}}">
+  <article>
+    <label>Datum
+      <input type="date" name="date" value="{{.Today}}">
+    </label>
+    {{if .HasQ}}
+    <div class="q-items">
+      {{range $i, $it := .Q.Items}}
+      <label class="q-item">{{$it.Q}}
+        <input type="number" name="v.{{$i}}" min="0" max="{{$it.Max}}" step="1" inputmode="numeric"
+               placeholder="0–{{$it.Max}}" value="{{qval $.Last $.Q $i}}">
+        <small class="muted">max. {{$it.Max}}</small>
+      </label>
+      {{end}}
+    </div>
+    {{end}}
+    <label>Anmerkung
+      <input name="note" value="{{.Last.Note}}" placeholder="z. B. mit Hilfsmittel, geänderte Position">
+    </label>
+  </article>
+  <div class="savebar">
+    <button type="submit">Speichern</button>
+    <a href="/patient/{{$p.ID}}#tests" class="secondary">Abbrechen</a>
+  </div>
+</form>
+{{end}}

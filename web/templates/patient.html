@@ -109,6 +109,33 @@
   <small class="muted">Punktwerte aus den Befunden. NRS/PSFS bleiben unverändert.</small>
 </article>
 {{end}}
+<article id="tests">
+  <h3>Tests</h3>
+  <div class="q-add js-only" data-action="/patient/{{.P.ID}}/test">
+    <label for="test-search-p">Test suchen und zuordnen</label>
+    <input type="search" id="test-search-p" placeholder="Testname eingeben, z. B. Lachman, Berg Balance, DGI …" autocomplete="off">
+    <ul id="test-suggest-p" class="suggest" hidden></ul>
+  </div>
+  {{if .Tests}}
+  <div class="tablewrap"><table class="list">
+    <thead><tr><th>Test</th><th>Letztes Ergebnis</th><th class="hide-sm">Datum</th><th class="hide-sm">Quelle</th><th></th></tr></thead>
+    <tbody>{{range .Tests}}
+      <tr>
+        <td><strong>{{.Title}}</strong></td>
+        <td>{{if .Date}}{{if .HasQ}}<strong>{{.Sum}} von {{.Max}}</strong>{{if not .Complete}} <span class="error">unvollständig</span>{{end}}{{else}}durchgeführt{{end}}{{with .Note}} · {{.}}{{end}}{{else}}<span class="muted">noch nicht durchgeführt</span>{{end}}</td>
+        <td class="hide-sm">{{if .Date}}{{de .Date}}{{end}}</td>
+        <td class="hide-sm">{{if eq .Source "Befund"}}<a href="/befund/{{.BefundID}}">Befund</a>{{else if .Source}}{{.Source}}{{end}}</td>
+        <td class="actions">
+          <a role="button" class="secondary outline small" href="/patient/{{$.P.ID}}/test/{{.EntryID}}">{{if .Date}}erneut durchführen{{else}}durchführen{{end}}</a>
+        </td>
+      </tr>
+    {{end}}</tbody>
+  </table></div>
+  {{else}}
+  <p class="muted">Noch keine Tests zugeordnet. Tests lassen sich im Befund über die Suche verknüpfen.</p>
+  {{end}}
+</article>
+
 <article id="verlauf">
   <h3>Behandlungsverlauf</h3>
   <form method="post" action="/patient/{{$p.ID}}/verlauf" class="session-form">
@@ -230,3 +257,4 @@
   </div>
 </details>
 {{end}}
+<script src="/static/test-search.js" defer></script>

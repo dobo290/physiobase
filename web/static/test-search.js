@@ -1,11 +1,11 @@
 // Suchfeld für Tests im Befund: Vorschläge laden und Test verknüpfen.
 (function () {
   const box = document.querySelector('.q-add');
-  const input = document.getElementById('test-search');
-  const list = document.getElementById('test-suggest');
+  const input = box.querySelector('input[type="search"]');
+  const list = box.querySelector('.suggest');
   if (!box || !input || !list) return;
 
-  const befundID = box.dataset.befund;
+  const action = box.dataset.action || ('/befund/' + box.dataset.befund + '/test');
   let timer = null;
 
   function clear() {
@@ -16,7 +16,7 @@
   function pick(id, title) {
     const form = document.createElement('form');
     form.method = 'post';
-    form.action = '/befund/' + befundID + '/test';
+    form.action = action;
     const hidden = document.createElement('input');
     hidden.type = 'hidden';
     hidden.name = 'test_id';
