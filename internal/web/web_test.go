@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
@@ -244,4 +245,54 @@ func importFiles(t *testing.T, c *http.Client, base string, files ...[]byte) int
 	}
 	r.Body.Close()
 	return r.StatusCode
+}
+
+func TestBefundTestSearchAndLink(t *testing.T) {
+	ts, c := newServer(t)
+	post(c, ts.URL+"/login", url.Values{"username": {"admin"}, "password": {"geheim123"}})
+
+	// Seed liefert Tests mit Fragebogen; sonst selbst einen anlegen
+	code, api := body(t, c, ts.URL+"/api/tests?q=Fragebogen")
+	if code != 200 || !strings.Contains(api, `"title"`) {
+		t.Fatalf("api/tests: %d %s", code, api)
+	}
+	// ID des ersten Fragebogen-Tests aus der API ziehen
+	var hits []struct {
+		ID    int64  `json:"id"`
+		Title string `json:"title"`
+	}
+	if err := json.Unmarshal([]byte(api), &hits); err != nil || len(hits) == 0 {
+		t.Fatalf("api/tests lieferte keine Treffer: %v %s", err, api)
+	}
+	tid := fmt.Sprintf("%d", hits[0].ID)
+
+	post(c, ts.URL+"/patienten", url.Values{"name": {"Test Suche"}, "dob": {"1970"}})
+	post(c, ts.URL+"/patient/1/befund", url.Values{})
+
+	// Vor dem Verknüpfen: Hinweis statt Liste
+	_, before := body(t, c, ts.URL+"/befund/1")
+	if !strings.Contains(before, "Noch kein Test verknüpft") {
+		t.Error("Hinweis auf fehlende Tests fehlt")
+	}
+
+	r, _ := post(c, ts.URL+"/befund/1/test", url.Values{"test_id": {tid}})
+	if r.StatusCode != http.StatusSeeOther {
+		t.Fatalf("Verknüpfen: %d", r.StatusCode)
+	}
+	_, after := body(t, c, ts.URL+"/befund/1")
+	if strings.Contains(after, "Noch kein Test verknüpft") {
+		t.Error("Test wurde nicht angezeigt")
+	}
+	if !strings.Contains(after, "/befund/1/test/"+tid+"/entfernen") {
+		t.Error("Entfernen-Button fehlt")
+	}
+
+	// Entknüpfen
+	r, _ = post(c, ts.URL+"/befund/1/test/"+tid+"/entfernen", url.Values{})
+	if r.StatusCode != http.StatusSeeOther {
+		t.Fatalf("Entknüpfen: %d", r.StatusCode)
+	}
+	if _, again := body(t, c, ts.URL+"/befund/1"); !strings.Contains(again, "Noch kein Test verknüpft") {
+		t.Error("Test ist nach dem Entfernen noch sichtbar")
+	}
 }

@@ -1,4 +1,5 @@
 {{define "title"}}{{.B.Title}} – {{.P.Name}}{{end}}
+<script src="/static/test-search.js" defer></script>
 {{define "content"}}
 {{$d := .D}}
 <nav aria-label="breadcrumb"><ul>
@@ -31,10 +32,15 @@
     {{else}}<div class="part">{{with $p.Title}}<h4>{{.}}</h4>{{end}}{{end}}
 
       {{if $p.Questionnaires}}
-      {{if not $.Q}}<p class="muted">Keine Fragebögen vorhanden – als „Test“ mit Punktfragen anlegen (Wissen → Test).</p>
+      <div class="q-add js-only" data-befund="{{$.B.ID}}">
+        <label for="test-search">Test suchen und verknüpfen</label>
+        <input type="search" id="test-search" placeholder="Testname eingeben, z. B. Lachman, Berg Balance, DGI …" autocomplete="off">
+        <ul id="test-suggest" class="suggest" hidden></ul>
+      </div>
+      {{if not $.Q}}<p class="muted">Noch kein Test verknüpft – oben suchen und auswählen (oder im Wissen als „Test“ mit Punktfragen anlegen).</p>
       {{else}}<div class="q-list">
         {{range $qe := $.Q}}{{$id := print $qe.ID}}{{$f := index $d.Q $id}}
-        <details class="fragebogen"{{if $f.Values}} open{{end}}>
+        <details class="fragebogen" id="q-{{$id}}"{{if $f.Values}} open{{end}}>
           <summary>
             <strong>{{$qe.Title}}</strong>
             {{if $f.Values}} · <span class="qsum">{{$f.Sum}} von {{maxTotal $qe.Q}}{{with dirLbl $qe.Q}} ({{.}}){{end}}</span>{{end}}
@@ -55,6 +61,11 @@
           <label class="q-note">Anmerkung / Anpassung (z. B. Hilfsmittel)
             <input name="f.q.{{$id}}.note" value="{{$f.Note}}" placeholder="z. B. mit Unterarmgehstützen, geänderte Position">
           </label>
+          <p class="q-remove js-only">
+            <button type="submit" class="secondary outline small" formmethod="post"
+                    formaction="/befund/{{$.B.ID}}/test/{{$id}}/entfernen"
+                    onclick="return confirm('Diesen Test vom Patienten entfernen?')">Test entfernen</button>
+          </p>
         </details>
         {{end}}
         <input type="hidden" name="q.list" value="{{range $.Q}}{{.ID}},{{end}}">
@@ -152,3 +163,5 @@
   </details>
 </div>
 {{end}}
+
+<script src="/static/test-search.js" defer></script>

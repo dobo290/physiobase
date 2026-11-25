@@ -324,3 +324,17 @@ tr.inactive td { opacity: .55; }
 .body-tools .arrow svg { display: block; }
 .body-tools .arrow svg path { fill: #222; }
 .sym-preview { font-size: 1.4rem; text-align: center; min-width: 3rem; }
+
+/* Testsuche im Befund */
+.q-add { margin: 0 0 .8rem; position: relative; }
+.q-add input[type="search"] { width: 100%; max-width: 32rem; }
+.suggest { position: absolute; z-index: 20; list-style: none; margin: .2rem 0 0; padding: .2rem;
+           background: var(--pico-card-background-color, #fff); border: 1px solid var(--pico-muted-border-color, #ccc);
+           border-radius: .35rem; max-height: 18rem; overflow: auto; width: 100%; max-width: 32rem;
+           box-shadow: 0 6px 18px rgba(0,0,0,.12); }
+.suggest li { margin: 0; }
+.suggest-item { display: block; width: 100%; text-align: left; background: none; border: 0;
+                padding: .35rem .5rem; cursor: pointer; color: inherit; }
+.suggest-item:hover, .suggest-item:focus { background: var(--pico-primary-focus, #eef2f7); }
+.q-remove { margin: .6rem 0 0; }
+button.small { padding: .2rem .5rem; font-size: .8rem; }

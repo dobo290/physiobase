@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -369,7 +370,12 @@ func (s *Server) showBefund(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
-	qes, err := s.questionnaireEntries(r.Context())
+	linked, err := s.st.PatientTests(r.Context(), p.ID)
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
+	qes, err := s.befundQuestionnaires(r.Context(), linked, d)
 	if err != nil {
 		s.fail(w, r, err)
 		return
@@ -389,6 +395,42 @@ func (s *Server) showBefund(w http.ResponseWriter, r *http.Request) {
 		"Tests": tests, "Measures": befund.Measures, "Saved": r.URL.Query().Get("gespeichert") == "1",
 		"Q": qes, "PrevScores": prev,
 	})
+}
+
+// linkBefundTest verknüpft einen Test mit dem Patienten (aus dem Suchfeld im Befund).
+func (s *Server) linkBefundTest(w http.ResponseWriter, r *http.Request) {
+	b, p, _, ok := s.loadBefund(w, r)
+	if !ok {
+		return
+	}
+	eid, err := strconv.ParseInt(strings.TrimSpace(r.FormValue("test_id")), 10, 64)
+	if err != nil || eid <= 0 {
+		http.Redirect(w, r, fmt.Sprintf("/befund/%d", b.ID), http.StatusSeeOther)
+		return
+	}
+	if err := s.st.LinkPatientTest(r.Context(), p.ID, eid); err != nil {
+		s.fail(w, r, err)
+		return
+	}
+	http.Redirect(w, r, fmt.Sprintf("/befund/%d#q-%d", b.ID, eid), http.StatusSeeOther)
+}
+
+// unlinkBefundTest entfernt die Verknüpfung wieder.
+func (s *Server) unlinkBefundTest(w http.ResponseWriter, r *http.Request) {
+	b, p, _, ok := s.loadBefund(w, r)
+	if !ok {
+		return
+	}
+	eid, ok := pathID(r, "eid")
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	if err := s.st.UnlinkPatientTest(r.Context(), p.ID, eid); err != nil {
+		s.fail(w, r, err)
+		return
+	}
+	http.Redirect(w, r, fmt.Sprintf("/befund/%d", b.ID), http.StatusSeeOther)
 }
 
 func (s *Server) saveBefund(w http.ResponseWriter, r *http.Request) {

@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"forge.gpl-nas.de/physiobase/internal/befund"
+	"forge.gpl-nas.de/physiobase/internal/store"
 )
 
 // quizEntry ist ein Fragebogen aus der Wissensdatenbank (Test + Schema).
@@ -129,5 +130,39 @@ func (s *Server) questionnaireHistory(ctx context.Context, pid int64) ([]qHistRo
 		}
 	}
 	sort.SliceStable(out, func(i, j int) bool { return out[i].Name < out[j].Name })
+	return out, nil
+}
+
+// befundQuestionnaires liefert die Fragebögen, die im Befund angezeigt werden:
+// die dem Patienten zugeordneten Tests plus die im Befund bereits ausgefüllten.
+func (s *Server) befundQuestionnaires(ctx context.Context, linked []store.Entry, d befund.Data) ([]quizEntry, error) {
+	all, err := s.questionnaireEntries(ctx)
+	if err != nil {
+		return nil, err
+	}
+	byID := make(map[int64]quizEntry, len(all))
+	for _, q := range all {
+		byID[q.ID] = q
+	}
+	seen := map[int64]bool{}
+	out := make([]quizEntry, 0, len(all))
+	add := func(id int64) {
+		if seen[id] {
+			return
+		}
+		if q, ok := byID[id]; ok {
+			seen[id] = true
+			out = append(out, q)
+		}
+	}
+	for _, e := range linked {
+		add(e.ID)
+	}
+	for _, idStr := range d.QList() {
+		if id, err := strconv.ParseInt(idStr, 10, 64); err == nil {
+			add(id)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Title < out[j].Title })
 	return out, nil
 }

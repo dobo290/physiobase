@@ -195,6 +195,8 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /branding/{file}", s.serveBranding)
 	mux.HandleFunc("GET /befund/{id}", s.showBefund)
 	mux.HandleFunc("POST /befund/{id}", s.saveBefund)
+	mux.HandleFunc("POST /befund/{id}/test", s.linkBefundTest)
+	mux.HandleFunc("POST /befund/{id}/test/{eid}/entfernen", s.unlinkBefundTest)
 	mux.HandleFunc("POST /befund/{id}/loeschen", s.deleteBefund)
 	mux.HandleFunc("GET /befund/{id}/druck", s.printBefund)
 	mux.HandleFunc("GET /befund/{id}/export", s.exportBefund)
