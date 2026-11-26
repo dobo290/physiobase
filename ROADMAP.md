@@ -116,7 +116,39 @@ Guiding principles for every decision:
 
 ## Practice workflow
 
-- [ ] **Therapists, treatment types and licences** *(next)*
+- [ ] **Public website for patients** *(mid term)*
+      - One extra listener in the same binary and container
+        (`PHYSIOBASE_SITE_PORT`, empty = off) serving a small, read-only site.
+        In the compose file it is its own port, published through the reverse proxy
+        under the practice's own domain; the application port stays LAN-only.
+      - **Content is edited in the admin area**, no HTML and no file editing:
+        pages (slug, title, markdown body, position in the menu, published yes/no),
+        plus the practice data that already exists (name, address, phone, e-mail,
+        logo) and opening hours.
+      - **Legal pages are part of it, not an afterthought.** An "Impressum" page with
+        the fields required by § 5 DDG (name, address, contact, professional title,
+        the authority that granted it, supervisory body, chamber where applicable,
+        VAT ID where applicable) and § 18(2) MStV (person responsible for content),
+        plus a privacy page for the website itself: what the server logs, which
+        cookies (none for visitors), and that no external fonts, CDNs or analytics
+        are used. Templates with the required fields are pre-filled so a practice
+        only has to complete them.
+      - **No tracking by design**: no analytics, no external requests, no cookies for
+        visitors, self-hosted CSS and images only. That keeps the site outside the
+        consent-banner business.
+      - Basic search engine hygiene: `<html lang>`, title and description per page,
+        canonical URL, `robots.txt`, `sitemap.xml`, Open Graph tags, server-rendered
+        HTML without JavaScript.
+      - **Separate from the application**: its own router, its own templates and its
+        own layout; no session cookie, no admin routes, no patient data on that port
+        - enforced by a test that walks both routers and asserts the public one only
+        reaches public handlers.
+      - 404 for unpublished pages, soft-delete for pages, "preview" in the admin
+        while a page is still a draft.
+      - Later hooks into the roadmap: the appointment request ("Patient
+        self-booking") and the questionnaire link are linked from the site instead
+        of being built into it.
+- [ ] **Recall list**- [ ] **Therapists, treatment types and licences** *(next)*
       - Own admin page listing every therapist with the treatment types they are
         licensed for (matrix of therapists × treatment types).
       - Treatment types are maintained by the admin, not hardcoded: name,

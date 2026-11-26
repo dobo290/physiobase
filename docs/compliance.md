@@ -76,7 +76,13 @@ deleted automatically – the law sets a minimum retention, not an expiry date.
       requests. **Today:** printouts per document only. Art. 15, 20.
 - [ ] **Privacy notice and incident process** *(next)* – templates in the
       repository: information for patients (Art. 13) and a documented 72-hour
-      breach procedure (Art. 33/34). **Today:** neither exists.
+      breach procedure (Art. 33/34). **Today:** neither exists. The patient-facing
+      privacy notice belongs on the public website as well (see the roadmap item
+      "Public website for patients").
+- [ ] **Public website duties** *(mid term, part of the website item)* – Impressum
+      (§ 5 DDG, § 18(2) MStV), privacy page for the website itself, no external
+      fonts/CDNs and no analytics so no consent banner is needed, and a processing
+      agreement with the provider that publishes the site.
 - [ ] **Consent management** *(mid term)* – consents with purpose, date, scope and
       withdrawal (e-mail, photos, messengers, recordings). **Today:** only the
       e-mail consent flag in the patient record. Art. 6, 7, 9.
