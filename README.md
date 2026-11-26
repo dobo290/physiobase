@@ -1,8 +1,8 @@
 # PhysioBase
 
-**Free software under the [GNU AGPL-3.0](LICENSE.md)** — you may run, modify and
-share it; if you run a modified version as a service, its users must be able to get
-the source.
+**Free software under the [GNU AGPL-3.0](LICENSE.md) only** (`AGPL-3.0-only`) — you
+may run, modify and share it; if you run a modified version as a service, its users
+must be able to get the source.
 
 A self-hosted knowledge base and documentation tool for physiotherapy. It keeps
 conditions, tests, exercises and treatment protocols in one searchable place,
@@ -345,7 +345,9 @@ with real patient data only if you accept that:
 
 ## License
 
-[GNU Affero General Public License v3.0](LICENSE.md) (AGPL-3.0). In short:
+[GNU Affero General Public License, version 3](LICENSE.md), **no later versions**
+(`SPDX-License-Identifier: AGPL-3.0-only`). Copyright (C) 2026 The PhysioBase
+Authors. In short:
 
 - You may use PhysioBase in your practice, study it, modify it and pass it on.
 - If you run a modified version as a network service, the people using that service

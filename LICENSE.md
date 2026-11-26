@@ -1,3 +1,20 @@
+PhysioBase - self-hosted knowledge base and documentation tool for physiotherapy
+Copyright (C) 2026 The PhysioBase Authors
+SPDX-License-Identifier: AGPL-3.0-only
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, version 3.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+The full license text follows. The project name and the copyright line above are
+the only additions; everything below is the unmodified license.
+
+---
+
 # GNU AFFERO GENERAL PUBLIC LICENSE
 
 Version 3, 19 November 2007
