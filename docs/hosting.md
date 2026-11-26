@@ -47,10 +47,10 @@ model in `ROADMAP.md` ("Stability for practices with up to 250 therapists").
 | up to 250 therapists | ~30,000 | 8–16 cores | 16–32 GB | 10–20 GB | see section 8: archiving keeps the live database small |
 
 - **CPU** matters more than RAM: rendering pages and SQLite queries are CPU bound.
-- **Disk:** NVMe/SSD for the database and the media folder. **"NAS" in this
-  document means HDD-backed network storage** (in the reference setup btrfs raid1c3
-  on three disks, ~40 MB/s sequential and ~6 MB/s random); it is the right place for
-  backups and long-term snapshots, never for the live database if avoidable.
+- **Disk:** SSD (NVMe or SATA) for the database and the media folder. **"NAS" in
+  this document means HDD-backed network storage**: long sequential reads and slow
+  random access, which makes it the right place for backups and long-term snapshots
+  and the wrong place for the live database.
 - **RAM** helps through the filesystem cache; SQLite profits from it directly.
 - The measured ceiling of the current design is two orders of magnitude above the
   largest row in this table (23,000 inserts/s, 29,000 reads/s single-connection),
@@ -143,7 +143,7 @@ available).
 ## 5. Backup and disaster recovery
 
 The hardware assumptions in this document: **UPS, redundant power supply, RAID**
-for the system disk, and a **NAS on HDDs** (btrfs, snapshots) for long-term copies.
+for the system disk, and a **NAS on HDDs** for long-term copies and snapshots.
 That covers power loss and a single failing disk.
 
 What is still needed:
@@ -153,9 +153,9 @@ What is still needed:
    Recommendation: **hourly** for the database (it takes seconds), keep a week of
    hourly and a month of daily copies. Tracked in `ROADMAP.md`.
 2. **Media and documents** – uploads live next to the database in `/data`. Copy
-   them together with the snapshot (a btrfs snapshot of the NAS covers this if the
-   data lives there; keeping the live data on NVMe and syncing media to the HDD NAS
-   nightly is the faster variant).
+   them together with the snapshot (a snapshot of the storage covers this if the
+   data lives there; keeping the live data on SSD and syncing media to the HDD NAS
+   overnight is the faster variant).
 3. **Off-site copy** – at least one encrypted copy must leave the building
    (rotating disk, safe, or a second location over the tunnel). Backups in the same
    room as the server do not survive a fire or a flooded cellar.

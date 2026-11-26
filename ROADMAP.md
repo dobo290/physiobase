@@ -241,8 +241,8 @@ Guiding principles for every decision:
         ~1.4 million per year. Writes average **0.2 per second** with bursts of a
         few hundred when slot boundaries align; reads reach **100–200 requests per
         second** in reality (theoretical peak 500), each page costing 10–40 queries.
-      - **Baseline measured today** on the reference host (SQLite + WAL, modernc
-        driver): 23,000 inserts/s and 29,000 reads/s with a single connection, no
+      - **Baseline measured today** (SQLite + WAL, modernc driver, one SSD-backed
+        host): 23,000 inserts/s and 29,000 reads/s with a single connection, no
         errors while writing and reading in parallel. The load above therefore fits
         the engine by a factor of 10–500; the work is in connection handling,
         indexes and UI concurrency, not in replacing the database.
@@ -264,16 +264,14 @@ Guiding principles for every decision:
 - [ ] **Data volume and archiving** *(mid term)*
       - Ten years of records for 250 therapists is roughly **10–20 GB**. Daily
         snapshots (`VACUUM INTO`) take seconds on local NVMe but minutes on the
-        **HDD-backed NAS** (btrfs raid1c3, ~40 MB/s sequential in the reference
-        setup), and `VACUUM` grows with file size.
+        **HDD-backed NAS**, and `VACUUM` grows with file size.
       - Move records past their retention period into a **read-only archive database
         file** (opened on demand), keep the live database small (target: below 5 GB),
         and stage backups on the local NVMe before they are copied to the HDD NAS.
       - Admin view: database size, last backup duration, archive state.
 - [ ] **Disaster recovery on other hardware** *(mid term)*
       - Assumed and already in place: **UPS, redundant power supply, RAID** on the
-        server, btrfs with snapshots on the **HDD NAS** (raid1c3). Power loss and a
-        single failing disk
+        server, a NAS on HDDs for snapshots. Power loss and a single failing disk
         are therefore covered; the open risks are OS or container corruption, human
         error, a compromised host, several disks failing at once, and losing the room
         itself (water, fire, theft).
