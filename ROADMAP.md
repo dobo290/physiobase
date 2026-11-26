@@ -164,38 +164,12 @@ Guiding principles for every decision:
 
 ## Security, data protection and operations
 
-- [x] ~~**Compliance checklist in the repository** - `docs/compliance.md` lists the
-      legal framework (GDPR, § 630f/630g BGB, § 203 StGB, SGB V, MDR), what the
-      software covers today, the remaining gaps with their roadmap connection, the
-      10-year retention, a template for the record of processing activities and a
-      checklist for an audit (0.13.5)~~
-- [ ] **Audit log** - who changed or viewed which assessment and when (GDPR
-      accountability, useful for handovers) *(next)*
-- [ ] **Backup and restore in the UI** - back up, download and restore without a
-      shell, including the status of the last backup *(mid term)*
-- [ ] **Ten-year retention for medical records** *(next)*
-      - German law requires the treatment documentation to be kept for **ten
-        years** (§ 630f Abs. 3 BGB); that is a minimum, not an expiry date, so
-        nothing is ever deleted automatically.
-      - Every patient shows "keep until TT.MM.JJJJ", derived from the last entry
-        (assessment, session, document) plus the retention period
-        (`PHYSIOBASE_RETENTION_YEARS`, default 10). The list and the patient page
-        show it, so nobody has to guess.
-      - **Deleting is blocked before that date.** An admin can override it with a
-        reason (for example a patient's erasure request under Art. 17 GDPR), and
-        the override is logged.
-      - Append-only deletion log: who deleted what, when and why. It also covers
-        the first part of the audit log.
-      - Admin page "retention expiring": patients whose period ends within the next
-        twelve months, so the practice decides deliberately (archive, delete, keep
-        longer).
-      - Export of the whole record set (database and media as one archive) for
-        handing records over or closing the practice.
-      - Clear wording in the docs: the daily backups are for recovery, the live
-        database is the archive.
-- [ ] **Opt-in encryption** - encrypted database and media (passphrase at start),
-      encrypted backups, optional field-level encryption for particularly
-      sensitive data *(long term)*
+- [ ] **Compliance roadmap** *(next/mid/long, see the document)* - the data
+      protection and medical items (ten-year retention, deletion and audit log,
+      patient data export, privacy notice, incident process, consent management,
+      backup/restore, per-patient access rights, encryption, retention concept)
+      are tracked in [docs/compliance.md](docs/compliance.md). That document is the
+      compliance roadmap: status, priority and legal basis per item.
 
 ## Platform and engineering
 

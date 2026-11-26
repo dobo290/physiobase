@@ -55,26 +55,54 @@ connection.
 
 ---
 
-## 3. Open points (gaps)
+## 3. Compliance roadmap
 
-| # | Requirement | Today | Missing | Roadmap |
-|---|---|---|---|---|
-| 1 | **Ten-year retention** (§ 630f BGB) | archive flag, but deletion is possible at any time | retention date per patient, "keep until", **deletion guard**, deletion log | *next* |
-| 2 | **Access and portability** (Art. 15, 20) | printouts per patient (assessment, summary, appointments) | one export "all data of this patient" as a file | open |
-| 3 | **Erasure and restriction** (Art. 17, 18) | deleting is possible, but without checking retention duties | justified exception for erasure requests, logged | *next* (with 1) |
-| 4 | **Audit log** (Art. 5(2), 32) | only a server log with sign-in events, not queryable | revision-safe log: who changed or viewed what | *next* |
-| 5 | **Encryption** (Art. 32(1)(a)) | no encryption at rest, backups unencrypted | database and backup encryption with a passphrase | *long term* |
-| 6 | **Restore** (Art. 32(1)(b), (c)) | backups exist, restore only via shell | restore in the UI, documented restore test | *mid term* |
-| 7 | **Record of processing activities** (Art. 30) | not present | template and filling aid (section 5) | open |
-| 8 | **Impact assessment** (Art. 35) | not documented | screening template with the result "required / not required" | open |
-| 9 | **Incident process** (Art. 33/34) | not described | procedure, responsibilities, deadlines, notification template | open |
-| 10 | **Privacy notice for patients** (Art. 13) | not present | template to hand out or display | open |
-| 11 | **Consent** | e-mail consent in the patient record; photos, messengers and call recordings are not covered | consent management with date, purpose and withdrawal | open |
-| 12 | **Processing agreements** (Art. 28) | self-hosted: not required | only needed for external hosting/backup/maintenance → sign a DPA | practice task |
-| 13 | **Access rights** (Art. 32, § 203 StGB) | one account per user, admin role | rights per patient or case, locum access | open |
-| 14 | **Storage limitation / deletion concept** (Art. 5(1)(e)) | manual archiving only | rules per data type (assessments, documents, e-mails, logs) | *long term* (with 1) |
+This document **is** the compliance roadmap: the items below are the open points,
+each with status, priority and the roadmap marker used in `ROADMAP.md`. Nothing is
+deleted automatically – the law sets a minimum retention, not an expiry date.
 
----
+- [ ] **Ten-year retention for medical records** *(next)* – every patient shows
+      "keep until TT.MM.JJJJ" (last assessment, session or document plus
+      `PHYSIOBASE_RETENTION_YEARS`, default 10); deleting before that date is
+      blocked, an admin can override with a reason (Art. 17 GDPR) and the override
+      is logged. **Today:** archive flag only, deletion is possible at any time.
+      § 630f BGB.
+- [ ] **Deletion log** *(next)* – append-only record of who deleted what, when and
+      why; also covers the first part of the audit log. **Today:** nothing.
+- [ ] **Audit log** *(next)* – revision-safe record of who changed or viewed which
+      assessment. **Today:** only sign-in events in the server log. Art. 5(2), 32.
+- [ ] **Patient data export** *(next)* – one export per patient (database record,
+      assessments, documents, media) as a single file for access and portability
+      requests. **Today:** printouts per document only. Art. 15, 20.
+- [ ] **Privacy notice and incident process** *(next)* – templates in the
+      repository: information for patients (Art. 13) and a documented 72-hour
+      breach procedure (Art. 33/34). **Today:** neither exists.
+- [ ] **Consent management** *(mid term)* – consents with purpose, date, scope and
+      withdrawal (e-mail, photos, messengers, recordings). **Today:** only the
+      e-mail consent flag in the patient record. Art. 6, 7, 9.
+- [ ] **Backup and restore in the UI** *(mid term)* – back up, download and restore
+      without a shell, with the status of the last run and a rehearsed restore
+      test. **Today:** daily snapshots, restore only via shell. Art. 32(1)(b), (c).
+- [ ] **Per-patient access rights** *(mid term)* – rights per patient or case and a
+      locum mode instead of one global role. **Today:** admin and user only.
+      Art. 32, § 203 StGB.
+- [ ] **Opt-in encryption** *(long term)* – encrypted database and media
+      (passphrase at start), encrypted backups, optional field-level encryption.
+      **Today:** no encryption at rest, backups unencrypted. Art. 32(1)(a).
+- [ ] **Retention and deletion concept per data type** *(long term)* – rules for
+      assessments, documents, e-mails and logs, not only for patients.
+      Art. 5(1)(e).
+
+### Already done
+
+- [x] ~~**Compliance documentation in the repository** – `docs/compliance.md`
+      lists the legal framework, what the software covers, the gaps below, the
+      practice's own duties, a record-of-processing template, the MDR scope and an
+      audit checklist~~
+- [x] ~~**Demo without real data** – separate instance, reset on logout, visitor
+      statistics only with consent~~
+- [x] ~~**No telemetry, no cloud** – all data stays on the practice's server, no
+      external calls in normal operation (Art. 25)~~
 
 ## 4. Tasks of the practice (not of the software)
 
@@ -146,13 +174,9 @@ belongs to it.
 
 ## 8. Relation to the roadmap
 
-The technical gaps from section 3 are tracked in `ROADMAP.md`:
+This document is the **compliance roadmap**; `ROADMAP.md` only points here for the
+data protection and medical part. Priorities (`next`, `mid term`, `long term`) use
+the same scale as the main roadmap, so both stay readable side by side.
 
-- **Ten-year retention for medical records** (*next*) – points 1 and 3
-- **Audit log** (*next*) – point 4
-- **Backup and restore in the UI** (*mid term*) – point 6
-- **Opt-in encryption** (*long term*) – point 5
-- **Retention periods and deletion concept** (*long term*) – point 14
-
-Points 2 and 7–11 and 13 are not in the roadmap yet; they will be added when they
-are scheduled.
+Items that are already covered are listed under "Already done" in section 3. New
+legal requirements are added here first, then implemented as part of a release.

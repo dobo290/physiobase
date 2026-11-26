@@ -56,6 +56,8 @@ Go binary, one SQLite file, patient data stays on your own server.
   is generated from it by \`scripts/wiki-sync.sh\`.
 - [Versioning and release process](Versioning) – how version numbers are assigned
   and how a release reaches the forge, GitHub, GitLab and the running instances.
+- [Compliance roadmap](Compliance) – data protection and medical requirements: what
+  is covered, what is missing, and the legal basis per item.
 
 ## Principles
 
@@ -79,6 +81,13 @@ EOF
 	sed -n '/^## Versioning$/,/^## Release process$/p' ROADMAP.md | sed '$d'
 	sed -n '/^## Release process$/,$p' ROADMAP.md
 } >"$work/pages/Versioning.md"
+
+# Compliance-Roadmap: unveraendert aus dem Repository
+{
+	echo "<!-- Generated from docs/compliance.md by scripts/wiki-sync.sh – do not edit here. -->"
+	echo
+	cat docs/compliance.md
+} >"$work/pages/Compliance.md"
 
 synced=0
 for target in "${targets[@]}"; do
