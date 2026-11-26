@@ -124,6 +124,13 @@ available).
 - **One central host per practice.** Access from another location is solved with a
   tunnel or the reverse proxy – that does not need a second server. Two hosts
   sharing one SQLite file over the network is not supported (see section 8).
+- **The application itself has no IP allowlist** for the admin area; restrictions
+  belong in the reverse proxy (for example Caddy's `remote_ip` matcher), in the
+  cloud firewall or in the tunnel. `X-Forwarded-For` is read only for the demo
+  visitor statistics, never for access decisions, so no proxy header can widen
+  access. There is also no per-IP rate limit: sign-in is throttled globally (two
+  concurrent bcrypt checks plus a delay after a failure), which works unchanged
+  behind a proxy.
 
 ---
 
