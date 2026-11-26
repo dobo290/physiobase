@@ -355,6 +355,15 @@ with real patient data only if you accept that:
   clinical content (see the disclaimer at the end of this file).
 - Contributions to this repository are published under the same license.
 
+**Why AGPL and not a permissive license (MIT, Apache-2.0)?** PhysioBase is meant
+to be run by practices or by an IT provider on their behalf. A permissive license
+would allow a provider to take the code, improve it and offer it as a closed service
+without giving anything back. The AGPL keeps exactly that door closed while leaving
+every other use free – including commercial hosting, as long as the source of the
+modified version stays available to its users. (There is no "institute license" in
+Germany that would do this differently: ifrOSS in Bonn reviews licenses, Fraunhofer
+FOKUS advises on license models, and both recommend the standard licenses above.)
+
 Bundled third-party files keep their own licenses:
 [Pico CSS](https://picocss.com) (`web/static/pico.min.css`) is MIT-licensed.
 
