@@ -226,7 +226,8 @@ Guiding principles for every decision:
       - **Off-site copy**: today every backup lives in the same house as the server,
         so a fire or a flooded cellar takes both. Add an encrypted copy that leaves
         the building (rotating disk, second location over the tunnel) and document
-        how it is restored.
+        how it is restored. When the instance itself runs at a provider (see
+        `docs/hosting.md`, section 9), the copy belongs at the practice instead.
       - Shorten the RPO where it is cheap: database snapshots hourly (they take
         seconds), keep hourly for a week, daily for a month.
 - [ ] **Operations for larger practices** *(mid term)*

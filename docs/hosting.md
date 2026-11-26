@@ -211,7 +211,48 @@ practice with up to 250 therapists.
 
 ---
 
-## 9. Hand-over when the provider changes
+## 9. Off-site hosting at a provider (VPS)
+
+**Software-wise nothing changes.** The image runs on any virtual server with a
+container runtime, a persistent volume and a reverse proxy. A €5–30/month VPS at a
+European provider (Hetzner, netcup, IONOS, Scaleway …) is enough for every size in
+the table in section 2. What changes is the surrounding setup:
+
+| Topic | On-site (practice server) | Off-site (VPS at a provider) |
+|---|---|---|
+| **Processing agreement** | not required for the software itself | **required** with the provider (Art. 28 GDPR); Hetzner and others offer it as a standard document – sign it, keep it |
+| **Who can reach the disk** | the practice | the provider's staff, in theory. Mitigation: **encryption at rest** (roadmap: opt-in encryption) and a provider in the EU |
+| **Admin access** | LAN only | there is no LAN: put a **WireGuard tunnel** on the VPS and allow the admin area only through it, or restrict it by IP in the proxy/firewall |
+| **Internet dependency** | practice keeps working if the WAN fails | **no work when the practice's internet or the provider is down**; plan a fallback (LTE router, or paper forms for the worst case) |
+| **Backups** | snapshots on the NAS | snapshots on a **separate volume**, and the off-site copy belongs **at the practice** or at a second provider – not on the same VPS |
+| **Provider snapshots** | – | useful for disaster, but **not** a substitute for `VACUUM INTO` snapshots: they are not database-consistent |
+| **Firewall** | LAN rules | provider cloud firewall: allow 443 from anywhere (patient links) and 22/51820 **only from the practice's network** |
+| **Updates/reboots** | scheduled | scheduled the same way, but a host reboot is done by the provider – announce maintenance windows |
+| **Time** | local RTC | NTP is essential (sessions, TOTP, appointments) |
+
+Recommended shape for a VPS deployment:
+
+```
+Internet ──443──> Caddy (TLS, Let's Encrypt) ──> physiobase:8080 (container)
+Practice LAN ──WireGuard──> VPS (admin area, SSH)
+PhysioBase snapshots ──> attached volume ──> nightly encrypted sync to the practice/NAS
+```
+
+Minimum for a Hetzner-style setup:
+
+- 2–4 vCPU, 8 GB RAM, 40–80 GB volume for up to 40 therapists (sections 2 and 8:
+  archive old records to keep the live database small),
+- volume mounted at `/data`, `PHYSIOBASE_BACKUP_KEEP=24` (hourly) if disk allows,
+- Caddy with the practice's domain, `PHYSIOBASE_BASE_URL=https://…`,
+- WireGuard for admin/SSH, cloud firewall as described,
+- one monitoring check from outside (URL + certificate expiry) and one for snapshot
+  age.
+
+**One rule stays:** exactly one host owns the database. A VPS plus a second VPS on
+the same volume is not supported; a cold standby that starts after a failure is
+(section 8).
+
+## 10. Hand-over when the provider changes
 
 Hand over, in writing:
 
