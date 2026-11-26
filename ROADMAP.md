@@ -263,15 +263,17 @@ Guiding principles for every decision:
       - Tested with two sessions editing the same record.
 - [ ] **Data volume and archiving** *(mid term)*
       - Ten years of records for 250 therapists is roughly **10–20 GB**. Daily
-        snapshots (`VACUUM INTO`) take seconds on NVMe but minutes over the NAS,
-        and `VACUUM` grows with file size.
+        snapshots (`VACUUM INTO`) take seconds on local NVMe but minutes on the
+        **HDD-backed NAS** (btrfs raid1c3, ~40 MB/s sequential in the reference
+        setup), and `VACUUM` grows with file size.
       - Move records past their retention period into a **read-only archive database
         file** (opened on demand), keep the live database small (target: below 5 GB),
-        and stage backups on NVMe before they are copied to the NAS.
+        and stage backups on the local NVMe before they are copied to the HDD NAS.
       - Admin view: database size, last backup duration, archive state.
 - [ ] **Disaster recovery on other hardware** *(mid term)*
       - Assumed and already in place: **UPS, redundant power supply, RAID** on the
-        server, btrfs with snapshots on the NAS. Power loss and a single failing disk
+        server, btrfs with snapshots on the **HDD NAS** (raid1c3). Power loss and a
+        single failing disk
         are therefore covered; the open risks are OS or container corruption, human
         error, a compromised host, several disks failing at once, and losing the room
         itself (water, fire, theft).
