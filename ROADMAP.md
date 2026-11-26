@@ -215,6 +215,9 @@ Guiding principles for every decision:
         are therefore covered; the open risks are OS or container corruption, human
         error, a compromised host, several disks failing at once, and losing the room
         itself (water, fire, theft).
+      - The server-side recommendations (sizing, network, backup, hardening, what a
+        hosting provider has to know) are in `docs/hosting.md`; this item is the
+        practice-side runbook that goes with it.
       - A written runbook: what the practice does in the first hour, who is called,
         how the container comes up on spare hardware from the latest snapshot, how
         DNS or the proxy is pointed there, and a **measured restore time** (RTO) plus
