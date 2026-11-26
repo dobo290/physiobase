@@ -133,9 +133,24 @@ Guiding principles for every decision:
         cookies (none for visitors), and that no external fonts, CDNs or analytics
         are used. Templates with the required fields are pre-filled so a practice
         only has to complete them.
-      - **No tracking by design**: no analytics, no external requests, no cookies for
-        visitors, self-hosted CSS and images only. That keeps the site outside the
-        consent-banner business.
+      - **Visitor statistics for the practice, with consent.** Reuse the pattern the
+        demo already uses: one first-party cookie, a small banner that explains it,
+        and counting only after the visitor accepts. Nothing is measured before
+        that, reject is as easy as accept, and the choice is remembered.
+      - What is measured stays coarse and local: page views per day, the most
+        visited pages, the referring domain (not the full URL), 404s and the share
+        of visitors who accepted. No third-party service, no cross-site ID, no
+        profile building; the visitor is counted through a hash that rotates daily,
+        so nobody is recognisable across days. Retention 30 days by default, purge
+        automated, and the figures are only visible in the admin area.
+      - The privacy page is generated from the same settings and spells out exactly
+        what is measured - it cannot drift away from the implementation.
+      - **No external requests at all**: self-hosted CSS, fonts and images, no CDN,
+        no analytics service. The only cookie is the consent one and the optional
+        statistics cookie.
+      - For practices that do not want a banner, the statistics can be switched off
+        completely (`PHYSIOBASE_SITE_STATS=off`, the default); the site then sets no
+        cookies at all.
       - Basic search engine hygiene: `<html lang>`, title and description per page,
         canonical URL, `robots.txt`, `sitemap.xml`, Open Graph tags, server-rendered
         HTML without JavaScript.
@@ -148,7 +163,7 @@ Guiding principles for every decision:
       - Later hooks into the roadmap: the appointment request ("Patient
         self-booking") and the questionnaire link are linked from the site instead
         of being built into it.
-- [ ] **Recall list**- [ ] **Therapists, treatment types and licences** *(next)*
+- [ ] **Therapists, treatment types and licences** *(next)*
       - Own admin page listing every therapist with the treatment types they are
         licensed for (matrix of therapists × treatment types).
       - Treatment types are maintained by the admin, not hardcoded: name,

@@ -80,9 +80,13 @@ deleted automatically – the law sets a minimum retention, not an expiry date.
       privacy notice belongs on the public website as well (see the roadmap item
       "Public website for patients").
 - [ ] **Public website duties** *(mid term, part of the website item)* – Impressum
-      (§ 5 DDG, § 18(2) MStV), privacy page for the website itself, no external
-      fonts/CDNs and no analytics so no consent banner is needed, and a processing
-      agreement with the provider that publishes the site.
+      (§ 5 DDG, § 18(2) MStV), a privacy page for the website itself, no external
+      fonts/CDNs, and a processing agreement with the provider that publishes the
+      site. Visitor statistics are allowed only with **prior consent** (§ 25 TDDDG,
+      Art. 6(1)(a) GDPR): first-party cookie, banner with an equally easy reject,
+      counting starts after acceptance, daily-rotating hash instead of an IP,
+      30-day retention. The privacy page is generated from the same settings so the
+      text cannot diverge from what the software actually does.
 - [ ] **Consent management** *(mid term)* – consents with purpose, date, scope and
       withdrawal (e-mail, photos, messengers, recordings). **Today:** only the
       e-mail consent flag in the patient record. Art. 6, 7, 9.
