@@ -151,6 +151,19 @@ Guiding principles for every decision:
       - For practices that do not want a banner, the statistics can be switched off
         completely (`PHYSIOBASE_SITE_STATS=off`, the default); the site then sets no
         cookies at all.
+      - **Decided scope:** own domain published through the reverse proxy (separate
+        port, the application port stays LAN-only); pages Start, Team, Services,
+        Contact, Imprint and Privacy, with logo and team photos uploaded in the
+        admin area; a contact form that sends by SMTP (honeypot + rate limit, no
+        storage in the database, and a clear note that medical details do not belong
+        in the form).
+      - **Statistics have their own admin page** (`/admin/website/statistics`):
+        visitors and page views per day as small charts, top pages, referring
+        domains, share of visitors who accepted the cookie, and the addresses that
+        ended in a 404. Charts are server-rendered SVG - no JavaScript and no chart
+        library, matching the rest of the application.
+      - The demo instance runs the website as well and shows the statistics page with
+        seeded demo figures; the demo reset clears them together with the pages.
       - Basic search engine hygiene: `<html lang>`, title and description per page,
         canonical URL, `robots.txt`, `sitemap.xml`, Open Graph tags, server-rendered
         HTML without JavaScript.

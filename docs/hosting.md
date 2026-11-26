@@ -92,7 +92,8 @@ services:
       - /srv/physiobase:/data
       - /etc/localtime:/etc/localtime:ro
     ports:
-      - "8080:8080"
+      - "8080:8080"          # application, LAN only
+      # - "8081:8081"        # optional: public website (see section 4)
     restart: unless-stopped
     stop_grace_period: 30s
 ```
@@ -119,6 +120,9 @@ available).
   a password.
 - **Patient-facing pieces** (calendar subscription links) can be published through
   the reverse proxy; they are protected by a secret token in the URL.
+- **The public website** runs on its own port (`PHYSIOBASE_SITE_PORT`, for example
+  8081) and is the only thing published under the practice's own domain. Keep the
+  application port (8080) out of the public proxy configuration.
 - **Firewall:** only the proxy ports from the LAN, nothing else. No database port,
   no SSH from outside without VPN.
 - **One central host per practice.** Access from another location is solved with a

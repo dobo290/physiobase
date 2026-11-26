@@ -86,7 +86,9 @@ deleted automatically – the law sets a minimum retention, not an expiry date.
       Art. 6(1)(a) GDPR): first-party cookie, banner with an equally easy reject,
       counting starts after acceptance, daily-rotating hash instead of an IP,
       30-day retention. The privacy page is generated from the same settings so the
-      text cannot diverge from what the software actually does.
+      text cannot diverge from what the software actually does. The contact form
+      carries a note that medical details do not belong there; messages are sent by
+      e-mail and not stored in the database.
 - [ ] **Consent management** *(mid term)* – consents with purpose, date, scope and
       withdrawal (e-mail, photos, messengers, recordings). **Today:** only the
       e-mail consent flag in the patient record. Art. 6, 7, 9.
