@@ -346,15 +346,21 @@ Guiding principles for every decision:
 - [ ] **Mobile client for therapists (Android/iOS)** *(long term)*
       - Scope is deliberately small: **documentation and knowledge base**. No admin
         area, no billing, no user management, no website editing.
-      - **First step is the PWA** (see "Offline-capable UI"), not an app store
-        release: installable, works offline, one codebase, no review process. It
-        already covers "look up a test, write the session, photograph the referral"
-        on a phone or tablet.
-      - **Native shell only where it earns its keep**: camera for documents,
-        biometric unlock, local encrypted cache, later push for reminders. Then
-        Kotlin Multiplatform or Flutter over the same JSON API - one codebase for
-        both stores, AGPL-3.0 like the server (the network clause is unaffected, the
-        app ships source).
+      - **No App Store, no Apple developer programme, no fees.** iOS is served by the
+        PWA (see "Offline-capable UI"): installable from Safari, works offline, runs
+        indefinitely, needs no signing and no account. For the scope of
+        documentation and knowledge base this is the honest answer - and it keeps
+        the licence clean, because no App Store terms apply.
+      - **Android is a real app built on Linux**: Gradle and the Android SDK in CI,
+        signed with the project's own keystore, distributed directly or through MDM.
+        Free of charge and free of gatekeepers.
+      - **iOS builds from source for people who want them**: the repository carries
+        `docs/mobile-build.md` with the exact steps (Xcode on macOS, free Apple ID,
+        dragging the app onto the device, SideStore for the weekly re-signature), so
+        a technically versed practice can build and sideload it without paying Apple.
+        Stated plainly in that document: a self-built app with a free Apple ID expires
+        after seven days, which is fine for testing and for tinkerers, not for daily
+        clinical use - that is what the PWA is for.
       - **Data protection on the device** is part of the feature, not a footnote:
         tokens in Keychain/Keystore instead of local storage, the offline cache
         encrypted and excluded from iCloud/Google backups, remote logout through the
@@ -363,10 +369,10 @@ Guiding principles for every decision:
         support wiping without the practice's server.
       - **Conflicts**: the same optimistic locking as the web (version counters);
         offline edits are queued and conflicts are shown, never silently overwritten.
-      - Costs to accept: Apple Developer Program (yearly fee, App Store review) and
-        Google Play (one-time fee); both stores require a privacy declaration and a
-        data-safety form - the compliance document gains a section for the mobile
-        client.
+      - If a practice ever wants a store listing anyway, that is a decision on their
+        side, not a project goal: it needs an App-Store licence exception (see
+        `docs/compliance.md`) and a paid Apple account. The project itself ships the
+        source, the build instructions and the PWA.
 - [ ] **Internationalisation** - the project must be translatable into other
       languages: externalise all UI strings and document templates (German as the
       default, English and Dutch next - the KNGF guidelines are published in

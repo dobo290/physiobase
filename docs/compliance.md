@@ -111,6 +111,11 @@ deleted automatically – the law sets a minimum retention, not an expiry date.
       cache excluded from cloud backups, remote logout through the session version,
       no analytics or crash SDKs, a "clear local data" action, and a documented
       procedure for a lost device (Art. 32, Art. 33 if data was accessible).
+- [x] ~~**Licence and app distribution** – no App Store distribution is planned, so
+      the AGPL-3.0 terms are not weakened by store restrictions; iOS is served by the
+      PWA and by building from source, Android by a signed APK. Should a practice
+      want a store listing, it needs an App-Store exception under § 7 AGPL, which is
+      a deliberate decision and would be documented here~~
 - [ ] **Retention and deletion concept per data type** *(long term)* – rules for
       assessments, documents, e-mails and logs, not only for patients.
       Art. 5(1)(e).
