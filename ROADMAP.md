@@ -209,16 +209,35 @@ Guiding principles for every decision:
         file** (opened on demand), keep the live database small (target: below 5 GB),
         and stage backups on NVMe before they are copied to the NAS.
       - Admin view: database size, last backup duration, archive state.
+- [ ] **Disaster recovery on other hardware** *(mid term)*
+      - Assumed and already in place: **UPS, redundant power supply, RAID** on the
+        server, btrfs with snapshots on the NAS. Power loss and a single failing disk
+        are therefore covered; the open risks are OS or container corruption, human
+        error, a compromised host, several disks failing at once, and losing the room
+        itself (water, fire, theft).
+      - A written runbook: what the practice does in the first hour, who is called,
+        how the container comes up on spare hardware from the latest snapshot, how
+        DNS or the proxy is pointed there, and a **measured restore time** (RTO) plus
+        the accepted data loss (RPO) in plain numbers.
+      - Rehearsed restore on a copy, once per quarter, with a short report.
+      - **Off-site copy**: today every backup lives in the same house as the server,
+        so a fire or a flooded cellar takes both. Add an encrypted copy that leaves
+        the building (rotating disk, second location over the tunnel) and document
+        how it is restored.
+      - Shorten the RPO where it is cheap: database snapshots hourly (they take
+        seconds), keep hourly for a week, daily for a month.
 - [ ] **Operations for larger practices** *(mid term)*
       - Runbook for the practice: what to check, how to restore, who is called.
       - Health and metrics endpoint (database size, backup age, failed logins,
         request latency), alerting when a snapshot fails or the database crosses a
         size threshold, and a rehearsed restore on a copy of a real database.
 - [ ] **Optional PostgreSQL backend** *(long term, only on demand)*
-      - Decision criteria, so the question stays factual: several application
-        servers, high availability, real-time reporting across practices, or write
-        loads beyond a few hundred per second. For 250 therapists in one practice
-        none of these apply.
+      - Decision criteria, so the question stays factual: **several hosts sharing
+        the same database** (relevant when one instance serves many practices), high
+        availability across machines, real-time reporting across practices, or write
+        loads beyond a few hundred per second. Access from another location does
+        **not** need it - a tunnel or a reverse proxy is enough, and for 250
+        therapists in one practice neither criterion applies.
       - Keep the store behind its current API so the engine stays swappable; the
         migration would touch placeholders, upserts, `unixepoch()`,
         `pragma_table_info`, `VACUUM INTO` and FTS5 (→ `tsvector` + GIN), plus a

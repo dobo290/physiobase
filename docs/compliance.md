@@ -83,8 +83,10 @@ deleted automatically – the law sets a minimum retention, not an expiry date.
 - [ ] **Backup and restore in the UI** *(mid term)* – back up, download and restore
       without a shell, with the status of the last run and a rehearsed restore
       test. **Today:** daily snapshots, restore only via shell. Art. 32(1)(b), (c).
-      The availability part for larger practices (250 therapists, 10–20 GB database,
-      backup duration, archiving) is tracked in `ROADMAP.md` under "Data volume and
+      Availability has two parts: **on-site** (UPS, redundant PSU, RAID, hourly and
+      daily snapshots) and **off-site** (an encrypted copy that leaves the building,
+      with a documented restore). Both, plus the rehearsed restore, are tracked in
+      `ROADMAP.md` under "Disaster recovery on other hardware", "Data volume and
       archiving" and "Operations for larger practices".
 - [ ] **Per-patient access rights** *(mid term)* – rights per patient or case and a
       locum mode instead of one global role. **Today:** admin and user only.
