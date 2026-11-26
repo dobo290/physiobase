@@ -138,7 +138,7 @@ func (s *Server) addSymbol(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
-	s.log.Info("symbol hinzugefügt", "name", name)
+	s.log.Info("symbol hinzugefügt", "name", logValue(name))
 	redirect(w, r, "/admin/symbole?gespeichert=1")
 }
 

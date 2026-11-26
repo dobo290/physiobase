@@ -62,7 +62,7 @@ func (s *Server) adminCreateUser(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
-	s.log.Info("benutzer angelegt", "benutzer", u.Username, "rolle", u.Role, "von", s.who(r))
+	s.log.Info("benutzer angelegt", "benutzer", logValue(u.Username), "rolle", logValue(u.Role), "von", s.who(r))
 	// ohne Passwort: direkt einen Einrichtungs-Link erzeugen
 	if u.PasswordHash == "" {
 		s.newSetupLink(w, r, id)

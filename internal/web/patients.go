@@ -677,7 +677,7 @@ func (s *Server) importBefunde(w http.ResponseWriter, r *http.Request) {
 		count++
 	}
 	if len(errs) > 0 {
-		s.log.Warn("import teilweise fehlgeschlagen", "fehler", errs)
+		s.log.Warn("import teilweise fehlgeschlagen", "fehler", logValues(errs))
 		ps, _ := s.st.Patients(ctx, "", false)
 		s.render(w, r, "patients", http.StatusBadRequest, map[string]any{
 			"Patients": ps, "Imported": fmt.Sprint(count), "ImportErrors": errs,

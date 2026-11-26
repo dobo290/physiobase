@@ -279,7 +279,8 @@ func (s *Server) logRequests(next http.Handler) http.Handler {
 		sw := &statusWriter{ResponseWriter: w, status: 200}
 		next.ServeHTTP(sw, r)
 		if r.URL.Path != "/healthz" {
-			s.log.Debug("request", "method", r.Method, "path", r.URL.Path, "status", sw.status, "dauer", time.Since(start))
+			s.log.Debug("request", "method", logValue(r.Method), "path", logValue(r.URL.Path),
+				"status", sw.status, "dauer", time.Since(start))
 		}
 	})
 }
@@ -410,7 +411,7 @@ func (s *Server) fail(w http.ResponseWriter, r *http.Request, err error) {
 		http.Error(w, "Nicht gefunden", http.StatusNotFound)
 		return
 	}
-	s.log.Error("anfrage fehlgeschlagen", "method", r.Method, "path", r.URL.Path, "err", err)
+	s.log.Error("anfrage fehlgeschlagen", "method", logValue(r.Method), "path", logValue(r.URL.Path), "err", err)
 	http.Error(w, "Interner Fehler", http.StatusInternalServerError)
 }
 
