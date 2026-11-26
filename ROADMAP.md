@@ -164,7 +164,7 @@ Guiding principles for every decision:
 
 ## Security, data protection and operations
 
-- [x] ~~**Compliance checklist in the repository** - `docs/datenschutz.md` lists the
+- [x] ~~**Compliance checklist in the repository** - `docs/compliance.md` lists the
       legal framework (GDPR, § 630f/630g BGB, § 203 StGB, SGB V, MDR), what the
       software covers today, the remaining gaps with their roadmap connection, the
       10-year retention, a template for the record of processing activities and a

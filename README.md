@@ -22,7 +22,7 @@ conveniences; everything else works without it.
 
 > **🗺️ Roadmap:** planned features, non-goals, the release process and the versioning rules are in [ROADMAP.md](ROADMAP.md).
 >
-> **⚖️ Data protection:** what PhysioBase covers and what is still missing for German and European data protection law (GDPR, § 630f BGB, MDR) is listed in [docs/datenschutz.md](docs/datenschutz.md) (German).
+> **⚖️ Data protection:** what PhysioBase covers and what is still missing for German and European data protection law (GDPR, § 630f BGB, MDR) is listed in [docs/compliance.md](docs/compliance.md).
 
 ## Features
 
