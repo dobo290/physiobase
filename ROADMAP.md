@@ -168,11 +168,29 @@ Guiding principles for every decision:
       accountability, useful for handovers) *(next)*
 - [ ] **Backup and restore in the UI** - back up, download and restore without a
       shell, including the status of the last backup *(mid term)*
+- [ ] **Ten-year retention for medical records** *(next)*
+      - German law requires the treatment documentation to be kept for **ten
+        years** (§ 630f Abs. 3 BGB); that is a minimum, not an expiry date, so
+        nothing is ever deleted automatically.
+      - Every patient shows "keep until TT.MM.JJJJ", derived from the last entry
+        (assessment, session, document) plus the retention period
+        (`PHYSIOBASE_RETENTION_YEARS`, default 10). The list and the patient page
+        show it, so nobody has to guess.
+      - **Deleting is blocked before that date.** An admin can override it with a
+        reason (for example a patient's erasure request under Art. 17 GDPR), and
+        the override is logged.
+      - Append-only deletion log: who deleted what, when and why. It also covers
+        the first part of the audit log.
+      - Admin page "retention expiring": patients whose period ends within the next
+        twelve months, so the practice decides deliberately (archive, delete, keep
+        longer).
+      - Export of the whole record set (database and media as one archive) for
+        handing records over or closing the practice.
+      - Clear wording in the docs: the daily backups are for recovery, the live
+        database is the archive.
 - [ ] **Opt-in encryption** - encrypted database and media (passphrase at start),
       encrypted backups, optional field-level encryption for particularly
       sensitive data *(long term)*
-- [ ] **Retention periods and deletion concept** - configurable deadlines,
-      reminders for archiving and a deletion log *(long term)*
 
 ## Platform and engineering
 
