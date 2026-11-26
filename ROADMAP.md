@@ -331,6 +331,42 @@ Guiding principles for every decision:
       - The language step is the first page (German/English buttons, preselected
         from `Accept-Language`), so a new installation never needs an env variable
         just to be readable.
+- [ ] **JSON API for companion clients** *(mid term)*
+      - Prerequisite for any mobile client: documentation and knowledge base over a
+        versioned JSON API instead of scraping the rendered pages.
+      - Per-device tokens (named, revocable, scoped to documentation and knowledge
+        base), issued in the account page, hashed at rest, listed with last use and
+        revocable individually; the existing session version invalidates them too.
+      - Endpoints needed by the first client: search knowledge base, read entries,
+        list patients, read and write assessments and sessions, upload a document
+        photo, list tests and record a test run. Everything else stays web-only.
+      - Contract first: OpenAPI file in the repo, generated server bindings checked
+        against it, and a test that fails when an endpoint changes behaviour without
+        the contract being updated. Rate limits and audit logging apply as on the web.
+- [ ] **Mobile client for therapists (Android/iOS)** *(long term)*
+      - Scope is deliberately small: **documentation and knowledge base**. No admin
+        area, no billing, no user management, no website editing.
+      - **First step is the PWA** (see "Offline-capable UI"), not an app store
+        release: installable, works offline, one codebase, no review process. It
+        already covers "look up a test, write the session, photograph the referral"
+        on a phone or tablet.
+      - **Native shell only where it earns its keep**: camera for documents,
+        biometric unlock, local encrypted cache, later push for reminders. Then
+        Kotlin Multiplatform or Flutter over the same JSON API - one codebase for
+        both stores, AGPL-3.0 like the server (the network clause is unaffected, the
+        app ships source).
+      - **Data protection on the device** is part of the feature, not a footnote:
+        tokens in Keychain/Keystore instead of local storage, the offline cache
+        encrypted and excluded from iCloud/Google backups, remote logout through the
+        existing session version bump, no analytics or crash SDKs, and a "clear local
+        data" action. A lost phone is a data protection incident, so the app must
+        support wiping without the practice's server.
+      - **Conflicts**: the same optimistic locking as the web (version counters);
+        offline edits are queued and conflicts are shown, never silently overwritten.
+      - Costs to accept: Apple Developer Program (yearly fee, App Store review) and
+        Google Play (one-time fee); both stores require a privacy declaration and a
+        data-safety form - the compliance document gains a section for the mobile
+        client.
 - [ ] **Internationalisation** - the project must be translatable into other
       languages: externalise all UI strings and document templates (German as the
       default, English and Dutch next - the KNGF guidelines are published in
@@ -342,7 +378,9 @@ Guiding principles for every decision:
 - [ ] **Multi-tenancy** - several practitioners with separate data sets in one
       instance *(long term)*
 - [ ] **Offline-capable UI (PWA)** - record assessments in the treatment room
-      without a stable Wi-Fi connection and synchronise later *(long term)*
+      without a stable Wi-Fi connection and synchronise later. This is also the first
+      mobile client: installable, no app store, and the groundwork the native app
+      builds on (see "Mobile client for therapists"). *(long term)*
 - [ ] **Analytics** - anonymised statistics over your own caseload *(long term)*
 - [ ] **Import from other systems** - CSV/Excel for patient master data and
       digitisation of paper files *(long term)*

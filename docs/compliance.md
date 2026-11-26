@@ -106,6 +106,11 @@ deleted automatically – the law sets a minimum retention, not an expiry date.
 - [ ] **Opt-in encryption** *(long term)* – encrypted database and media
       (passphrase at start), encrypted backups, optional field-level encryption.
       **Today:** no encryption at rest, backups unencrypted. Art. 32(1)(a).
+- [ ] **Mobile clients** *(long term, with the mobile roadmap item)* – a phone is a
+      second processing location: tokens in Keychain/Keystore, encrypted offline
+      cache excluded from cloud backups, remote logout through the session version,
+      no analytics or crash SDKs, a "clear local data" action, and a documented
+      procedure for a lost device (Art. 32, Art. 33 if data was accessible).
 - [ ] **Retention and deletion concept per data type** *(long term)* – rules for
       assessments, documents, e-mails and logs, not only for patients.
       Art. 5(1)(e).
