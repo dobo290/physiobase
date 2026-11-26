@@ -1,5 +1,9 @@
 # PhysioBase
 
+**Free software under the [GNU AGPL-3.0](LICENSE.md)** — you may run, modify and
+share it; if you run a modified version as a service, its users must be able to get
+the source.
+
 A self-hosted knowledge base and documentation tool for physiotherapy. It keeps
 conditions, tests, exercises and treatment protocols in one searchable place,
 links them to patients and their assessments (Befunde), and prints exercise
@@ -341,8 +345,15 @@ with real patient data only if you accept that:
 
 ## License
 
-[GNU Affero General Public License v3.0](LICENSE.md). If you run a modified
-version as a network service, its users are entitled to the source code.
+[GNU Affero General Public License v3.0](LICENSE.md) (AGPL-3.0). In short:
+
+- You may use PhysioBase in your practice, study it, modify it and pass it on.
+- If you run a modified version as a network service, the people using that service
+  are entitled to the corresponding source code. Running the unmodified image is
+  not affected by that clause.
+- There is no warranty; a practice keeps responsibility for its data and for the
+  clinical content (see the disclaimer at the end of this file).
+- Contributions to this repository are published under the same license.
 
 Bundled third-party files keep their own licenses:
 [Pico CSS](https://picocss.com) (`web/static/pico.min.css`) is MIT-licensed.
