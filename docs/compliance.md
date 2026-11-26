@@ -83,6 +83,9 @@ deleted automatically – the law sets a minimum retention, not an expiry date.
 - [ ] **Backup and restore in the UI** *(mid term)* – back up, download and restore
       without a shell, with the status of the last run and a rehearsed restore
       test. **Today:** daily snapshots, restore only via shell. Art. 32(1)(b), (c).
+      The availability part for larger practices (250 therapists, 10–20 GB database,
+      backup duration, archiving) is tracked in `ROADMAP.md` under "Data volume and
+      archiving" and "Operations for larger practices".
 - [ ] **Per-patient access rights** *(mid term)* – rights per patient or case and a
       locum mode instead of one global role. **Today:** admin and user only.
       Art. 32, § 203 StGB.

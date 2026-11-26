@@ -173,6 +173,56 @@ Guiding principles for every decision:
 
 ## Platform and engineering
 
+- [ ] **Stability for practices with up to 250 therapists** *(next)*
+      - Target, not wishful thinking: one instance, one database, 250 therapists
+        working 40 h/week in 20-minute slots at the same time.
+      - Load that this means, derived from the slot model: 250 × 40 h = 10,000
+        therapist-hours per week → **30,000 appointments per week**, 6,000 per day,
+        ~1.4 million per year. Writes average **0.2 per second** with bursts of a
+        few hundred when slot boundaries align; reads reach **100–200 requests per
+        second** in reality (theoretical peak 500), each page costing 10–40 queries.
+      - **Baseline measured today** on the reference host (SQLite + WAL, modernc
+        driver): 23,000 inserts/s and 29,000 reads/s with a single connection, no
+        errors while writing and reading in parallel. The load above therefore fits
+        the engine by a factor of 10–500; the work is in connection handling,
+        indexes and UI concurrency, not in replacing the database.
+      - Work items: **separate pools** (one writer, 4–8 readers, WAL allows parallel
+        readers), **indexes** for the real access patterns
+        (`appointments(therapist_id, start)`, `prescriptions(patient_id, status)`,
+        `sessions(patient_id, date)`, `befunde(patient_id, date)`), batching instead
+        of per-row queries, and pagination everywhere.
+      - **Load test in the pipeline**: seed a database with 250 therapists and ten
+        years of data, replay appointment booking and patient-page reads, hold
+        p95 below 300 ms and keep it as a regression gate.
+- [ ] **Concurrent editing (optimistic locking)** *(next)*
+      - Today the last save wins. With several therapists per patient (locum,
+        handover, shared front desk) that silently loses work.
+      - A version counter per patient, assessment, prescription and summary; a save
+        on an outdated version is refused with a clear "someone else changed this,
+        reload and merge" instead of overwriting.
+      - Tested with two sessions editing the same record.
+- [ ] **Data volume and archiving** *(mid term)*
+      - Ten years of records for 250 therapists is roughly **10–20 GB**. Daily
+        snapshots (`VACUUM INTO`) take seconds on NVMe but minutes over the NAS,
+        and `VACUUM` grows with file size.
+      - Move records past their retention period into a **read-only archive database
+        file** (opened on demand), keep the live database small (target: below 5 GB),
+        and stage backups on NVMe before they are copied to the NAS.
+      - Admin view: database size, last backup duration, archive state.
+- [ ] **Operations for larger practices** *(mid term)*
+      - Runbook for the practice: what to check, how to restore, who is called.
+      - Health and metrics endpoint (database size, backup age, failed logins,
+        request latency), alerting when a snapshot fails or the database crosses a
+        size threshold, and a rehearsed restore on a copy of a real database.
+- [ ] **Optional PostgreSQL backend** *(long term, only on demand)*
+      - Decision criteria, so the question stays factual: several application
+        servers, high availability, real-time reporting across practices, or write
+        loads beyond a few hundred per second. For 250 therapists in one practice
+        none of these apply.
+      - Keep the store behind its current API so the engine stays swappable; the
+        migration would touch placeholders, upserts, `unixepoch()`,
+        `pragma_table_info`, `VACUUM INTO` and FTS5 (→ `tsvector` + GIN), plus a
+        second variant of every migration and a test matrix for both engines.
 - [ ] **Guided first start** *(next)*
       - A setup wizard on the very first start instead of `.env` editing: language,
         admin account (password or passkey), practice data and logo, time zone,
