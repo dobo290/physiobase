@@ -304,7 +304,7 @@ type Symbol struct{ Key, Char, Name string }
 var Symbols = []Symbol{
 	{"pain", "⚡\ufe0e", "Schmerz"},
 	{"swelling", "(( ))", "Schwellung"},
-	{"fracture", "◆", "Fraktur"},
+	{"fracture", "#", "Fraktur"}, // medizinische Konvention: # = Fraktur
 	{"tender", "×", "Druckschmerz"},
 	{"lesion", "●", "Läsion"},
 	{"radiating", "→", "Ausstrahlung"},
