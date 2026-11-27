@@ -445,7 +445,7 @@ body.sidebar-collapsed .sidebar-toggle-form button { justify-content: center; }
 .seg { display: inline-flex; border: 1px solid var(--pico-muted-border-color); border-radius: .45rem; overflow: hidden; }
 .seg a { padding: .35rem .8rem; text-decoration: none; font-size: .9em; }
 .seg a[aria-current="page"] { background: var(--pico-primary); color: var(--pico-primary-inverse); }
-.calwrap { overflow-x: auto; max-width: 1000px; margin-inline: auto; border: 1px solid var(--pico-muted-border-color); border-radius: var(--pico-border-radius); background: var(--pico-card-background-color); }
+.calwrap { overflow-x: auto; max-width: 1300px; margin-inline: auto; border: 1px solid var(--pico-muted-border-color); border-radius: var(--pico-border-radius); background: var(--pico-card-background-color); }
 .cal-svg { display: block; width: 100%; min-width: 620px; height: auto; }
 .cal-svg text { font-family: var(--pico-font-family); }
 .cal-svg .cal-line { stroke: var(--pico-muted-border-color); stroke-width: .6; }
