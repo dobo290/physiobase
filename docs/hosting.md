@@ -187,9 +187,36 @@ systemctl start physiobase
 - [ ] Reverse proxy with TLS, HSTS and a current certificate
 - [ ] Admin accounts in PhysioBase limited to the people who need them, **second
       factor enabled** for everyone with access to health data
+- [ ] **Password manager for the team** in place - recommended: **Vaultwarden**
+      (self-hosted Bitwarden server, runs fine next to PhysioBase). One vault account
+      per employee, shared practice credentials in a collection instead of on sticky
+      notes, and the TOTP codes for the logins in the same vault
 - [ ] Monitoring: container healthy, snapshot age, free disk space, TLS expiry
 - [ ] Backup target reachable and checked (a restore is the only proof)
 - [ ] Log retention decided (host logs may contain connection metadata)
+
+### Password manager and second factor for staff
+
+A practice has more logins than people expect: PhysioBase, e-mail, the practice
+management system, the router, the hosting account, the domain. Reused or written-down
+passwords are the most common way in. Recommendation:
+
+- **Vaultwarden** (a self-hosted Bitwarden server, small container) as the team's
+  password manager: one account per employee, shared credentials in a collection, the
+  built-in generator for every new password, and the TOTP codes for those logins in the
+  same entry. Enrolment takes minutes per person, and removing an employee is one click
+  plus rotating whatever they could reach.
+- Protect the vault itself properly: strong master password, **second factor on the
+  Vaultwarden account**, and a backup of the vault database (a lost vault must not mean
+  lost access).
+- **Trade-off to know:** TOTP codes in the same vault as the passwords reduce the
+  second factor to one secret if the vault is ever compromised. Where possible prefer
+  **passkeys** for PhysioBase (fingerprint, face, device PIN) - they cannot be phished
+  and are not copied with the vault. TOTP in the vault is still far better than reused
+  passwords.
+- Write down who has which account and rotate credentials when someone leaves; the
+  second factor in PhysioBase can be reset by an admin, so an account is never locked
+  out permanently.
 
 ---
 

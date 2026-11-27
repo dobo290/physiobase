@@ -143,8 +143,13 @@ The software cannot replace these:
 6. **Device and network security**: disk encryption, screen lock, no access from outside without VPN, router and Wi-Fi maintenance.
 7. **Incident process** for data breaches including the 72-hour deadline and who is reachable.
 8. **Train staff** (confidentiality, passwords, handling printouts).
-9. **Organise retention**: what still exists after ten years, and where (paper, e-mails, calendar)?
-10. **Appoint a data protection officer** once the legal thresholds are met.
+9. **Manage credentials**: password manager for everyone (recommended: Vaultwarden,
+   self-hosted), second factor on every account with access to health data, and a
+   written list of who holds which account. On staff changes: deactivate the account
+   and rotate what the person could reach.
+10. **Organise retention**: what still exists after ten years, and where (paper,
+    e-mails, calendar)?
+11. **Appoint a data protection officer** once the legal thresholds are met.
 
 ---
 
