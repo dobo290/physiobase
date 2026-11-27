@@ -1,6 +1,6 @@
 # Roadmap
 
-**Last updated:** 25.11.2026
+**Last updated:** 27.11.2026
 
 **Legend:** `[x]` done · `[ ]` planned · 🚧 currently in progress ·
 *(next)* = coming in the next releases · *(mid term)* · *(long term)*
@@ -19,49 +19,17 @@ Guiding principles for every decision:
 
 ## 🚧 In progress
 
-- [ ] 🚧 **Home page as dashboard, navigation in a collapsible sidebar** *(in progress)*
-      - Today the start page is the knowledge list, and the other areas are only
-        reachable through the top navigation. The knowledge base moves to `/wissen`
-        (old links redirect), and `/` becomes a dashboard.
-      - **Persistent left sidebar** with the areas (patients, knowledge, tests,
-        handouts, appointments, account), collapsible and remembered per device
-        (cookie), on narrow screens a drawer with a single toggle. Server-rendered
-        like the rest, no framework.
-      - **Main element is the appointment calendar** (own item below): the day plan
-        with one column per therapist. Around it: patients seen last week, open
-        assessments without a follow-up, knowledge entries changed recently, a direct
-        search field and the two or three most common actions (new patient, new
-        assessment, new entry).
-      - Keeps the existing "Dashboard" item meaningful: that one adds figures
-        (case numbers, utilisation, no-show rate); this one is the shell, the
-        navigation and the daily overview.
-- [ ] 🚧 **Appointment calendar: one column per therapist** *(in progress)*
-      - A day (and week) view on the dashboard with one column per therapist - the
-        practice's wall planner, not a list. Time axis with a configurable grid
-        (5 or 10 minutes), appointments as blocks showing time, patient and treatment
-        type, cancelled ones struck through.
-      - **Appointments are editable in place**: click opens an editor next to the
-        calendar, drag moves, dragging the lower edge changes the duration, snapping
-        to the grid. Every change is saved through the same server action the
-        appointment page uses, so the two views can never disagree; an alternative
-        keyboard/form path stays, because drag and drop must not be the only way.
-      - **Linked to prescription and patient**: a block opens the patient page, the
-        prescription the appointment belongs to, or the assessment if one exists;
-        creating an appointment from a prescription pre-fills treatment type,
-        duration, therapist and payer (licence filter for statutory patients), and
-        the units counter of the prescription updates on completion.
-      - **Conflicts are visible before saving**: overlapping appointments in the same
-        column, a therapist who is not licensed for the treatment type (statutory
-        patients), a closed or expired prescription. Overriding needs an explicit
-        confirmation, so a deliberate exception stays possible.
-      - With many therapists the columns cannot all fit: filter by team, location or
-        "my column only", scroll horizontally, and keep the calendar usable on a
-        tablet. Optimistic locking (own item) prevents two people overwriting the same
-        appointment.
-      - Print view of the day plan per therapist or for the whole practice, plus the
-        existing patient calendar feed staying as it is.
-- [ ] 🚧 **Test history as a chart** - score of a test over time in the patient
-      profile, with trend indicator and comparison to the previous assessment
+- [ ] 🚧 **Appointment calendar: link to prescriptions** - the day and week view with
+      one column per therapist, the in-place editing (click opens the editor, drag
+      moves, dragging the lower edge changes the duration, snapping to the grid),
+      the conflict warnings with explicit confirmation, the filters (therapist,
+      location, "my column only", horizontal scrolling) and the print view are done
+      (0.15.0). Still open: a block opens the patient page, the prescription the
+      appointment belongs to, or the assessment if one exists; creating an
+      appointment from a prescription pre-fills treatment type, duration, therapist
+      and payer (licence filter for statutory patients), and the units counter of the
+      prescription updates on completion. These wait for the prescriptions feature.
+      Optimistic locking is tracked as its own item.
 
 ## Prescriptions, billing and invoices
 
@@ -532,6 +500,18 @@ product and code-quality items.
 
 ## Done
 
+- [x] ~~**Home page as dashboard, navigation in a collapsible sidebar** - the start
+      page is a dashboard: the day plan per therapist, patients seen in the last week,
+      assessments due for a follow-up, recently changed knowledge entries, a search
+      field and the most common actions. The knowledge base moved to `/wissen` (old
+      links with query parameters redirect). A persistent left sidebar with the areas
+      (patients, knowledge, tests, handouts, appointments, account), collapsible per
+      device via cookie and a drawer on narrow screens; server-rendered, no framework
+      (0.15.0)~~
+- [x] ~~**Test history as a chart** - the score of a test over time in the patient
+      profile as a server-rendered SVG sparkline with a trend indicator and the
+      comparison to the previous assessment, plus a dedicated history page with the
+      full chart (0.15.0)~~
 - [x] ~~**Installable web app (PWA, stage 1)** - `/manifest.webmanifest` served with the
       practice name, short name, standalone display and theme colour; the manifest uses
       **the logo the practice configured** (SVG as `any`, raster images with their size)
