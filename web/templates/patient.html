@@ -24,6 +24,7 @@
   <table class="list">
     <thead><tr><th>Datum</th><th>Befund</th><th class="hide-sm">Diagnose</th><th></th></tr></thead>
     <tbody>
+    {{if .MoreBefunde}}<p class="muted">Nur die neuesten Befunde. <a href="{{$.AllHref}}#befunde">{{.MoreBefunde}} insgesamt anzeigen</a></p>{{end}}
     {{range .Befunde}}
       <tr><td>{{de .Date}}</td><td><a href="/befund/{{.ID}}"><strong>{{.Title}}</strong></a></td><td class="muted hide-sm">{{diag .Data}}</td>
       <td class="nowrap"><a href="/befund/{{.ID}}/druck" target="_blank">Druck</a></td></tr>
@@ -167,6 +168,7 @@
     <textarea name="note" rows="2" placeholder="Reaktion, Re-Test, Bemerkung" aria-label="Bemerkung"></textarea>
     <button type="submit">+ Eintrag</button>
   </form>
+  {{if .MoreSessions}}<p class="muted">Nur die letzten Einträge. <a href="{{$.AllHref}}#verlauf">{{.MoreSessions}} insgesamt anzeigen</a></p>{{end}}
   {{range .Sessions}}
   <div class="session">
     <div class="session-head"><strong>{{de .Date}}</strong> {{.Goal}}

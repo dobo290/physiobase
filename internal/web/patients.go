@@ -169,8 +169,23 @@ func (s *Server) showPatient(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+	// Lange Listen nicht komplett rendern: die neuesten 20, der Rest auf Wunsch.
+	// Die Berechnungen oben (Tests, Fragebogenverlauf, Trend) brauchen weiterhin alle
+	// Befunde, deshalb wird nur die Ausgabe gekuerzt.
+	const recentLimit = 20
+	all := r.URL.Query().Get("alle") == "1"
+	befundeShown, moreBefunde := bs, 0
+	if !all && len(bs) > recentLimit {
+		befundeShown, moreBefunde = bs[:recentLimit], len(bs)
+	}
+	sessionsShown, moreSessions := sessions, 0
+	if !all && len(sessions) > recentLimit {
+		sessionsShown, moreSessions = sessions[:recentLimit], len(sessions)
+	}
 	s.render(w, r, "patient", http.StatusOK, map[string]any{
-		"P": p, "Befunde": bs, "Sessions": sessions, "Linked": linked, "Linkable": linkable,
+		"P": p, "Befunde": befundeShown, "Sessions": sessionsShown,
+		"MoreBefunde": moreBefunde, "MoreSessions": moreSessions, "AllHref": "/patient/" + strconv.FormatInt(id, 10) + "?alle=1",
+		"Linked": linked, "Linkable": linkable,
 		"RemoveTest": removeTest,
 		"Handouts":   handouts, "Trend": trend, "Today": time.Now().Format("2006-01-02"),
 		"Docs": docs, "DocCategories": s.lines("doc_categories"), "Summaries": summaries, "Appt": appt, "QHist": qhist, "Tests": ptests,
