@@ -13,6 +13,10 @@ One static Go binary, one SQLite file, server-rendered pages. The interface is
 in German. JavaScript is only used for marking the body chart and a few
 conveniences; everything else works without it.
 
+PhysioBase runs **next to** a practice management system or on its own:
+documentation, knowledge base and handouts stay in your hands, and data leaves
+through export files when another system needs it.
+
 > **▶ Live-Demo:** [physiobase.gpl-nas.de](https://physiobase.gpl-nas.de) –
 > Zugang `admin` / `demo1234`. Alle Angaben werden **beim Abmelden gelöscht**.
 > Besucher-Statistik zählt nur nach Zustimmung (Cookie-Banner).

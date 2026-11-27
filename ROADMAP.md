@@ -179,6 +179,26 @@ Guiding principles for every decision:
 
 ## Practice workflow
 
+- [ ] **Patient master data: normalise the date of birth** *(next)*
+      - The field accepts a date, a year or an age and stores it as free text, so an
+        age of "45" stays 45 forever and quietly corrupts the record over the years.
+      - Store a real date (ISO) plus the precision that was entered (day, year or age
+        with the date it was recorded), show it with `dobLabel`, and migrate existing
+        values with a one-time best-effort pass that flags what it could not parse.
+- [ ] **Merge duplicate patients** *(mid term)*
+      - Imports and typos create duplicates; merging today means moving assessments,
+        sessions, documents, tests and appointments by hand.
+      - A merge that moves all child records to the keeper, keeps a note about the
+        merged name, and is logged; tested with a patient that has assessments,
+        sessions and documents.
+- [ ] **Undo for deletions** *(mid term)*
+      - Deleting an assessment, test or document is final today. A trash with a
+        short retention (for example 30 days) and a restore action makes mistakes
+        reversible without weakening the ten-year retention rules.
+- [ ] **Reception / assistant role** *(next)*
+      - Only `admin` and `user` exist. A front desk needs appointments and patient
+        master data but must not read assessments: a third role with a narrow set of
+        allowed routes, enforced server-side and covered by the route matrix test.
 - [ ] **Public website for patients** *(mid term)*
       - One extra listener in the same binary and container
         (`PHYSIOBASE_SITE_PORT`, empty = off) serving a small, read-only site.
@@ -193,8 +213,8 @@ Guiding principles for every decision:
         the authority that granted it, supervisory body, chamber where applicable,
         VAT ID where applicable) and § 18(2) MStV (person responsible for content),
         plus a privacy page for the website itself: what the server logs, which
-        cookies (none for visitors), and that no external fonts, CDNs or analytics
-        are used. Templates with the required fields are pre-filled so a practice
+        cookies exist (the consent cookie and, only after consent, the statistics
+        cookie), and that no external fonts, CDNs or analytics services are used. Templates with the required fields are pre-filled so a practice
         only has to complete them.
       - **Visitor statistics for the practice, with consent.** Reuse the pattern the
         demo already uses: one first-party cookie, a small banner that explains it,
@@ -285,6 +305,18 @@ Guiding principles for every decision:
 - [ ] **Dashboard** - case numbers, utilisation, open prescriptions, due
       follow-ups, no-show rate *(mid term)*
 
+## Interoperability
+
+- [ ] **Practice management coexistence** *(mid term)*
+      - Import patients and prescriptions from a practice management system
+        (CSV/JSON first, then GDT/BDT), export assessments and sessions, and keep the
+        calendar in sync (ICS export exists, CalDAV import follows).
+      - Aim: data exchange in both directions, so a practice can document in
+        PhysioBase whatever else it runs - and leave again without losing anything.
+      - Calendar and messaging: CalDAV import, iCal export (exists), later e-mail and
+        patient messaging. Every interface is documented in the repo and covered by a
+        test with a real exchange file.
+
 ## Security, data protection and operations
 
 - [ ] **Compliance roadmap** *(next/mid/long, see the document)* - the data
@@ -296,6 +328,26 @@ Guiding principles for every decision:
 
 ## Platform and engineering
 
+- [ ] **Refuse to start on a newer database** *(next)*
+      - `migrate()` only applies missing migrations. An older binary on a database
+        written by a newer one starts silently and fails later with missing columns.
+      - On startup, compare the schema version with the known migrations and stop
+        with a clear message ("this data directory belongs to version X, this binary
+        understands up to Y") instead of corrupting anything.
+- [ ] **Paginate the patient page** *(next)*
+      - Assessments and sessions are loaded without a limit; ten years of weekly
+        treatment is hundreds of rows per page load, plus documents and tests.
+      - Page or lazy-load both lists (for example 20 at a time) and keep the print
+        view complete.
+- [ ] **Integrity check and restore in the pipeline** *(mid term)*
+      - Nothing currently verifies that a snapshot is readable or that the live
+        database is intact. Add a scheduled `PRAGMA quick_check`, a checksum of every
+        snapshot, and a pipeline job that restores the newest snapshot into a
+        throwaway container and queries patient counts.
+- [ ] **Browser end-to-end tests** *(long term)*
+      - The body chart, the test search and keyboard handling are only tested at HTTP
+        level. A small Playwright (or chrome-devtools) suite for those three flows
+        catches JavaScript regressions before a practice does.
 - [ ] **Stability for practices with up to 250 therapists** *(next)*
       - Target, not wishful thinking: one instance, one database, 250 therapists
         working 40 h/week in 20-minute slots at the same time.
