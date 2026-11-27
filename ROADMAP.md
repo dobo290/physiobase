@@ -195,10 +195,38 @@ Guiding principles for every decision:
       - Deleting an assessment, test or document is final today. A trash with a
         short retention (for example 30 days) and a restore action makes mistakes
         reversible without weakening the ten-year retention rules.
+- [ ] **Knowledge base editor role** *(next)*
+      - A user who works on the knowledge base and nothing else: reads and writes
+        entries (conditions, tests, assessments, exercises, protocols, notes),
+        uploads their media, maintains sources, tags and body regions - and has **no**
+        access to patients, assessments, appointments, billing or administration.
+      - Completes the role set next to `admin`, therapist (`user`) and reception:
+        `admin` -> `therapist` -> `reception` / `editor`. Each role gets a fixed set of
+        routes, enforced server-side and listed in the route matrix test; the
+        navigation only shows what the role may open.
+      - Useful for practices that let students, guests or a colleague maintain the
+        knowledge base without exposing health data.
+- [ ] **Home page as dashboard, navigation in a collapsible sidebar** *(next)*
+      - Today the start page is the knowledge list, and the other areas are only
+        reachable through the top navigation. The knowledge base moves to `/wissen`
+        (old links redirect), and `/` becomes a dashboard.
+      - **Persistent left sidebar** with the areas (patients, knowledge, tests,
+        handouts, appointments, account), collapsible and remembered per device
+        (cookie), on narrow screens a drawer with a single toggle. Server-rendered
+        like the rest, no framework.
+      - **Dashboard content, only what is useful in the morning**: today's
+        appointments with therapist and time, patients seen last week, open
+        assessments without a follow-up, knowledge entries changed recently, and a
+        direct search field plus the two or three most common actions (new patient,
+        new assessment, new entry).
+      - Keeps the existing "Dashboard" item meaningful: that one adds figures
+        (case numbers, utilisation, no-show rate); this one is the shell, the
+        navigation and the daily overview.
 - [ ] **Reception / assistant role** *(next)*
       - Only `admin` and `user` exist. A front desk needs appointments and patient
-        master data but must not read assessments: a third role with a narrow set of
-        allowed routes, enforced server-side and covered by the route matrix test.
+        master data but must not read assessments: its own role with a narrow set of
+        allowed routes, enforced server-side and covered by the route matrix test
+        (the same mechanism as the knowledge base editor role).
 - [ ] **Public website for patients** *(mid term)*
       - One extra listener in the same binary and container
         (`PHYSIOBASE_SITE_PORT`, empty = off) serving a small, read-only site.
