@@ -505,10 +505,24 @@ product and code-quality items.
       test collection and handouts per profession, chosen per template. *(long term)*
 - [ ] **Multi-tenancy** - several practitioners with separate data sets in one
       instance *(long term)*
+- [ ] **Installable web app (PWA, stage 1)** *(next)*
+      - `manifest.webmanifest` with name, short name, start URL, `display: standalone`,
+        theme and background colour; icons in 192 and 512 px plus `apple-touch-icon`
+        (180 px), generated from the practice logo; `theme-color` and the
+        `apple-mobile-web-app-*` meta tags in the layout.
+      - A one-line hint on the login page ("add to home screen" on iOS, install button on
+        Android) and `worker-src 'self'` in the content security policy so stage 2 can
+        register a service worker later.
+      - **No offline behaviour yet** - the app becomes installable and starts without
+        browser chrome on phone and tablet, which is the visible step. Stage 2
+        (service worker, offline capture queue, conflict handling) stays in the
+        "Offline-capable UI (PWA)" item below.
 - [ ] **Offline-capable UI (PWA)** - record assessments in the treatment room
-      without a stable Wi-Fi connection and synchronise later. This is also the first
-      mobile client: installable, no app store, and the groundwork the native app
-      builds on (see "Mobile client for therapists"). *(long term)*
+      without a stable Wi-Fi connection and synchronise later. Stage 1 makes the app
+      installable (own item), stage 2 adds the service worker, an offline queue for
+      entries and the conflict handling on top. This is also the first mobile client:
+      installable, no app store, and the groundwork the native app builds on (see
+      "Mobile client for therapists"). *(long term)*
 - [ ] **Analytics** - anonymised statistics over your own caseload *(long term)*
 - [ ] **Import from other systems** - CSV/Excel for patient master data and
       digitisation of paper files *(long term)*
