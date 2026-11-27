@@ -390,6 +390,14 @@ Guiding principles for every decision:
 
 ## Done
 
+- [x] ~~**Wording in the inspection section** - the term "Haltung" is scientifically
+      contested: static alignment is a weak predictor of pain, inter-rater agreement
+      of postural judgements is moderate at best, and "posture faults" as an
+      indication are not supported (Slater et al., "Sit Up Straight: Time to
+      Re-evaluate", JOSPT 2019; Lederman, "The fall of the postural-structural-
+      biomechanical model", 2011). The field now says "Alignment" and the
+      "Subjektive Wahrnehmung (Suggestiv)" field asks for the impression from the
+      patient's report **and** from the inspection (0.13.8)~~
 - [x] ~~**Assessment form polish** - section "Assessments - Notizen" renamed to
       "Tests/Assessments"; the header prints an age entered as "45" as "45 Jahre"
       (date and year keep the "geb." label, one `dobLabel` helper for screen and

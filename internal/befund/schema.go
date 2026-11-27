@@ -174,8 +174,8 @@ var Sections = []Section{
 		}},
 	}},
 	{ID: "inspektion", Title: "Inspektion", Parts: []Part{{Fields: []Field{
-		wide(area("inspection", "Inspektionsbefund (Haltung, Haut, Ödeme, Narben, Atmung etc.)")),
-		wide(ph(area("insp_subj", "Subjektive Wahrnehmung (Suggestiv)"), "Eindruck, den die Schilderung der Patientin/des Patienten nahelegt – getrennt vom objektiven Befund")),
+		wide(area("inspection", "Inspektionsbefund (Alignment, Haut, Ödeme, Narben, Atmung etc.)")),
+		wide(ph(area("insp_subj", "Subjektive Wahrnehmung (Suggestiv)"), "Eindruck aus den Schilderungen der Patientin/des Patienten und aus der Inspektion – was legen Bericht und Bild nahe? Bewusst subjektiv, getrennt vom objektiven Befund")),
 	}}}},
 	{ID: "bps", Title: "Psychosoziale Anamnese", Parts: []Part{{Fields: []Field{
 		area("bps_family", "Familie/soziales Netz"),
