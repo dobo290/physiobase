@@ -105,12 +105,12 @@ deleted automatically – the law sets a minimum retention, not an expiry date.
 - [ ] **Opt-in encryption** *(long term)* – encrypted database and media
       (passphrase at start), encrypted backups, optional field-level encryption.
       **Today:** no encryption at rest, backups unencrypted. Art. 32(1)(a).
-- [ ] **Home Assistant controls** *(mid term, with the interoperability roadmap)* –
-      no personal data flows: PhysioBase reads device states and sends switch commands,
-      Home Assistant sees only the entity. The long-lived token is a credential and is
-      stored server-side; the entity whitelist keeps it to what the practice chose.
-      Nothing to add to the record of processing activities, but the token belongs in
-      the credential inventory and must be rotated when staff changes.
+- [ ] **Smart home controls** *(mid term, with the interoperability roadmap)* – no
+      personal data involved: PhysioBase reads device states and sends switch commands,
+      the smart home system sees only the entity. Credentials (long-lived tokens) are
+      stored server-side and belong in the credential inventory, rotated when staff
+      changes. The entity allow-list keeps it to what the practice deliberately
+      released.
 - [ ] **Mobile clients** *(long term, with the mobile roadmap item)* – a phone is a
       second processing location: tokens in Keychain/Keystore, encrypted offline
       cache excluded from cloud backups, remote logout through the session version,

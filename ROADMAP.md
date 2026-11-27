@@ -370,25 +370,36 @@ Guiding principles for every decision:
         patient messaging. Every interface is documented in the repo and covered by a
         test with a real exchange file.
 
-- [ ] **Home Assistant controls inside PhysioBase** *(mid term)*
+- [ ] **Smart home controls inside PhysioBase** *(mid term)*
       - Direction is **one way into PhysioBase**: it reads device states and sends
-        control commands to Home Assistant. **No practice or patient data leaves
-        PhysioBase** - Home Assistant only ever sees the entity it is switching.
-      - Admin area: Home Assistant URL plus a long-lived token (stored server-side,
-        never in the browser) and a **whitelist of entities** that may appear in the
-        practice view - a light, a switch, a thermostat, a temperature or humidity
-        sensor. Anything not on the list cannot be reached from PhysioBase.
-      - The practice view (dashboard panel or its own page) shows them as plain
-        controls: on/off, brightness, target temperature, and read-only readings such
-        as room or cellar temperature. Server-rendered, a small refresh for the
-        readings; the token and all HTTP calls stay on the server.
-      - Failure is silent by design: if Home Assistant is unreachable, the panel says
-        so and the rest of the practice software keeps working untouched.
-      - Out of scope on purpose: no webhooks or events going to Home Assistant, no
-        appointment or patient data, no MQTT publisher. If someone wants the reverse
-        direction later, it needs its own decision.
-      - Tests: a fake Home Assistant server in the test suite (state read, switch
-        command, unreachable host), and the whitelist enforced server-side.
+        control commands. **No practice or patient data leaves PhysioBase** - the
+        smart home system only ever sees the entity that is being switched.
+      - **Provider-neutral core, not one vendor**: an internal model for switchable
+        things (on/off, dimmable, thermostat, read-only sensor) with adapters behind
+        it. The practice view renders controls from the model, so a new provider does
+        not touch the UI.
+      - **Adapters, in this order**:
+        `Home Assistant` (REST + long-lived token; covers most systems the practice
+        already has), `Homey` (local Web API with a personal access token), and
+        **generic MQTT** (topics configured per entity - works with Homey, openHAB,
+        ioBroker, Node-RED, Tasmota, Shelly and anything else that speaks MQTT).
+        openHAB and ioBroker REST adapters only when somebody actually asks.
+      - **Admin**: provider URL/credentials plus a **whitelist/allow-list of entities**
+        (light, switch, thermostat, sensor) with a display name and a room. Anything
+        not on the list cannot be reached from PhysioBase; a provider can be switched
+        off entirely.
+      - **Practice view** (dashboard panel or its own page): plain controls - on/off,
+        brightness, target temperature - and read-only readings such as room or cellar
+        temperature. Server-rendered, small refresh for readings; credentials and all
+        HTTP calls stay on the server.
+      - **Failure stays local**: provider unreachable means the panel says so; the rest
+        of the practice software keeps working untouched.
+      - Out of scope on purpose: no events or data going to the smart home system, no
+        appointment or patient data, no automatic device control from practice events.
+        Whoever wants that later needs a separate decision.
+      - **Tests**: fake servers per adapter (state read, command, unreachable host,
+        bad token), the allow-list enforced server-side, and one adapter-independent
+        test that the UI renders from the model.
 
 ## Security, data protection and operations
 
