@@ -635,8 +635,12 @@ After 1.0.0 the same table applies with the major digit in front: features bump
    of them; check that every remote reports success.
 4. Watch the pipeline on the forge (tidy, format, lint, vulncheck, test, build, image).
 5. CI publishes `forge.gpl-nas.de/physiobase:vX.Y.Z` and `:latest`.
-6. `scripts/wiki-sync.sh` mirrors `ROADMAP.md` into the GitHub wiki.
-7. Update both running instances from the published image – never build locally:
+6. Create a GitHub release with the changelog: `scripts/github-release.sh vX.Y.Z`
+   (or `scripts/github-release.sh vX.Y.Z notes.md` for a longer changelog). The
+   release notes are in English and name the highlights, the details and the upgrade
+   step. Every release from 0.15.0 on gets a changelog; earlier tags have none.
+7. `scripts/wiki-sync.sh` mirrors `ROADMAP.md` into the GitHub wiki.
+8. Update both running instances from the published image – never build locally:
    `podman-compose pull && systemctl restart physio` and the same in
    `/nvme/container/physio-demo`. Then check `healthz` and the version on the login
    page of both.
