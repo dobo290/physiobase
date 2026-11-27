@@ -188,12 +188,6 @@ Guiding principles for every decision:
 
 ## Practice workflow
 
-- [ ] **Patient master data: normalise the date of birth** *(next)*
-      - The field accepts a date, a year or an age and stores it as free text, so an
-        age of "45" stays 45 forever and quietly corrupts the record over the years.
-      - Store a real date (ISO) plus the precision that was entered (day, year or age
-        with the date it was recorded), show it with `dobLabel`, and migrate existing
-        values with a one-time best-effort pass that flags what it could not parse.
 - [ ] **Merge duplicate patients** *(mid term)*
       - Imports and typos create duplicates; merging today means moving assessments,
         sessions, documents, tests and appointments by hand.
@@ -500,6 +494,17 @@ product and code-quality items.
 
 ## Done
 
+- [x] ~~**Date of birth as a real date** - the field accepts a date, a year or an
+      age; the value is stored as an ISO date plus its precision (day, month, year,
+      or age derived from a birth year), shown by one `dobLabel` helper on screen and
+      in print, and unreadable legacy values keep their original text. A one-time
+      start-up pass normalises existing records. Migration 13 adds `dob_precision`
+      and `dob_raw` (0.16.0)~~
+- [x] ~~**Calendar readability** - blocks show the last name and the first initial
+      (for example "Müller H.") instead of the full name and the time; the time axis
+      is labelled every 20 minutes and hovering a block lights up its time span in
+      the left column, so a 40-minute appointment highlights two 20-minute fields
+      (0.16.0)~~
 - [x] ~~**Home page as dashboard, navigation in a collapsible sidebar** - the start
       page is a dashboard: the day plan per therapist, patients seen in the last week,
       assessments due for a follow-up, recently changed knowledge entries, a search
