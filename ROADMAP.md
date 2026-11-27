@@ -121,9 +121,34 @@ Guiding principles for every decision:
         language, so occupational therapy, speech therapy, podiatry, nursing or a
         medical practice can use the same engine with their own form - the reason this
         replaces the "other therapy professions" wish rather than duplicating it.
+      - **Data model in SQLite** - three tables, no per-template tables and no
+        rewriting of patient data:
+        `befund_templates` (identity: id, name, profession, language, licence,
+        author), `befund_template_versions` (immutable rows: template_id, version,
+        schema JSON, manifest JSON, checksum, source, created_at, retired_at) and a
+        new column `befunde.template_version_id` with `ON DELETE RESTRICT`.
+        Rules that follow from it: a new or edited template is always a **new
+        version row** (nothing is overwritten); every assessment **pins the version**
+        it was filled in, so `befunde.data` stays untouched and the version only
+        decides labels, print layout and comparison; **deleting means setting
+        `retired_at`**, so it disappears from the pickers but stays resolvable for
+        old findings; and a hard delete is refused by the database itself as long as
+        a finding references that version (`RESTRICT`). A manual admin cleanup may
+        remove **unreferenced** versions only - never automatically, because of the
+        retention duties.
+      - **Default template**: one setting per practice, plus an optional
+        `patients.template_version_id` for patients who need a different form for
+        good. The community index is a git repository with a JSON catalogue and is
+        **not** part of the database: installing copies schema, checksum and source
+        URL into `befund_template_versions`, after which the instance works offline.
+        Size is negligible (50 templates x 5 versions x 20 KB ~ 5 MB next to a
+        multi-gigabyte patient database).
       - **Migration**: schema keys stay stable, old assessments keep their pinned
         version, and the comparison view compares only fields that exist in both
-        versions (showing the rest as "not part of that version").
+        versions (showing the rest as "not part of that version"). Migration 12 adds
+        the two tables and the column, inserts the built-in schema as version 1 of
+        `physio-standard` and backfills every existing finding with it, so behaviour
+        does not change on upgrade.
 - [ ] **Assessment search** - full text search across assessments (diagnosis,
       notes), not only across the knowledge base *(next)*
 - [ ] **Report export** - medical report / summary as a clean PDF with practice
