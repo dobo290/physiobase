@@ -86,7 +86,45 @@ Guiding principles for every decision:
 
 ## Clinical documentation
 
-- [ ] **Assessment search** - full text search across assessments (diagnosis,
+- [ ] **Modular assessments: schema as data, templates from the community** *(long term)*
+      - Today the assessment form is Go code (`internal/befund/schema.go`): sections,
+        fields, tables and symbols are fixed in the binary, and form, print view and
+        comparison all derive from it. That makes the form reliable, but a practice
+        cannot change it and a second profession cannot use it.
+      - **The schema becomes data**: a declarative file (JSON, human-readable, diffable)
+        with sections, fields, tables, symbols, validation rules and print layout.
+        The built-in form is extracted into that format and shipped as the default
+        template, so nothing changes for existing practices; a new **template version
+        is pinned to every assessment**, so old findings keep rendering with the
+        schema they were filled in (same idea as the catalogue versions for ICD codes).
+      - **The assessment becomes runnable on its own**: one static executable per
+        platform (the existing Go binary with a `standalone`/`builder` mode, plus a
+        WASM build for the browser) that opens a template, records a finding offline
+        and exports JSON or PDF. Usable without PhysioBase - for a single assessment,
+        for teaching, or by a profession that does not run the full application.
+      - **Two ways to author a template**: the admin area in PhysioBase (sections and
+        fields arrange, reorder, preview, export) and the standalone builder, which
+        produces the identical file. No HTML, no code - templates are data, so a
+        template can never execute anything.
+      - **Template registry**: a table in the database plus an index repository that
+        lists installable templates. A template is a small package with a manifest
+        (id, name, version, profession, language, licence, author, minimum app
+        version) and the schema file. Install from URL, from a git repository or from
+        a file upload; list, pin, update and remove in the admin area; the practice's
+        choice of default template is per practice, optionally per patient.
+      - **Distribution paths, all three supported**: install it only into one's own
+        instance, publish it as its own repository, or publish it into the community
+        index so other practices and other professions find it. Licences are declared
+        per template (CC0, CC-BY, AGPL …) because clinical content is shared, not
+        sold.
+      - **Opens the project to other professions**: templates carry a profession and a
+        language, so occupational therapy, speech therapy, podiatry, nursing or a
+        medical practice can use the same engine with their own form - the reason this
+        replaces the "other therapy professions" wish rather than duplicating it.
+      - **Migration**: schema keys stay stable, old assessments keep their pinned
+        version, and the comparison view compares only fields that exist in both
+        versions (showing the rest as "not part of that version").
+- [ ] **Assessment search** - full text search- [ ] **Assessment search** - full text search across assessments (diagnosis,
       notes), not only across the knowledge base *(next)*
 - [ ] **Report export** - medical report / summary as a clean PDF with practice
       logo and header *(next)*
@@ -373,8 +411,9 @@ Guiding principles for every decision:
       Dutch), per-patient output language for questionnaires, and a documented
       translation workflow so the community can contribute languages *(long term)*
 - [ ] **Other therapy professions** - besides physiotherapy also occupational
-      therapy, speech therapy and further remedy professions, with separate
-      assessment schemas, test collections and handouts per profession *(long term)*
+      therapy, speech therapy, podiatry, nursing and medical practices. Solved through
+      the modular assessment templates (see "Clinical documentation"): own form,
+      test collection and handouts per profession, chosen per template. *(long term)*
 - [ ] **Multi-tenancy** - several practitioners with separate data sets in one
       instance *(long term)*
 - [ ] **Offline-capable UI (PWA)** - record assessments in the treatment room
