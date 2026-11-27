@@ -370,23 +370,25 @@ Guiding principles for every decision:
         patient messaging. Every interface is documented in the repo and covered by a
         test with a real exchange file.
 
-- [ ] **Home Assistant integration** *(mid term)*
-      - Two directions, in this order:
-      - **Outbound webhooks first**: configurable URL(s) in the admin area, JSON
-        payloads for `practice.opened`, `practice.closed`, `appointment.completed`,
-        `assessment.saved`. Home Assistant reacts with a webhook trigger, so lights,
-        climate or a room display follow the practice day. No token on the HA side, no
-        polling, HA stays in charge of the devices.
-      - **Read-only integration token** for HA sensors once the JSON API exists
-        (today's appointments, next appointment, recall list) - for a wall tablet in
-        the corridor. Data minimised: time and first name, nothing clinical.
-      - **MQTT publisher afterwards** if a broker is already running: same events,
-        subscription instead of polling.
-      - **Security and privacy**: only outbound calls (nothing inbound exposed),
-        payloads documented in the repo, no diagnoses or assessment contents in
-        events, token revocable, test against a fake receiver in the pipeline, and a
-        note in `docs/compliance.md` that Home Assistant stores these payloads (its own
-        retention applies).
+- [ ] **Home Assistant controls inside PhysioBase** *(mid term)*
+      - Direction is **one way into PhysioBase**: it reads device states and sends
+        control commands to Home Assistant. **No practice or patient data leaves
+        PhysioBase** - Home Assistant only ever sees the entity it is switching.
+      - Admin area: Home Assistant URL plus a long-lived token (stored server-side,
+        never in the browser) and a **whitelist of entities** that may appear in the
+        practice view - a light, a switch, a thermostat, a temperature or humidity
+        sensor. Anything not on the list cannot be reached from PhysioBase.
+      - The practice view (dashboard panel or its own page) shows them as plain
+        controls: on/off, brightness, target temperature, and read-only readings such
+        as room or cellar temperature. Server-rendered, a small refresh for the
+        readings; the token and all HTTP calls stay on the server.
+      - Failure is silent by design: if Home Assistant is unreachable, the panel says
+        so and the rest of the practice software keeps working untouched.
+      - Out of scope on purpose: no webhooks or events going to Home Assistant, no
+        appointment or patient data, no MQTT publisher. If someone wants the reverse
+        direction later, it needs its own decision.
+      - Tests: a fake Home Assistant server in the test suite (state read, switch
+        command, unreachable host), and the whitelist enforced server-side.
 
 ## Security, data protection and operations
 
