@@ -136,7 +136,7 @@ func publicPath(p string) bool {
 	// /login/2fa ist der zweite Schritt der Anmeldung (Einmalcode).
 	// Manifest und Icons braucht der Browser schon auf der Anmeldeseite (Installation).
 	return p == "/login" || p == "/healthz" || p == "/manifest.webmanifest" ||
-		strings.HasPrefix(p, "/pwa/icon/") || strings.HasPrefix(p, "/login/2fa") ||
+		strings.HasPrefix(p, "/login/2fa") ||
 		strings.HasPrefix(p, "/static/") || strings.HasPrefix(p, "/kalender/") ||
 		strings.HasPrefix(p, "/branding/") || strings.HasPrefix(p, "/einrichten/") || strings.HasPrefix(p, "/passkey/login/") ||
 		strings.HasPrefix(p, "/passkey/registrieren/")

@@ -533,9 +533,9 @@ product and code-quality items.
 ## Done
 
 - [x] ~~**Installable web app (PWA, stage 1)** - `/manifest.webmanifest` served with the
-      practice name, short name, standalone display and theme colour; icons for 192,
-      512 and 180 px generated on the fly from the uploaded logo (PNG/JPEG/WebP) or as a
-      neutral mark, plus `theme-color`, `apple-touch-icon` and
+      practice name, short name, standalone display and theme colour; the manifest uses
+      **the logo the practice configured** (SVG as `any`, raster images with their size)
+      instead of a generated icon, plus `theme-color`, `apple-touch-icon` and
       `apple-mobile-web-app-*`; a "add to home screen" hint on the login page;
       `worker-src` and `manifest-src` in the CSP so stage 2 can register a service
       worker; manifest and icons reachable without a login (0.14.0)~~

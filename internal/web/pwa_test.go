@@ -2,14 +2,13 @@ package web
 
 import (
 	"encoding/json"
-	"image/png"
 	"net/http"
 	"strings"
 	"testing"
 )
 
-// Das Manifest nennt Praxisnamen, Start-URL und Icons; die Icons kommen als PNG.
-func TestPWAManifestAndIcons(t *testing.T) {
+// Das Manifest nennt Praxisnamen, Start-URL und als Icon das eingerichtete Logo.
+func TestPWAManifest(t *testing.T) {
 	ts, c := newServer(t)
 
 	res, err := c.Get(ts.URL + "/manifest.webmanifest")
@@ -30,6 +29,7 @@ func TestPWAManifestAndIcons(t *testing.T) {
 		Display         string `json:"display"`
 		ThemeColor      string `json:"theme_color"`
 		BackgroundColor string `json:"background_color"`
+		Lang            string `json:"lang"`
 		Icons           []struct {
 			Src     string `json:"src"`
 			Sizes   string `json:"sizes"`
@@ -40,55 +40,69 @@ func TestPWAManifestAndIcons(t *testing.T) {
 	if err := json.NewDecoder(res.Body).Decode(&m); err != nil {
 		t.Fatal(err)
 	}
-	if m.Name == "" || m.StartURL != "/" || m.Display != "standalone" {
+	if m.Name == "" || m.StartURL != "/" || m.Display != "standalone" || m.Lang != "de" {
 		t.Errorf("manifest unvollständig: %+v", m)
 	}
-	if len(m.Icons) < 2 {
-		t.Fatalf("%d Icons", len(m.Icons))
+	if len(m.Icons) < 2 || m.Icons[0].Src == "" {
+		t.Fatalf("Icons = %+v", m.Icons)
 	}
-	sizes := map[string]bool{}
-	for _, i := range m.Icons {
-		sizes[i.Sizes] = true
+	if m.Icons[0].Src != "/static/logo.svg" {
+		t.Errorf("Icon-Quelle = %q, erwartet das eingerichtete Logo", m.Icons[0].Src)
 	}
-	if !sizes["192x192"] || !sizes["512x512"] {
-		t.Errorf("Icon-Größen = %v", sizes)
+	if m.Icons[0].Type != "image/svg+xml" {
+		t.Errorf("Icon-Typ = %q", m.Icons[0].Type)
+	}
+	if m.Icons[1].Purpose != "maskable" {
+		t.Errorf("zweites Icon = %+v", m.Icons[1])
 	}
 
-	for _, tc := range []struct {
-		path string
-		want int
-	}{{"/pwa/icon/192.png", 192}, {"/pwa/icon/512.png", 512}, {"/pwa/icon/180.png", 180}} {
-		r, err := c.Get(ts.URL + tc.path)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if r.StatusCode != http.StatusOK {
-			t.Errorf("%s: %d", tc.path, r.StatusCode)
-			r.Body.Close()
-			continue
-		}
-		img, err := png.Decode(r.Body)
+	// Das Logo muss ohne Anmeldung abrufbar sein, sonst kann der Browser nicht installieren.
+	if r, err := c.Get(ts.URL + m.Icons[0].Src); err != nil || r.StatusCode != http.StatusOK {
+		t.Errorf("Logo %s: %v %v", m.Icons[0].Src, r, err)
+	} else {
 		r.Body.Close()
-		if err != nil {
-			t.Errorf("%s: kein PNG: %v", tc.path, err)
-			continue
-		}
-		if b := img.Bounds(); b.Dx() != tc.want || b.Dy() != tc.want {
-			t.Errorf("%s: %dx%d, erwartet %dx%d", tc.path, b.Dx(), b.Dy(), tc.want, tc.want)
-		}
+	}
+}
+
+// Ein eigenes Rasterlogo erscheint mit seiner echten Größe im Manifest.
+func TestPWAManifestUsesUploadedLogo(t *testing.T) {
+	ts, c := newServer(t)
+	login(t, c, ts.URL)
+	// 1x1-PNG als Logo; der Upload-Helfer stammt aus den Einstellungs-Tests.
+	pngBytes := "\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89" +
+		"\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+	if loc := uploadLogo(t, c, ts.URL, "logo.png", pngBytes); loc == "" {
+		t.Fatal("Logo-Upload ohne Redirect")
 	}
 
-	// Unbekannte Größe ist ein 404, kein generiertes Bild.
-	if r, err := c.Get(ts.URL + "/pwa/icon/99.png"); err != nil || r.StatusCode != http.StatusNotFound {
-		t.Errorf("icon-99: %v %v", r, err)
+	res, err := c.Get(ts.URL + "/manifest.webmanifest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+	var m struct {
+		Icons []struct {
+			Src   string `json:"src"`
+			Sizes string `json:"sizes"`
+			Type  string `json:"type"`
+		} `json:"icons"`
+	}
+	if err := json.NewDecoder(res.Body).Decode(&m); err != nil {
+		t.Fatal(err)
+	}
+	if len(m.Icons) == 0 || !strings.Contains(m.Icons[0].Src, "/branding/logo") ||
+		!strings.HasSuffix(strings.Split(m.Icons[0].Src, "?")[0], ".png") {
+		t.Fatalf("Icon = %+v", m.Icons)
+	}
+	if m.Icons[0].Type != "image/png" || m.Icons[0].Sizes != "512x512" {
+		t.Errorf("Icon-Typ/Größe = %q/%q", m.Icons[0].Type, m.Icons[0].Sizes)
 	}
 }
 
 // Layout und CSP müssen die Installation erlauben.
 func TestPWAWiring(t *testing.T) {
 	ts, c := newServer(t)
-	req, _ := http.NewRequest(http.MethodGet, ts.URL+"/login", nil)
-	res, err := c.Do(req)
+	res, err := c.Get(ts.URL + "/login")
 	if err != nil {
 		t.Fatal(err)
 	}

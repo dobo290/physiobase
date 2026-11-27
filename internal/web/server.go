@@ -220,7 +220,6 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /branding/{file}", s.serveBranding)
 	// PWA: Manifest und generierte Icons (Stage 1, ohne Service Worker)
 	mux.HandleFunc("GET "+pwaManifestPath, s.handleManifest)
-	mux.HandleFunc("GET /pwa/icon/{file}", s.handleIcon)
 	mux.HandleFunc("GET /befund/{id}", s.showBefund)
 	mux.HandleFunc("POST /befund/{id}", s.saveBefund)
 	mux.HandleFunc("POST /befund/{id}/test", s.linkBefundTest)
