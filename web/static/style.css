@@ -451,6 +451,9 @@ body.sidebar-collapsed .sidebar-toggle-form button { justify-content: center; }
 .cal-svg .cal-line { stroke: var(--pico-muted-border-color); stroke-width: .6; }
 .cal-svg .cal-hour { stroke: var(--pico-muted-border-color); stroke-width: 1; }
 .cal-svg .cal-time { font-size: 11px; fill: var(--pico-muted-color); }
+.cal-svg .cal-gutter-hl { fill: var(--pico-primary); opacity: 0; pointer-events: none; transition: opacity .12s ease; }
+.cal-svg .cal-link:hover .cal-gutter-hl,
+.cal-svg .cal-link:focus-visible .cal-gutter-hl { opacity: .22; }
 .cal-svg .cal-colhead { font-size: 12px; font-weight: 600; fill: var(--pico-color); }
 .cal-svg .cal-colsep { stroke: var(--pico-muted-border-color); stroke-width: .8; }
 .cal-svg .cal-block rect { fill: var(--pico-card-background-color); stroke: var(--pico-primary); stroke-width: 1.2; }

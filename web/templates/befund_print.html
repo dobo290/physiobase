@@ -15,7 +15,7 @@
   <img src="{{.Logo}}" alt="" class="logo">
   <div class="htext">
     <h1>Physiotherapeutischer Befund</h1>
-    <p><strong>{{.P.Name}}</strong>{{with dobLabel .P.Dob}} · {{.}}{{end}}</p>
+    <p><strong>{{.P.Name}}</strong>{{with dobLabel .P}} · {{.}}{{end}}</p>
   </div>
   <div class="meta">{{.B.Title}}<br>{{de .B.Date}}<br>{{.Practice}}{{with .Contact}}<br>{{.}}{{end}}</div>
 </header>

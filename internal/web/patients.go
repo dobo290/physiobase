@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"forge.gpl-nas.de/physiobase/internal/befund"
+	"forge.gpl-nas.de/physiobase/internal/dob"
 	"forge.gpl-nas.de/physiobase/internal/mailer"
 	"forge.gpl-nas.de/physiobase/internal/store"
 )
@@ -56,8 +57,10 @@ func (s *Server) createPatient(w http.ResponseWriter, r *http.Request) {
 	if !limitForm(w, r) {
 		return
 	}
+	dobDate, dobPrecision, dobRaw := dob.Parse(formText(r, "dob"), time.Now())
 	p := store.Patient{
-		Name: formText(r, "name"), Dob: formText(r, "dob"), Phone: formText(r, "phone"),
+		Name: formText(r, "name"), Dob: dobDate, DobPrecision: dobPrecision, DobRaw: dobRaw,
+		Phone: formText(r, "phone"),
 		Email: formText(r, "email"), EmailConsent: r.FormValue("email_consent") == "1",
 	}
 	patientMeta(r, &p)
@@ -208,8 +211,10 @@ func (s *Server) updatePatient(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+	dobDate, dobPrecision, dobRaw := dob.Parse(formText(r, "dob"), time.Now())
 	p := store.Patient{
-		ID: id, Name: formText(r, "name"), Dob: formText(r, "dob"), Phone: formText(r, "phone"), Notes: formText(r, "notes"),
+		ID: id, Name: formText(r, "name"), Dob: dobDate, DobPrecision: dobPrecision, DobRaw: dobRaw,
+		Phone: formText(r, "phone"), Notes: formText(r, "notes"),
 		Email: formText(r, "email"), EmailConsent: r.FormValue("email_consent") == "1",
 	}
 	patientMeta(r, &p)
@@ -715,7 +720,7 @@ func (s *Server) importOne(r *http.Request, raw []byte) error {
 	}
 	_ = json.Unmarshal(raw, &probe) // kein eigenes Format → alte Befundseite
 
-	var name, dob, date, title string
+	var name, dobText, date, title string
 	var data befund.Data
 	var sessions []befund.Row
 	if probe.Format == exportFormat {
@@ -728,23 +733,24 @@ func (s *Server) importOne(r *http.Request, raw []byte) error {
 			return err
 		}
 		d.Stamps = befund.CleanStamps(d.Stamps)
-		name, dob, date, title, data = ef.Patient.Name, ef.Patient.Dob, ef.Date, ef.Title, d
+		name, dobText, date, title, data = ef.Patient.Name, ef.Patient.Dob, ef.Date, ef.Title, d
 	} else {
 		l, err := befund.ParseLegacy(raw)
 		if err != nil {
 			return err
 		}
-		name, dob, date, title, data, sessions = l.Name, l.Dob, l.Date, "Befund (Import)", l.Data, l.Sessions
+		name, dobText, date, title, data, sessions = l.Name, l.Dob, l.Date, "Befund (Import)", l.Data, l.Sessions
 	}
 	if strings.TrimSpace(name) == "" {
 		name = "Unbekannt (Import)"
 	}
-	pid, found, err := s.st.FindPatient(ctx, name, dob)
+	dobDate, dobPrecision, dobRaw := dob.Parse(dobText, time.Now())
+	pid, found, err := s.st.FindPatient(ctx, name, dobDate)
 	if err != nil {
 		return err
 	}
 	if !found {
-		if pid, err = s.st.CreatePatient(ctx, store.Patient{Name: name, Dob: dob}); err != nil {
+		if pid, err = s.st.CreatePatient(ctx, store.Patient{Name: name, Dob: dobDate, DobPrecision: dobPrecision, DobRaw: dobRaw}); err != nil {
 			return err
 		}
 	}

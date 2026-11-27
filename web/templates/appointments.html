@@ -40,7 +40,7 @@
   {{if .Patients}}
   <form method="post" action="/termine">
     <select name="patient" required aria-label="Patient"><option value="">Patient wählen …</option>
-      {{range .Patients}}<option value="{{.ID}}">{{.Name}}{{with .Dob}} ({{.}}){{end}}</option>{{end}}
+      {{range .Patients}}<option value="{{.ID}}">{{.Name}}{{with dobLabel .}} ({{.}}){{end}}</option>{{end}}
     </select>
     {{template "apptrows" .}}
     <button type="submit">Alle Termine speichern</button>

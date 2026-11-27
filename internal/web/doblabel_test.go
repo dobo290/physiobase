@@ -5,26 +5,41 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
+
+	"forge.gpl-nas.de/physiobase/internal/dob"
+	"forge.gpl-nas.de/physiobase/internal/store"
 )
 
-// dobLabel unterscheidet Datum, Jahr und Alter – ein eingetragenes Alter darf
-// nicht als Geburtsdatum erscheinen.
+// dobLabel zeigt Datum, Jahr, Monat und abgeleitetes Alter passend zur
+// gespeicherten Genauigkeit – ein eingetragenes Alter darf nicht als
+// Geburtsdatum erscheinen.
 func TestDobLabel(t *testing.T) {
 	t.Parallel()
-	cases := []struct{ in, want string }{
-		{"", ""},
-		{"45", "45 Jahre"},
-		{" 7 ", "7 Jahre"},
-		{"100", "100 Jahre"},
-		{"1969", "geb. 1969"},
-		{"12.04.1969", "geb. 12.04.1969"},
-		{"1969-04-12", "geb. 1969-04-12"},
-		{"45 J.", "geb. 45 J."}, // nicht als Alter erkannt, bleibt beim Datums-Label
+	now := time.Date(2026, 11, 27, 0, 0, 0, 0, time.Local)
+	cases := []struct {
+		name string
+		p    store.Patient
+		want string
+	}{
+		{"leer", store.Patient{}, ""},
+		{"Alter", store.Patient{Dob: "1981", DobPrecision: dob.Age}, "45 Jahre"},
+		{"Alter einstellig", store.Patient{Dob: "2019", DobPrecision: dob.Age}, "7 Jahre"},
+		{"Jahr", store.Patient{Dob: "1969", DobPrecision: dob.Year}, "geb. 1969"},
+		{"Tag", store.Patient{Dob: "1969-04-12", DobPrecision: dob.Day}, "geb. 12.04.1969"},
+		{"Monat", store.Patient{Dob: "1969-04", DobPrecision: dob.Month}, "geb. April 1969"},
+		{"unbekannt", store.Patient{DobPrecision: dob.Unknown, DobRaw: "45 J."}, "geb. 45 J."},
+		{"Altdatum ohne Genauigkeit", store.Patient{Dob: "1969-04-12"}, "geb. 1969-04-12"},
 	}
 	for _, c := range cases {
-		if got := dobLabel(c.in); got != c.want {
-			t.Errorf("dobLabel(%q) = %q, erwartet %q", c.in, got, c.want)
+		if got := dob.LabelAt(c.p.Dob, c.p.DobPrecision, c.p.DobRaw, now); got != c.want {
+			t.Errorf("%s: LabelAt(%q, %q, %q) = %q, erwartet %q",
+				c.name, c.p.Dob, c.p.DobPrecision, c.p.DobRaw, got, c.want)
 		}
+	}
+	// dobLabel reicht nur an dob.Label weiter.
+	if got := dobLabel(store.Patient{Dob: "1969-04-12", DobPrecision: dob.Day}); got != "geb. 12.04.1969" {
+		t.Errorf("dobLabel = %q, erwartet %q", got, "geb. 12.04.1969")
 	}
 }
 

@@ -81,6 +81,11 @@ func run() error {
 	go database.RunBackups(ctx, db, cfg.BackupDir, cfg.BackupKeep, log)
 
 	st := store.New(db)
+	if n, err := st.NormalizeDobs(ctx, time.Now()); err != nil {
+		return fmt.Errorf("geburtsdaten normalisieren: %w", err)
+	} else if n > 0 {
+		log.Info("geburtsdaten normalisiert", "patienten", n)
+	}
 	if cfg.Seed {
 		if seeded, err := st.Seed(ctx); err != nil {
 			return fmt.Errorf("beispieldaten: %w", err)

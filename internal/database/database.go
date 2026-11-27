@@ -355,6 +355,12 @@ CREATE INDEX idx_totp_recovery_user ON totp_recovery(user_id);
 ALTER TABLE users ADD COLUMN therapist_id INTEGER REFERENCES therapists(id) ON DELETE SET NULL;
 CREATE INDEX idx_appointments_therapist ON appointments(therapist_id, starts_at);
 `},
+	{13, `
+-- Geburtsdatum mit Genauigkeit: Tag, Monat, Jahr oder aus einem Alter abgeleitet.
+-- Altdaten bleiben vorerst leer und werden beim Start normalisiert (store.NormalizeDobs).
+ALTER TABLE patients ADD COLUMN dob_precision TEXT NOT NULL DEFAULT '';
+ALTER TABLE patients ADD COLUMN dob_raw TEXT NOT NULL DEFAULT '';
+`},
 }
 
 func migrate(db *sql.DB) error {

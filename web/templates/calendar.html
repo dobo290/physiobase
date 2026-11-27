@@ -129,7 +129,7 @@
     <input type="hidden" name="back" value="kalender">
     <input type="hidden" name="tag" value="{{$c.Filter.Day.Format "2006-01-02"}}">
     <select name="patient" required aria-label="Patient"><option value="">Patient wählen …</option>
-      {{range $c.Patients}}<option value="{{.ID}}">{{.Name}}{{with .Dob}} ({{.}}){{end}}</option>{{end}}
+      {{range $c.Patients}}<option value="{{.ID}}">{{.Name}}{{with dobLabel .}} ({{.}}){{end}}</option>{{end}}
     </select>
     {{template "apptrows" $c}}
     <button type="submit">Termine speichern</button>

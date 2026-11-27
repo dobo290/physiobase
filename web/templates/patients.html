@@ -16,7 +16,7 @@
   <thead><tr><th>Name</th><th>Geburtsdatum</th><th>Befunde</th><th>Behandlungen</th><th>Zuletzt</th></tr></thead>
   <tbody>
   {{range .Patients}}
-    <tr><td><a href="/patient/{{.ID}}"><strong>{{.Name}}</strong></a></td><td>{{.Dob}}</td><td>{{.Befunde}}</td><td>{{.Sessions}}</td><td>{{de .LastDate}}</td></tr>
+    <tr><td><a href="/patient/{{.ID}}"><strong>{{.Name}}</strong></a></td><td>{{dobLabel .}}</td><td>{{.Befunde}}</td><td>{{.Sessions}}</td><td>{{de .LastDate}}</td></tr>
   {{end}}
   </tbody>
 </table>

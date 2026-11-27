@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"forge.gpl-nas.de/physiobase/internal/store"
 )
@@ -599,7 +600,7 @@ func calendarSVG(v *calView) template.HTML {
 	fmt.Fprintf(&b, `<svg class="cal-svg" viewBox="0 0 %.0f %.0f" role="img" aria-label="Tagesplan" data-cal-day="%s" data-cal-grid="%d" data-cal-startmin="%d" data-cal-pxmin="%.2f" data-cal-gutter="%.0f" data-cal-header="%.0f" data-cal-width="%.0f" data-cal-therapists="%s">`,
 		v.Width, v.Height, v.Day.Format("2006-01-02"), v.Grid, v.StartMin, calPxPerMin, calGutter, calHeader, v.Width, therapistIDs(v))
 
-	// Zeitachse
+	// Zeitachse: Linien im eingestellten Raster, Beschriftung im 20-Minuten-Takt.
 	for m := v.StartMin; m <= v.EndMin; m += v.Grid {
 		y := calHeader + float64(m-v.StartMin)*calPxPerMin
 		hour := m%60 == 0
@@ -608,7 +609,7 @@ func calendarSVG(v *calView) template.HTML {
 			cls = "cal-line cal-hour"
 		}
 		fmt.Fprintf(&b, `<line class="%s" x1="%.0f" y1="%.1f" x2="%.0f" y2="%.1f"/>`, cls, calGutter, y, v.Width, y)
-		if hour {
+		if m%20 == 0 {
 			fmt.Fprintf(&b, `<text class="cal-time" x="%.0f" y="%.1f" text-anchor="end">%02d:%02d</text>`, calGutter-6, y+4, m/60, m%60)
 		}
 	}
@@ -651,16 +652,13 @@ func calendarSVG(v *calView) template.HTML {
 				href, a.ID, a.Start.Hour()*60+a.Start.Minute(), a.Duration, a.TherapistID, c.TherapistID)
 			fmt.Fprintf(&b, `<g class="%s">`, cls)
 			fmt.Fprintf(&b, `<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="4"/>`, blk.X, blk.Y, blk.W, blk.H)
-			// Text: Zeit, Patient, Art (je nach Höhe)
+			// Text: Name (Nachname + Initial), Art, Behandler – je nach Höhe.
 			lines := blockLines(a, blk.H)
 			tx := blk.X + 5
 			ty := blk.Y + 12
 			for i, ln := range lines {
 				lcls := "cal-btext"
 				if i == 0 {
-					lcls = "cal-btime"
-				}
-				if i == 1 {
 					lcls = "cal-bname"
 				}
 				fmt.Fprintf(&b, `<text class="%s" x="%.1f" y="%.1f">%s</text>`, lcls, tx, ty+float64(i)*11, html.EscapeString(ln))
@@ -669,27 +667,53 @@ func calendarSVG(v *calView) template.HTML {
 				fmt.Fprintf(&b, `<line class="cal-strike" x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"/>`,
 					blk.X+2, blk.Y+2, blk.X+blk.W-2, blk.Y+blk.H-2)
 			}
-			b.WriteString(`</g></a>`)
+			b.WriteString(`</g>`)
+			// Beim Überfahren leuchtet der Zeitstreifen in der linken Spalte auf.
+			fmt.Fprintf(&b, `<rect class="cal-gutter-hl" x="0" y="%.1f" width="%.1f" height="%.1f" aria-hidden="true"/>`,
+				blk.Y, calGutter-4, blk.H)
+			b.WriteString(`</a>`)
 		}
 	}
 	b.WriteString(`</svg>`)
 	return template.HTML(b.String()) //nolint:gosec // G203: nur aus geprüften Feldern und html.EscapeString gebaut
 }
 
-// blockLines wählt die Zeilen im Block passend zur Höhe.
+// blockLines wählt die Zeilen im Block passend zur Höhe. Die Uhrzeit steht
+// nicht mehr im Block – sie leuchtet beim Überfahren in der Zeitachse auf.
 func blockLines(a store.Appointment, h float64) []string {
-	time := hmOf(a.Start) + "–" + hmOf(a.End())
-	lines := []string{time}
-	if h >= 22 {
-		lines = append(lines, a.PatientName)
+	name := shortName(a.PatientName)
+	if name == "" {
+		name = a.Title
 	}
-	if h >= 36 {
+	if name == "" {
+		name = "Termin"
+	}
+	lines := []string{name}
+	if h >= 34 && a.Title != "" && a.Title != name {
 		lines = append(lines, a.Title)
 	}
-	if h >= 50 && a.TherapistName != "" {
+	if h >= 48 && a.TherapistName != "" {
 		lines = append(lines, a.TherapistName)
 	}
 	return lines
+}
+
+// shortName kürzt "Vorname Nachname" auf "Nachname V.".
+func shortName(name string) string {
+	f := strings.Fields(name)
+	if len(f) == 0 {
+		return ""
+	}
+	if len(f) == 1 {
+		return f[0]
+	}
+	last := []rune(f[len(f)-1])
+	first := []rune(f[0])
+	if len(first) == 0 || len(last) == 0 {
+		return strings.Join(f, " ")
+	}
+	last[0] = unicode.ToUpper(last[0])
+	return string(last) + " " + string(unicode.ToUpper(first[0])) + "."
 }
 
 // therapistIDs liefert die Spaltenzuordnung als data-Attribut (JS braucht sie beim Ziehen).

@@ -33,7 +33,7 @@
     if (evt.button !== 0) return;
     const link = evt.target.closest("a.cal-link");
     if (!link) return;
-    const rect = link.querySelector("rect");
+    const rect = link.querySelector(".cal-block rect");
     if (!rect) return;
     const p = point(evt);
     const y = parseFloat(rect.getAttribute("y"));

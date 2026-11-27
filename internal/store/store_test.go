@@ -5,8 +5,10 @@ import (
 	"errors"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"forge.gpl-nas.de/physiobase/internal/database"
+	"forge.gpl-nas.de/physiobase/internal/dob"
 )
 
 func newStore(t *testing.T) *Store {
@@ -237,5 +239,41 @@ func TestSeedDemo(t *testing.T) {
 	bs, err := s.Befunde(ctx, first)
 	if err != nil || len(bs) != 1 {
 		t.Fatalf("Befunde: %v (%d), erwartet 1", err, len(bs))
+	}
+}
+
+// CreatePatient normalisiert freie Eingaben; NormalizeDobs holt Altdaten nach.
+func TestNormalizeDobs(t *testing.T) {
+	ctx := context.Background()
+	s := newStore(t)
+	pid, err := s.CreatePatient(ctx, Patient{Name: "Alt Datum", Dob: "27.04.1969"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, err := s.Patient(ctx, pid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.Dob != "1969-04-27" || p.DobPrecision != dob.Day {
+		t.Fatalf("CreatePatient: dob=%q precision=%q", p.Dob, p.DobPrecision)
+	}
+
+	// Altdaten wie vor der Migration: nur der rohe Text in dob.
+	if _, err := s.db.ExecContext(ctx, `UPDATE patients SET dob='45', dob_precision='', dob_raw='' WHERE id=?`, pid); err != nil {
+		t.Fatal(err)
+	}
+	n, err := s.NormalizeDobs(ctx, time.Date(2026, 11, 27, 0, 0, 0, 0, time.Local))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != 1 {
+		t.Fatalf("NormalizeDobs = %d, erwartet 1", n)
+	}
+	p, err = s.Patient(ctx, pid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.Dob != "1981" || p.DobPrecision != dob.Age {
+		t.Fatalf("NormalizeDobs: dob=%q precision=%q", p.Dob, p.DobPrecision)
 	}
 }

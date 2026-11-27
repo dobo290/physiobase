@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+
+	"forge.gpl-nas.de/physiobase/internal/store"
 )
 
 func makeTherapist(t *testing.T, c *http.Client, base, name string) {
@@ -48,7 +50,7 @@ func TestCalendarPage(t *testing.T) {
 	if code != http.StatusOK {
 		t.Fatalf("Kalender: %d", code)
 	}
-	for _, want := range []string{"cal-svg", "Anna Schmidt", "Hans Müller", "data-cal-grid"} {
+	for _, want := range []string{"cal-svg", "Anna Schmidt", "Müller H.", "data-cal-grid", "cal-gutter-hl", "08:20"} {
 		if !strings.Contains(html, want) {
 			t.Errorf("Kalender ohne %q", want)
 		}
@@ -205,5 +207,36 @@ func TestDashboard(t *testing.T) {
 	}
 	if code, html := body(t, c, ts.URL+"/wissen"); code != http.StatusOK || !strings.Contains(html, "Wissen") {
 		t.Errorf("Wissensliste: %d", code)
+	}
+}
+
+// shortName kürzt auf Nachname und Initiale, blockLines lässt die Uhrzeit weg.
+func TestShortNameAndBlockLines(t *testing.T) {
+	t.Parallel()
+	names := map[string]string{
+		"":                   "",
+		"Hans":               "Hans",
+		"Hans Müller":        "Müller H.",
+		"Anna Maria Schmidt": "Schmidt A.",
+		"  hans   müller  ":  "Müller H.",
+	}
+	for in, want := range names {
+		if got := shortName(in); got != want {
+			t.Errorf("shortName(%q) = %q, erwartet %q", in, got, want)
+		}
+	}
+
+	a := store.Appointment{PatientName: "Hans Müller", Title: "KG", TherapistName: "Anna Schmidt"}
+	if got := blockLines(a, 20); len(got) != 1 || got[0] != "Müller H." {
+		t.Errorf("20 min: %v, erwartet nur den Namen", got)
+	}
+	if got := blockLines(a, 40); len(got) != 2 || got[1] != "KG" {
+		t.Errorf("40 min: %v, erwartet Name und Art", got)
+	}
+	if got := blockLines(a, 60); len(got) != 3 || got[2] != "Anna Schmidt" {
+		t.Errorf("60 min: %v, erwartet Name, Art und Behandler", got)
+	}
+	if got := blockLines(store.Appointment{}, 20); len(got) != 1 || got[0] != "Termin" {
+		t.Errorf("leerer Termin: %v", got)
 	}
 }

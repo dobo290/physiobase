@@ -6,11 +6,14 @@ import (
 	"log/slog"
 	"strings"
 	"time"
+
+	"forge.gpl-nas.de/physiobase/internal/dob"
 )
 
 type Patient struct {
 	ID                      int64
 	Name, Dob, Phone, Notes string
+	DobPrecision, DobRaw    string
 	Address, Job            string
 	Doctor, Doctors         string // Hausarzt / weitere Ärzte
 	Insurance               string // Krankenkasse
@@ -22,6 +25,15 @@ type Patient struct {
 	Created, Updated        time.Time
 	Befunde, Sessions       int
 	LastDate                string // letzter Befund oder letzte Behandlung (YYYY-MM-DD)
+}
+
+// DobInput liefert den Wert für das Eingabefeld: das gespeicherte Datum, bei
+// unlesbaren Altdaten den Originaltext.
+func (p Patient) DobInput() string {
+	if p.DobPrecision == dob.Unknown && p.DobRaw != "" {
+		return p.DobRaw
+	}
+	return p.Dob
 }
 
 type Befund struct {
@@ -39,14 +51,14 @@ type Session struct {
 // ---------- Patienten ----------
 
 func (s *Store) Patients(ctx context.Context, q string, archived bool) ([]Patient, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT p.id, p.name, p.dob, p.phone, p.notes, p.email, p.email_consent, p.archived, p.created_at, p.updated_at, p.address, p.job, p.doctor, p.doctors, p.insurance, p.payer_self, p.payer_private, p.payer_beihilfe, p.payer_bg,
+	rows, err := s.db.QueryContext(ctx, `SELECT p.id, p.name, p.dob, p.dob_precision, p.dob_raw, p.phone, p.notes, p.email, p.email_consent, p.archived, p.created_at, p.updated_at, p.address, p.job, p.doctor, p.doctors, p.insurance, p.payer_self, p.payer_private, p.payer_beihilfe, p.payer_bg,
 		(SELECT count(*) FROM befunde b WHERE b.patient_id = p.id),
 		(SELECT count(*) FROM sessions x WHERE x.patient_id = p.id),
 		COALESCE(max((SELECT max(date) FROM befunde b WHERE b.patient_id = p.id),
 		             (SELECT max(date) FROM sessions x WHERE x.patient_id = p.id)), '')
 		FROM patients p
-		WHERE p.archived = ? AND (? = '' OR p.name LIKE '%' || ? || '%' OR p.dob LIKE '%' || ? || '%')
-		ORDER BY p.updated_at DESC LIMIT 500`, archived, q, q, q)
+		WHERE p.archived = ? AND (? = '' OR p.name LIKE '%' || ? || '%' OR p.dob LIKE '%' || ? || '%' OR p.dob_raw LIKE '%' || ? || '%')
+		ORDER BY p.updated_at DESC LIMIT 500`, archived, q, q, q, q)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +79,7 @@ func scanPatient(sc scanner, withStats bool) (Patient, error) {
 	var c, u int64
 	var last sql.NullString
 	dest := []any{
-		&p.ID, &p.Name, &p.Dob, &p.Phone, &p.Notes, &p.Email, &p.EmailConsent, &p.Archived, &c, &u,
+		&p.ID, &p.Name, &p.Dob, &p.DobPrecision, &p.DobRaw, &p.Phone, &p.Notes, &p.Email, &p.EmailConsent, &p.Archived, &c, &u,
 		&p.Address, &p.Job, &p.Doctor, &p.Doctors, &p.Insurance,
 		&p.PayerSelf, &p.PayerPrivate, &p.PayerBeihilfe, &p.PayerBG,
 	}
@@ -80,18 +92,19 @@ func scanPatient(sc scanner, withStats bool) (Patient, error) {
 }
 
 func (s *Store) Patient(ctx context.Context, id int64) (Patient, error) {
-	p, err := scanPatient(s.db.QueryRowContext(ctx, `SELECT id, name, dob, phone, notes, email, email_consent, archived, created_at, updated_at,
+	p, err := scanPatient(s.db.QueryRowContext(ctx, `SELECT id, name, dob, dob_precision, dob_raw, phone, notes, email, email_consent, archived, created_at, updated_at,
 		address, job, doctor, doctors, insurance, payer_self, payer_private, payer_beihilfe, payer_bg
 		FROM patients WHERE id = ?`, id), false)
 	return p, notFound(err)
 }
 
 func (s *Store) CreatePatient(ctx context.Context, p Patient) (int64, error) {
+	p.normalizeDob(time.Now())
 	res, err := s.db.ExecContext(ctx, `INSERT INTO patients
-		(name, dob, phone, notes, email, email_consent, address, job, doctor, doctors, insurance,
+		(name, dob, dob_precision, dob_raw, phone, notes, email, email_consent, address, job, doctor, doctors, insurance,
 		 payer_self, payer_private, payer_beihilfe, payer_bg)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		p.Name, p.Dob, p.Phone, p.Notes, p.Email, p.EmailConsent,
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		p.Name, p.Dob, p.DobPrecision, p.DobRaw, p.Phone, p.Notes, p.Email, p.EmailConsent,
 		p.Address, p.Job, p.Doctor, p.Doctors, p.Insurance,
 		p.PayerSelf, p.PayerPrivate, p.PayerBeihilfe, p.PayerBG)
 	if err != nil {
@@ -101,11 +114,12 @@ func (s *Store) CreatePatient(ctx context.Context, p Patient) (int64, error) {
 }
 
 func (s *Store) UpdatePatient(ctx context.Context, p Patient) error {
-	res, err := s.db.ExecContext(ctx, `UPDATE patients SET name=?, dob=?, phone=?, notes=?, email=?, email_consent=?,
+	p.normalizeDob(time.Now())
+	res, err := s.db.ExecContext(ctx, `UPDATE patients SET name=?, dob=?, dob_precision=?, dob_raw=?, phone=?, notes=?, email=?, email_consent=?,
 		address=?, job=?, doctor=?, doctors=?, insurance=?,
 		payer_self=?, payer_private=?, payer_beihilfe=?, payer_bg=?,
 		updated_at=unixepoch() WHERE id=?`,
-		p.Name, p.Dob, p.Phone, p.Notes, p.Email, p.EmailConsent,
+		p.Name, p.Dob, p.DobPrecision, p.DobRaw, p.Phone, p.Notes, p.Email, p.EmailConsent,
 		p.Address, p.Job, p.Doctor, p.Doctors, p.Insurance,
 		p.PayerSelf, p.PayerPrivate, p.PayerBeihilfe, p.PayerBG, p.ID)
 	if err != nil {
@@ -424,4 +438,50 @@ func (s *Store) SearchTests(ctx context.Context, q string, limit int) ([]Entry, 
 	return s.entries(ctx, `SELECT `+entryCols+` FROM entries e
 		WHERE e.kind = 'test' AND e.title LIKE ? COLLATE NOCASE
 		ORDER BY e.title COLLATE NOCASE LIMIT ?`, "%"+q+"%", limit)
+}
+
+// normalizeDob ergänzt fehlende Genauigkeit, damit auch Aufrufer ohne
+// dob.Parse (Importe, Tests) ein sauberes Datum speichern.
+func (p *Patient) normalizeDob(now time.Time) {
+	if p.DobPrecision != "" {
+		return
+	}
+	p.Dob, p.DobPrecision, p.DobRaw = dob.Parse(p.Dob, now)
+}
+
+// NormalizeDobs ergänzt bei Altdaten die Genauigkeit und rechnet Altersangaben
+// in ein Geburtsjahr um. Läuft beim Start; mehrfaches Aufrufen ist harmlos.
+func (s *Store) NormalizeDobs(ctx context.Context, now time.Time) (int, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT id, dob FROM patients WHERE dob_precision = '' AND dob <> ''`)
+	if err != nil {
+		return 0, err
+	}
+	defer rows.Close()
+	type row struct {
+		id  int64
+		dob string
+	}
+	var todo []row
+	for rows.Next() {
+		var r row
+		if err := rows.Scan(&r.id, &r.dob); err != nil {
+			return 0, err
+		}
+		todo = append(todo, r)
+	}
+	if err := rows.Err(); err != nil {
+		return 0, err
+	}
+	for _, r := range todo {
+		date, precision, raw := dob.Parse(r.dob, now)
+		if precision == "" {
+			continue
+		}
+		if _, err := s.db.ExecContext(ctx,
+			`UPDATE patients SET dob=?, dob_precision=?, dob_raw=? WHERE id=?`,
+			date, precision, raw, r.id); err != nil {
+			return 0, err
+		}
+	}
+	return len(todo), nil
 }
