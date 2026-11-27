@@ -98,8 +98,7 @@ deleted automatically – the law sets a minimum retention, not an expiry date.
       Availability has two parts: **on-site** (UPS, redundant PSU, RAID, hourly and
       daily snapshots) and **off-site** (an encrypted copy that leaves the building,
       with a documented restore). Both, plus the rehearsed restore, are tracked in
-      `ROADMAP.md` under "Disaster recovery on other hardware", "Data volume and
-      archiving" and "Operations for larger practices".
+      `docs/hosting.md` (section 10, "Scale, operations and recovery").
 - [ ] **Per-patient access rights** *(mid term)* – rights per patient or case and a
       locum mode instead of one global role. **Today:** admin and user only.
       Art. 32, § 203 StGB.

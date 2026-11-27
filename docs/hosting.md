@@ -266,7 +266,97 @@ Minimum for a Hetzner-style setup:
 the same volume is not supported; a cold standby that starts after a failure is
 (section 8).
 
-## 10. Hand-over when the provider changes
+## 10. Scale, operations and recovery – roadmap
+
+These items belong to whoever operates an instance (practice or IT provider). They are
+tracked here instead of in `ROADMAP.md`, because they only matter once the instance
+grows or has to be recovered.
+
+- [ ] **Refuse to start on a newer database** *(next)*
+      - `migrate()` only applies missing migrations. An older binary on a database
+        written by a newer one starts silently and fails later with missing columns.
+      - On startup, compare the schema version with the known migrations and stop
+        with a clear message ("this data directory belongs to version X, this binary
+        understands up to Y") instead of corrupting anything.
+
+- [ ] **Integrity check and restore in the pipeline** *(mid term)*
+      - Nothing currently verifies that a snapshot is readable or that the live
+        database is intact. Add a scheduled `PRAGMA quick_check`, a checksum of every
+        snapshot, and a pipeline job that restores the newest snapshot into a
+        throwaway container and queries patient counts.
+
+- [ ] **Stability for practices with up to 250 therapists** *(next)*
+      - Target, not wishful thinking: one instance, one database, 250 therapists
+        working 40 h/week in 20-minute slots at the same time.
+      - Load that this means, derived from the slot model: 250 × 40 h = 10,000
+        therapist-hours per week → **30,000 appointments per week**, 6,000 per day,
+        ~1.4 million per year. Writes average **0.2 per second** with bursts of a
+        few hundred when slot boundaries align; reads reach **100–200 requests per
+        second** in reality (theoretical peak 500), each page costing 10–40 queries.
+      - **Baseline measured today** (SQLite + WAL, modernc driver, one SSD-backed
+        host): 23,000 inserts/s and 29,000 reads/s with a single connection, no
+        errors while writing and reading in parallel. The load above therefore fits
+        the engine by a factor of 10–500; the work is in connection handling,
+        indexes and UI concurrency, not in replacing the database.
+      - Work items: **separate pools** (one writer, 4–8 readers, WAL allows parallel
+        readers), **indexes** for the real access patterns
+        (`appointments(therapist_id, start)`, `prescriptions(patient_id, status)`,
+        `sessions(patient_id, date)`, `befunde(patient_id, date)`), batching instead
+        of per-row queries, and pagination everywhere.
+      - **Load test in the pipeline**: seed a database with 250 therapists and ten
+        years of data, replay appointment booking and patient-page reads, hold
+        p95 below 300 ms and keep it as a regression gate.
+
+- [ ] **Data volume and archiving** *(mid term)*
+      - Ten years of records for 250 therapists is roughly **10–20 GB**. Daily
+        snapshots (`VACUUM INTO`) take seconds on local NVMe but minutes on the
+        **HDD-backed NAS**, and `VACUUM` grows with file size.
+      - Move records past their retention period into a **read-only archive database
+        file** (opened on demand), keep the live database small (target: below 5 GB),
+        and stage backups on the local NVMe before they are copied to the HDD NAS.
+      - Admin view: database size, last backup duration, archive state.
+
+- [ ] **Disaster recovery on other hardware** *(mid term)*
+      - Assumed and already in place: **UPS, redundant power supply, RAID** on the
+        server, a NAS on HDDs for snapshots. Power loss and a single failing disk
+        are therefore covered; the open risks are OS or container corruption, human
+        error, a compromised host, several disks failing at once, and losing the room
+        itself (water, fire, theft).
+      - The server-side recommendations (sizing, network, backup, hardening, what a
+        hosting provider has to know) are in `docs/hosting.md`; this item is the
+        practice-side runbook that goes with it.
+      - A written runbook: what the practice does in the first hour, who is called,
+        how the container comes up on spare hardware from the latest snapshot, how
+        DNS or the proxy is pointed there, and a **measured restore time** (RTO) plus
+        the accepted data loss (RPO) in plain numbers.
+      - Rehearsed restore on a copy, once per quarter, with a short report.
+      - **Off-site copy**: today every backup lives in the same house as the server,
+        so a fire or a flooded cellar takes both. Add an encrypted copy that leaves
+        the building (rotating disk, second location over the tunnel) and document
+        how it is restored. When the instance itself runs at a provider (see
+        `docs/hosting.md`, section 9), the copy belongs at the practice instead.
+      - Shorten the RPO where it is cheap: database snapshots hourly (they take
+        seconds), keep hourly for a week, daily for a month.
+
+- [ ] **Operations for larger practices** *(mid term)*
+      - Runbook for the practice: what to check, how to restore, who is called.
+      - Health and metrics endpoint (database size, backup age, failed logins,
+        request latency), alerting when a snapshot fails or the database crosses a
+        size threshold, and a rehearsed restore on a copy of a real database.
+
+- [ ] **Optional PostgreSQL backend** *(long term, only on demand)*
+      - Decision criteria, so the question stays factual: **several hosts sharing
+        the same database** (relevant when one instance serves many practices), high
+        availability across machines, real-time reporting across practices, or write
+        loads beyond a few hundred per second. Access from another location does
+        **not** need it - a tunnel or a reverse proxy is enough, and for 250
+        therapists in one practice neither criterion applies.
+      - Keep the store behind its current API so the engine stays swappable; the
+        migration would touch placeholders, upserts, `unixepoch()`,
+        `pragma_table_info`, `VACUUM INTO` and FTS5 (→ `tsvector` + GIN), plus a
+        second variant of every migration and a test matrix for both engines.
+
+## 11. Hand-over when the provider changes
 
 Hand over, in writing:
 
