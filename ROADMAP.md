@@ -370,6 +370,24 @@ Guiding principles for every decision:
         patient messaging. Every interface is documented in the repo and covered by a
         test with a real exchange file.
 
+- [ ] **Home Assistant integration** *(mid term)*
+      - Two directions, in this order:
+      - **Outbound webhooks first**: configurable URL(s) in the admin area, JSON
+        payloads for `practice.opened`, `practice.closed`, `appointment.completed`,
+        `assessment.saved`. Home Assistant reacts with a webhook trigger, so lights,
+        climate or a room display follow the practice day. No token on the HA side, no
+        polling, HA stays in charge of the devices.
+      - **Read-only integration token** for HA sensors once the JSON API exists
+        (today's appointments, next appointment, recall list) - for a wall tablet in
+        the corridor. Data minimised: time and first name, nothing clinical.
+      - **MQTT publisher afterwards** if a broker is already running: same events,
+        subscription instead of polling.
+      - **Security and privacy**: only outbound calls (nothing inbound exposed),
+        payloads documented in the repo, no diagnoses or assessment contents in
+        events, token revocable, test against a fake receiver in the pipeline, and a
+        note in `docs/compliance.md` that Home Assistant stores these payloads (its own
+        retention applies).
+
 ## Security, data protection and operations
 
 - [ ] **Compliance roadmap** *(next/mid/long, see the document)* - the data

@@ -105,6 +105,12 @@ deleted automatically – the law sets a minimum retention, not an expiry date.
 - [ ] **Opt-in encryption** *(long term)* – encrypted database and media
       (passphrase at start), encrypted backups, optional field-level encryption.
       **Today:** no encryption at rest, backups unencrypted. Art. 32(1)(a).
+- [ ] **Home Assistant integration** *(mid term, with the interoperability roadmap)* –
+      events sent to Home Assistant leave the application (appointment times, patient
+      first names, no clinical content). The practice must decide that this is wanted,
+      the events are documented, and Home Assistant keeps its own copies with its own
+      retention - a processing activity to add to the record of processing activities
+      when it is switched on.
 - [ ] **Mobile clients** *(long term, with the mobile roadmap item)* – a phone is a
       second processing location: tokens in Keychain/Keystore, encrypted offline
       cache excluded from cloud backups, remote logout through the session version,
