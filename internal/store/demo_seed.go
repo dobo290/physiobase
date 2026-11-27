@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"time"
+
+	"forge.gpl-nas.de/physiobase/internal/dob"
 )
 
 // SeedDemoOnce legt die Demo-Daten nur an, wenn noch keine Patienten
@@ -56,9 +58,10 @@ func (s *Store) SeedDemo(ctx context.Context) error {
 
 	ids := make([]int64, 0, len(patients))
 	for _, p := range patients {
+		dobDate, dobPrecision, dobRaw := dob.Parse(p.dob, time.Now())
 		res, err := s.db.ExecContext(ctx,
-			`INSERT INTO patients (name, dob, phone, notes, email_consent) VALUES (?, ?, ?, ?, 0)`,
-			p.name, p.dob, p.phone, p.notes)
+			`INSERT INTO patients (name, dob, dob_precision, dob_raw, phone, notes, email_consent) VALUES (?, ?, ?, ?, ?, ?, 0)`,
+			p.name, dobDate, dobPrecision, dobRaw, p.phone, p.notes)
 		if err != nil {
 			return err
 		}
