@@ -672,6 +672,24 @@ func calendarSVG(v *calView) template.HTML {
 			fmt.Fprintf(&b, `<rect class="cal-gutter-hl" x="0" y="%.1f" width="%.1f" height="%.1f" aria-hidden="true"/>`,
 				blk.Y, calGutter-4, blk.H)
 			b.WriteString(`</a>`)
+			// Schnellzugriffe oben rechts, sichtbar beim Überfahren: Patientenakte und Löschen.
+			if blk.W >= 40 && blk.H >= 20 {
+				b.WriteString(`<g class="cal-actions">`)
+				fmt.Fprintf(&b, `<a class="cal-patient" href="/patient/%d#termine" target="_blank" rel="noopener">`, a.PatientID)
+				fmt.Fprintf(&b, `<title>Patientenakte von %s</title>`, html.EscapeString(a.PatientName))
+				fmt.Fprintf(&b, `<circle cx="%.1f" cy="%.1f" r="7"/>`, blk.X+blk.W-10, blk.Y+10)
+				fmt.Fprintf(&b, `<text x="%.1f" y="%.1f" text-anchor="middle">↗</text>`, blk.X+blk.W-10, blk.Y+13)
+				b.WriteString(`</a>`)
+				if blk.W >= 58 {
+					fmt.Fprintf(&b, `<a class="cal-delete" href="/kalender?tag=%s&amp;termin=%d#loeschen" data-appt="%d" data-tag="%s">`,
+						v.Day.Format("2006-01-02"), a.ID, a.ID, v.Day.Format("2006-01-02"))
+					fmt.Fprintf(&b, `<title>Termin löschen: %s, %s</title>`, html.EscapeString(a.PatientName), hmOf(a.Start))
+					fmt.Fprintf(&b, `<circle cx="%.1f" cy="%.1f" r="7"/>`, blk.X+blk.W-27, blk.Y+10)
+					fmt.Fprintf(&b, `<text x="%.1f" y="%.1f" text-anchor="middle">×</text>`, blk.X+blk.W-27, blk.Y+14)
+					b.WriteString(`</a>`)
+				}
+				b.WriteString(`</g>`)
+			}
 		}
 	}
 	b.WriteString(`</svg>`)

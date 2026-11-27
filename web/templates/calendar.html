@@ -111,11 +111,15 @@
   <article class="cal-day{{if .Today}} today{{end}}">
     <h3>{{.Label}}</h3>
     {{range .Appts}}
-    <a class="cal-card{{if .Cancelled}} cancelled{{end}}" href="/kalender?tag={{ymd .Start}}&amp;ansicht=tag&amp;termin={{.ID}}">
-      <span class="cal-card-time">{{hm .Start}}–{{hm .End}}</span>
-      <strong>{{.PatientName}}</strong>
-      <span class="muted">{{.Title}}{{with .TherapistName}} · {{.}}{{end}}</span>
-    </a>
+    <div class="cal-card{{if .Cancelled}} cancelled{{end}}">
+      <a class="cal-card-body" href="/kalender?tag={{ymd .Start}}&amp;ansicht=tag&amp;termin={{.ID}}">
+        <span class="cal-card-time">{{hm .Start}}–{{hm .End}}</span>
+        <strong>{{.PatientName}}</strong>
+        <span class="muted">{{.Title}}{{with .TherapistName}} · {{.}}{{end}}</span>
+      </a>
+      <a class="cal-card-patient" href="/patient/{{.PatientID}}#termine" target="_blank" rel="noopener" title="Patientenakte von {{.PatientName}}">↗</a>
+      <a class="cal-card-delete" href="/kalender?tag={{ymd .Start}}&amp;termin={{.ID}}#loeschen" data-appt="{{.ID}}" data-tag="{{ymd .Start}}" title="Termin löschen">×</a>
+    </div>
     {{else}}<p class="muted small">frei</p>{{end}}
   </article>
   {{end}}

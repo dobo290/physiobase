@@ -240,3 +240,23 @@ func TestShortNameAndBlockLines(t *testing.T) {
 		t.Errorf("leerer Termin: %v", got)
 	}
 }
+
+// Der Hell-/Dunkelmodus wird per Cookie gemerkt und beim Rendern gesetzt.
+func TestThemeToggle(t *testing.T) {
+	t.Parallel()
+	ts, c := newServer(t)
+	login(t, c, ts.URL)
+	if _, html := body(t, c, ts.URL+"/"); strings.Contains(html, `data-theme=`) {
+		t.Fatal("ohne Cookie darf kein data-theme gesetzt sein")
+	}
+	if r, _ := post(c, ts.URL+"/theme/umschalten", url.Values{"zurueck": {"/"}}); r.StatusCode != http.StatusSeeOther {
+		t.Fatalf("Dunkelmodus: %d", r.StatusCode)
+	}
+	if _, html := body(t, c, ts.URL+"/"); !strings.Contains(html, `data-theme="dark"`) {
+		t.Error("Dunkelmodus nicht gesetzt")
+	}
+	post(c, ts.URL+"/theme/umschalten", url.Values{"zurueck": {"/"}})
+	if _, html := body(t, c, ts.URL+"/"); !strings.Contains(html, `data-theme="light"`) {
+		t.Error("Hellmodus nicht gesetzt")
+	}
+}

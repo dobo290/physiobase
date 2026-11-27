@@ -112,6 +112,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /{$}", s.dashboard)
 	mux.HandleFunc("GET /wissen", s.index)
 	mux.HandleFunc("POST /sidebar/umschalten", s.toggleSidebar)
+	mux.HandleFunc("POST /theme/umschalten", s.toggleTheme)
 	mux.HandleFunc("GET /eintrag/neu", s.newEntry)
 	mux.HandleFunc("POST /eintrag/neu", s.saveEntry)
 	mux.HandleFunc("GET /eintrag/{id}", s.showEntry)
@@ -410,6 +411,7 @@ func (s *Server) render(w http.ResponseWriter, r *http.Request, page string, sta
 	data["Path"] = r.URL.Path
 	data["Area"] = areaFor(r)
 	data["SidebarCollapsed"] = sidebarCollapsed(r)
+	data["Theme"] = themeName(r)
 	data["Mine"] = false
 	if u, ok := currentUser(r); ok {
 		data["Mine"] = u.TherapistID > 0

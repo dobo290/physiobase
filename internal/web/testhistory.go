@@ -224,17 +224,17 @@ func chartSVG(s testSeries, width, height int, spark bool) template.HTML {
 		// Gitterlinien für 0, Mitte, Maximum
 		for _, v := range []int{0, maxV / 2, maxV} {
 			yy := y(v)
-			fmt.Fprintf(&b, `<line x1="%d" y1="%.1f" x2="%d" y2="%.1f" stroke="#d5dbe1" stroke-width="1"/>`,
+			fmt.Fprintf(&b, `<line x1="%d" y1="%.1f" x2="%d" y2="%.1f" stroke="currentColor" stroke-opacity=".18" stroke-width="1"/>`,
 				padL, yy, width-padR, yy)
-			fmt.Fprintf(&b, `<text x="%d" y="%.1f" text-anchor="end" font-size="9" fill="#5b6873">%d</text>`,
+			fmt.Fprintf(&b, `<text x="%d" y="%.1f" text-anchor="end" font-size="9" fill="currentColor" fill-opacity=".75">%d</text>`,
 				padL-4, yy+3, v)
 		}
 		// Erste und letzte Datumsangabe
 		first, last := s.Points[0].Date, s.Points[len(s.Points)-1].Date
-		fmt.Fprintf(&b, `<text x="%d" y="%d" text-anchor="start" font-size="9" fill="#5b6873">%s</text>`,
+		fmt.Fprintf(&b, `<text x="%d" y="%d" text-anchor="start" font-size="9" fill="currentColor" fill-opacity=".75">%s</text>`,
 			padL, height-4, deISO(first))
 		if last != first {
-			fmt.Fprintf(&b, `<text x="%d" y="%d" text-anchor="end" font-size="9" fill="#5b6873">%s</text>`,
+			fmt.Fprintf(&b, `<text x="%d" y="%d" text-anchor="end" font-size="9" fill="currentColor" fill-opacity=".75">%s</text>`,
 				width-padR, height-4, deISO(last))
 		}
 	}

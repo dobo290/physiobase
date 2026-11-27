@@ -6,6 +6,21 @@
 
   const mobile = () => window.matchMedia("(max-width: 900px)").matches;
 
+  // Hell-/Dunkelmodus: sofort umschalten und pro Gerät merken.
+  document.addEventListener("click", (evt) => {
+    const btn = evt.target.closest("[data-theme-toggle]");
+    if (!btn) return;
+    evt.preventDefault();
+    const root = document.documentElement;
+    const current = root.dataset.theme ||
+      (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    const next = current === "dark" ? "light" : "dark";
+    root.dataset.theme = next;
+    document.cookie = "physiobase_theme=" + next + "; path=/; max-age=31536000; samesite=lax";
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", next === "dark" ? "#0f1b26" : "#1f3b57");
+  });
+
   document.addEventListener("click", (evt) => {
     const btn = evt.target.closest("[data-sidebar-toggle]");
     if (!btn) return;

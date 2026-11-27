@@ -1,4 +1,4 @@
 package version
 
 // Version ist die Versionskennung der Anwendung.
-const Version = "0.16.3"
+const Version = "0.17.0"

@@ -3,6 +3,28 @@
 // Gespeichert wird über denselben Server-Endpunkt wie das Formular.
 (() => {
   "use strict";
+  // Schnell löschen (Tages- und Wochenansicht): nach Bestätigung ein normales Formular absenden.
+  document.addEventListener("click", (evt) => {
+    const del = evt.target.closest("a.cal-delete, a.cal-card-delete");
+    if (!del) return;
+    evt.preventDefault();
+    if (!confirm("Diesen Termin wirklich löschen?")) return;
+    const form = document.createElement("form");
+    form.method = "post";
+    form.action = "/termin/" + del.dataset.appt + "/loeschen";
+    const add = (name, value) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = name;
+      input.value = value;
+      form.appendChild(input);
+    };
+    add("back", "kalender");
+    add("tag", del.dataset.tag || "");
+    document.body.appendChild(form);
+    form.submit();
+  });
+
   const svg = document.querySelector(".cal-svg");
   if (!svg) return;
 
@@ -115,7 +137,8 @@
     const url = "/termin/" + d.link.dataset.appt + "/verschieben";
     const post = (extra) => fetch(url, {
       method: "POST",
-      headers: { Accept: "application/json" },
+      // Ohne Content-Type schickt fetch text/plain – der Server parst dann kein Formular.
+      headers: { Accept: "application/json", "Content-Type": "application/x-www-form-urlencoded" },
       body: extra ? body.toString() + "&" + extra : body.toString(),
     });
 
