@@ -214,14 +214,39 @@ Guiding principles for every decision:
         handouts, appointments, account), collapsible and remembered per device
         (cookie), on narrow screens a drawer with a single toggle. Server-rendered
         like the rest, no framework.
-      - **Dashboard content, only what is useful in the morning**: today's
-        appointments with therapist and time, patients seen last week, open
-        assessments without a follow-up, knowledge entries changed recently, and a
-        direct search field plus the two or three most common actions (new patient,
-        new assessment, new entry).
+      - **Main element is the appointment calendar** (own item below): the day plan
+        with one column per therapist. Around it: patients seen last week, open
+        assessments without a follow-up, knowledge entries changed recently, a direct
+        search field and the two or three most common actions (new patient, new
+        assessment, new entry).
       - Keeps the existing "Dashboard" item meaningful: that one adds figures
         (case numbers, utilisation, no-show rate); this one is the shell, the
         navigation and the daily overview.
+- [ ] **Appointment calendar: one column per therapist** *(next)*
+      - A day (and week) view on the dashboard with one column per therapist - the
+        practice's wall planner, not a list. Time axis with a configurable grid
+        (5 or 10 minutes), appointments as blocks showing time, patient and treatment
+        type, cancelled ones struck through.
+      - **Appointments are editable in place**: click opens an editor next to the
+        calendar, drag moves, dragging the lower edge changes the duration, snapping
+        to the grid. Every change is saved through the same server action the
+        appointment page uses, so the two views can never disagree; an alternative
+        keyboard/form path stays, because drag and drop must not be the only way.
+      - **Linked to prescription and patient**: a block opens the patient page, the
+        prescription the appointment belongs to, or the assessment if one exists;
+        creating an appointment from a prescription pre-fills treatment type,
+        duration, therapist and payer (licence filter for statutory patients), and
+        the units counter of the prescription updates on completion.
+      - **Conflicts are visible before saving**: overlapping appointments in the same
+        column, a therapist who is not licensed for the treatment type (statutory
+        patients), a closed or expired prescription. Overriding needs an explicit
+        confirmation, so a deliberate exception stays possible.
+      - With many therapists the columns cannot all fit: filter by team, location or
+        "my column only", scroll horizontally, and keep the calendar usable on a
+        tablet. Optimistic locking (own item) prevents two people overwriting the same
+        appointment.
+      - Print view of the day plan per therapist or for the whole practice, plus the
+        existing patient calendar feed staying as it is.
 - [ ] **Reception / assistant role** *(next)*
       - Only `admin` and `user` exist. A front desk needs appointments and patient
         master data but must not read assessments: its own role with a narrow set of
