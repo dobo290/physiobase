@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -135,4 +136,38 @@ func hasTable(t *testing.T, db *sql.DB, table string) bool {
 		return false
 	}
 	return n > 0
+}
+
+// Eine Datenbank, die eine neuere Version geschrieben hat, darf nicht stillschweigend
+// von einem aelteren Binary geoeffnet werden.
+func TestOpenRefusesNewerSchema(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "newer.db")
+	db, err := sql.Open("sqlite", "file:"+path+"?_pragma=foreign_keys(1)")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(`CREATE TABLE schema_migrations (version INTEGER PRIMARY KEY)`); err != nil {
+		t.Fatal(err)
+	}
+	for _, m := range migrations {
+		if _, err := db.Exec(m.sql); err != nil {
+			t.Fatalf("version %d: %v", m.version, err)
+		}
+		if _, err := db.Exec(`INSERT INTO schema_migrations (version) VALUES (?)`, m.version); err != nil {
+			t.Fatal(err)
+		}
+	}
+	future := len(migrations) + 1
+	if _, err := db.Exec(`INSERT INTO schema_migrations (version) VALUES (?)`, future); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := Open(path); err == nil {
+		t.Fatal("Open akzeptiert eine neuere Schemaversion")
+	} else if !strings.Contains(err.Error(), "Schemaversion") {
+		t.Fatalf("unerwartete Meldung: %v", err)
+	}
 }

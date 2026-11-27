@@ -360,6 +360,12 @@ func migrate(db *sql.DB) error {
 	if err := db.QueryRow(`SELECT COALESCE(MAX(version), 0) FROM schema_migrations`).Scan(&current); err != nil {
 		return err
 	}
+	// Schutz gegen Rueckschritt: Eine Datenbank, die von einer neueren Version
+	// geschrieben wurde, kennt Spalten, die dieses Binary nicht anlegt. Statt spaeter
+	// mit kryptischen SQL-Fehlern zu scheitern, hier klar abbrechen.
+	if head := len(migrations); current > head {
+		return fmt.Errorf("Datenbank hat Schemaversion %d, dieses Programm kennt nur %d – bitte die neuere PhysioBase-Version starten", current, head)
+	}
 	for _, m := range migrations {
 		if m.version <= current {
 			continue
