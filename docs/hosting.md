@@ -272,6 +272,23 @@ These items belong to whoever operates an instance (practice or IT provider). Th
 tracked here instead of in `ROADMAP.md`, because they only matter once the instance
 grows or has to be recovered.
 
+- [ ] **Database portability** *(mid term)*
+      - One command moves the live database to another SQL engine, for example
+        PostgreSQL: `physiobase copy-db --from /data/physiobase.db --to postgres://…`.
+        It creates the schema, copies table by table in foreign-key order, resets the
+        sequences and verifies row counts per table against the source.
+      - Runbook: use a window outside treatment hours, run the copy, set
+        `PHYSIOBASE_DB_URL`, restart the container, check `healthz`, login, one patient,
+        one finding and the search, and keep the SQLite file as a rollback for a while.
+        Downtime is minutes; media and documents stay on disk and are not touched.
+      - **Zero-downtime migration (dual write, change data capture) is explicitly not a
+        goal** - a practice can live with a short window outside treatment hours, and
+        two sources of truth would cost more than they gain.
+      - The dialect work (placeholders, upserts, `unixepoch()`, `pragma_table_info`,
+        `VACUUM INTO`, FTS5 to `tsvector`) is tracked in the PostgreSQL item below;
+        MySQL/MariaDB would be the same effort for less benefit and is only worth doing
+        when somebody actually needs it.
+
 - [ ] **Refuse to start on a newer database** *(next)*
       - `migrate()` only applies missing migrations. An older binary on a database
         written by a newer one starts silently and fails later with missing columns.
