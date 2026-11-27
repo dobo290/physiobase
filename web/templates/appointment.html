@@ -3,9 +3,17 @@
 {{$a := .A}}
 <nav aria-label="breadcrumb"><ul><li><a href="/termine">Termine</a></li><li><a href="/patient/{{$a.PatientID}}#termine">{{$a.PatientName}}</a></li><li>{{day $a.Start}}</li></ul></nav>
 {{with .Error}}<p class="error" role="alert">{{.}}</p>{{end}}
+{{with .Conflicts}}
+<div class="confirm-box" role="alert">
+  <strong>Überschneidung – bitte prüfen:</strong>
+  <ul>{{range .}}<li>{{.}}</li>{{end}}</ul>
+  <p class="muted">Bewusste Ausnahme? Häkchen unten setzen und erneut speichern.</p>
+</div>
+{{end}}
 <article>
   <h2>Termin bearbeiten</h2>
   <form method="post" action="/termin/{{$a.ID}}">
+    <input type="hidden" name="back" value="{{.Back}}">
     <div class="appt-fields">
       <label>Datum <input type="date" name="date" value="{{ymd $a.Start}}" required></label>
       <label>Uhrzeit <input type="time" name="time" value="{{hm $a.Start}}" step="300" required></label>
@@ -20,13 +28,17 @@
       <label class="wide">Hinweis für den Patienten <input name="note" value="{{$a.Note}}"></label>
     </div>
     <label class="consent"><input type="checkbox" name="cancelled" value="1"{{if $a.Cancelled}} checked{{end}}> Abgesagt</label>
-    <div class="actions"><button type="submit">Speichern</button><a href="/patient/{{$a.PatientID}}#termine">Abbrechen</a></div>
+    {{with .Conflicts}}<label class="consent"><input type="checkbox" name="bestaetigen" value="1" required> Überschneidung ist beabsichtigt</label>{{end}}
+    <div class="actions"><button type="submit">Speichern</button>
+      <a href="/patient/{{$a.PatientID}}#termine">Abbrechen</a>
+      <a href="/kalender?tag={{ymd $a.Start}}&amp;termin={{$a.ID}}">Im Kalender zeigen</a></div>
     <small class="muted">Änderungen erscheinen im Kalender des Patienten beim nächsten Abgleich (meist innerhalb einer Stunde).</small>
   </form>
 </article>
 <details class="danger" id="loeschen"{{if .AskDelete}} open{{end}}>
   <summary>Termin löschen …</summary>
   <form method="post" action="/termin/{{$a.ID}}/loeschen">
+    <input type="hidden" name="back" value="{{.Back}}">
     <p>Besser „Abgesagt“ anhaken – dann sieht der Patient die Absage im Kalender. Gelöschte Termine verschwinden einfach.</p>
     <button type="submit" class="danger">Endgültig löschen</button>
   </form>

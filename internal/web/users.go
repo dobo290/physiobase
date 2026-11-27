@@ -116,9 +116,15 @@ func (s *Server) adminUser(w http.ResponseWriter, r *http.Request) {
 	if t := q.Get("link"); t != "" { // nur direkt nach dem Erzeugen sichtbar (Klartext steht nirgends gespeichert)
 		link = s.publicBase(r) + "/einrichten/" + t
 	}
+	therapists, err := s.st.Therapists(ctx, false)
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
 	s.render(w, r, "admin_user", http.StatusOK, map[string]any{
 		"U": u, "PK": pks, "Me": me.ID == u.ID, "HasLink": hasLink, "LinkExpires": exp, "Link": link,
 		"Error": q.Get("fehler"), "Saved": q.Get("gespeichert") == "1", "PasskeysOn": s.wa != nil,
+		"Therapists": therapists,
 	})
 }
 
@@ -131,7 +137,8 @@ func (s *Server) adminUpdateUser(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	err := s.st.UpdateUser(r.Context(), id, formText(r, "display_name"), formText(r, "role"), r.FormValue("active") == "1")
+	therapistID, _ := formID(r, "therapist")
+	err := s.st.UpdateUser(r.Context(), id, formText(r, "display_name"), formText(r, "role"), r.FormValue("active") == "1", therapistID)
 	if errors.Is(err, store.ErrLastAdmin) {
 		redirect(w, r, "/admin/benutzer/%d?fehler=%s", id, urlPathEscape(err.Error()))
 		return

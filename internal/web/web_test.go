@@ -122,7 +122,11 @@ func TestAuthFlow(t *testing.T) {
 	if r.StatusCode != http.StatusSeeOther {
 		t.Fatalf("login: %d", r.StatusCode)
 	}
-	code, html := body(t, c, ts.URL+"/?q=knie")
+	// Alte Links auf die Wissensliste (/?q=…) leiten auf /wissen weiter.
+	if code, _ := body(t, c, ts.URL+"/?q=knie"); code != http.StatusSeeOther {
+		t.Fatalf("alter Suchlink: %d, erwartet Redirect", code)
+	}
+	code, html := body(t, c, ts.URL+"/wissen?q=knie")
 	if code != 200 || !strings.Contains(html, "Patellatendinopathie") {
 		t.Fatalf("Suche nach Login: %d", code)
 	}

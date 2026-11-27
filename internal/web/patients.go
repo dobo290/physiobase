@@ -136,6 +136,11 @@ func (s *Server) showPatient(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, err)
 		return
 	}
+	histories, err := s.testHistories(ctx, id, bs)
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
 	appt, err := s.patientAppointmentData(r, id)
 	if err != nil {
 		s.fail(w, r, err)
@@ -189,6 +194,7 @@ func (s *Server) showPatient(w http.ResponseWriter, r *http.Request) {
 		"RemoveTest": removeTest,
 		"Handouts":   handouts, "Trend": trend, "Today": time.Now().Format("2006-01-02"),
 		"Docs": docs, "DocCategories": s.lines("doc_categories"), "Summaries": summaries, "Appt": appt, "QHist": qhist, "Tests": ptests,
+		"TH":    seriesByEntry(histories),
 		"Error": r.URL.Query().Get("fehler"),
 	})
 }

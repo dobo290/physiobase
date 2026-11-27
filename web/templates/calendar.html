@@ -1,0 +1,139 @@
+{{define "title"}}Termine{{end}}
+{{define "content"}}
+{{$c := .Cal}}
+{{$p := $c.Filter}}
+<header class="cal-head">
+  <h1>Termine</h1>
+  <div class="cal-tools">
+    <div class="seg" role="group" aria-label="Ansicht">
+      <a href="/kalender?tag={{$p.Day.Format "2006-01-02"}}&amp;ansicht=tag{{if $p.Therapist}}&amp;behandler={{$p.Therapist}}{{end}}{{if $p.Location}}&amp;ort={{$p.Location}}{{end}}"{{if eq $p.View "tag"}} aria-current="page"{{end}}>Tag</a>
+      <a href="/kalender?tag={{$p.Day.Format "2006-01-02"}}&amp;ansicht=woche{{if $p.Therapist}}&amp;behandler={{$p.Therapist}}{{end}}{{if $p.Location}}&amp;ort={{$p.Location}}{{end}}"{{if eq $p.View "woche"}} aria-current="page"{{end}}>Woche</a>
+    </div>
+    <a role="button" class="secondary outline small" href="/kalender/druck?tag={{$p.Day.Format "2006-01-02"}}&amp;ansicht=tag{{if $p.Therapist}}&amp;behandler={{$p.Therapist}}{{end}}{{if $p.Location}}&amp;ort={{$p.Location}}{{end}}" target="_blank" rel="noopener">Drucken</a>
+  </div>
+</header>
+
+{{with .Error}}<p class="error" role="alert">{{.}}</p>{{end}}
+{{if .Saved}}<p class="ok" role="status">Gespeichert.</p>{{end}}
+
+<nav class="cal-nav" aria-label="Zeitraum">
+  <a href="/kalender?tag={{$c.PrevDay}}&amp;ansicht={{$p.View}}{{if $p.Therapist}}&amp;behandler={{$p.Therapist}}{{end}}{{if $p.Location}}&amp;ort={{$p.Location}}{{end}}">← {{if eq $p.View "woche"}}Vorige Woche{{else}}Vortag{{end}}</a>
+  <strong>{{if eq $p.View "woche"}}{{$c.WeekLabel}}{{else}}{{day $p.Day}}{{end}}</strong>
+  <a href="/kalender?tag={{$c.NextDay}}&amp;ansicht={{$p.View}}{{if $p.Therapist}}&amp;behandler={{$p.Therapist}}{{end}}{{if $p.Location}}&amp;ort={{$p.Location}}{{end}}">{{if eq $p.View "woche"}}Nächste Woche{{else}}Folgetag{{end}} →</a>
+  <a href="/kalender?ansicht={{$p.View}}" class="secondary">Heute</a>
+</nav>
+
+<form method="get" action="/kalender" class="row cal-filter">
+  <input type="hidden" name="tag" value="{{$p.Day.Format "2006-01-02"}}">
+  <input type="hidden" name="ansicht" value="{{$p.View}}">
+  <select name="behandler" aria-label="Behandler">
+    <option value="0">Alle Behandler</option>
+    {{range $c.Therapists}}<option value="{{.ID}}"{{if eq .ID $p.Therapist}} selected{{end}}>{{.Name}}{{if not .Active}} (inaktiv){{end}}</option>{{end}}
+  </select>
+  {{if $c.Locations}}
+  <select name="ort" aria-label="Ort">
+    <option value="">Alle Orte</option>
+    {{range $c.Locations}}<option value="{{.}}"{{if eq . $p.Location}} selected{{end}}>{{.}}</option>{{end}}
+  </select>
+  {{end}}
+  {{if $c.MineOK}}<label class="consent"><input type="checkbox" name="meine" value="1"{{if $p.Mine}} checked{{end}}> nur meine Spalte</label>{{end}}
+  <button type="submit" class="secondary">Anzeigen</button>
+</form>
+
+{{if eq $p.View "tag"}}
+<div class="calwrap">
+  {{calendarSVG $c}}
+</div>
+<p class="cal-legend muted">
+  <span class="cal-dot cancelled"></span> abgesagt ·
+  <span class="cal-dot conflict"></span> Überschneidung ·
+  Klick öffnet den Termin, Ziehen verschiebt ihn, Ziehen an der Unterkante ändert die Dauer.
+  Ohne JavaScript: Termin anklicken und im Formular ändern.
+</p>
+{{if not $c.Appts}}<p class="muted">Keine Termine an diesem Tag. <a href="#neu">Termin anlegen</a></p>{{end}}
+
+{{with $c.Selected}}
+<aside class="cal-editor" id="editor">
+  <h2>Termin bearbeiten</h2>
+  <p class="muted">{{$a := .}}{{$a.PatientName}} · {{day $a.Start}}</p>
+  <form method="post" action="/termin/{{.ID}}">
+    <input type="hidden" name="back" value="kalender">
+    <input type="hidden" name="tag" value="{{$c.Filter.Day.Format "2006-01-02"}}">
+    <input type="hidden" name="ansicht" value="{{$c.Filter.View}}">
+    <input type="hidden" name="behandler" value="{{$c.Filter.Therapist}}">
+    <input type="hidden" name="ort" value="{{$c.Filter.Location}}">
+    <div class="appt-fields">
+      <label>Datum <input type="date" name="date" value="{{ymd .Start}}" required></label>
+      <label>Uhrzeit <input type="time" name="time" value="{{hm .Start}}" step="300" required></label>
+      <label>Dauer (Min.) <input type="number" name="duration" value="{{.Duration}}" min="5" max="480" step="5"></label>
+      <label>Behandler
+        <select name="therapist"><option value="0">—</option>
+          {{range $c.Therapists}}{{if or .Active (eq .ID $a.TherapistID)}}<option value="{{.ID}}"{{if eq .ID $a.TherapistID}} selected{{end}}>{{.Name}}</option>{{end}}{{end}}
+        </select>
+      </label>
+      <label>Art <input name="title" value="{{.Title}}"></label>
+      <label>Ort <input name="location" value="{{.Location}}"></label>
+      <label class="wide">Hinweis für den Patienten <input name="note" value="{{.Note}}"></label>
+    </div>
+    <label class="consent"><input type="checkbox" name="cancelled" value="1"{{if .Cancelled}} checked{{end}}> Abgesagt</label>
+    {{if $c.Conflicts}}
+    <div class="confirm-box">
+      <strong>Überschneidung:</strong>
+      <ul>{{range $c.Conflicts}}<li>{{.}}</li>{{end}}</ul>
+      <label class="consent"><input type="checkbox" name="bestaetigen" value="1" required> Trotzdem speichern (bewusste Ausnahme)</label>
+    </div>
+    {{end}}
+    <div class="actions">
+      <button type="submit">Speichern</button>
+      <a href="/patient/{{.PatientID}}#termine" class="secondary">Patientenakte</a>
+      <a href="/kalender?tag={{$c.Filter.Day.Format "2006-01-02"}}&amp;ansicht={{$c.Filter.View}}" class="secondary outline">Schließen</a>
+    </div>
+  </form>
+  <div class="cal-quick">
+    <form method="post" action="/termin/{{.ID}}/verschieben" class="inline"><input type="hidden" name="delta_min" value="-15"><button type="submit" class="secondary outline small">−15 Min</button></form>
+    <form method="post" action="/termin/{{.ID}}/verschieben" class="inline"><input type="hidden" name="delta_min" value="15"><button type="submit" class="secondary outline small">+15 Min</button></form>
+    <form method="post" action="/termin/{{.ID}}/verschieben" class="inline"><input type="hidden" name="delta_dur" value="-15"><button type="submit" class="secondary outline small">Dauer −15</button></form>
+    <form method="post" action="/termin/{{.ID}}/verschieben" class="inline"><input type="hidden" name="delta_dur" value="15"><button type="submit" class="secondary outline small">Dauer +15</button></form>
+  </div>
+  <details class="danger">
+    <summary>Termin löschen …</summary>
+    <form method="post" action="/termin/{{.ID}}/loeschen">
+      <input type="hidden" name="back" value="kalender">
+      <input type="hidden" name="tag" value="{{$c.Filter.Day.Format "2006-01-02"}}">
+      <button type="submit" class="danger">Endgültig löschen</button>
+    </form>
+  </details>
+</aside>
+{{end}}
+{{else}}
+<div class="cal-week">
+  {{range $c.Days}}
+  <article class="cal-day{{if .Today}} today{{end}}">
+    <h3>{{.Label}}</h3>
+    {{range .Appts}}
+    <a class="cal-card{{if .Cancelled}} cancelled{{end}}" href="/kalender?tag={{ymd .Start}}&amp;ansicht=tag&amp;termin={{.ID}}">
+      <span class="cal-card-time">{{hm .Start}}–{{hm .End}}</span>
+      <strong>{{.PatientName}}</strong>
+      <span class="muted">{{.Title}}{{with .TherapistName}} · {{.}}{{end}}</span>
+    </a>
+    {{else}}<p class="muted small">frei</p>{{end}}
+  </article>
+  {{end}}
+</div>
+{{end}}
+
+<article id="neu">
+  <h2>Neuer Termin</h2>
+  {{if $c.Patients}}
+  <form method="post" action="/termine">
+    <input type="hidden" name="back" value="kalender">
+    <input type="hidden" name="tag" value="{{$c.Filter.Day.Format "2006-01-02"}}">
+    <select name="patient" required aria-label="Patient"><option value="">Patient wählen …</option>
+      {{range $c.Patients}}<option value="{{.ID}}">{{.Name}}{{with .Dob}} ({{.}}){{end}}</option>{{end}}
+    </select>
+    {{template "apptrows" $c}}
+    <button type="submit">Termine speichern</button>
+  </form>
+  {{else}}<p class="muted">Zuerst einen <a href="/patienten">Patienten anlegen</a>.</p>{{end}}
+</article>
+{{end}}

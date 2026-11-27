@@ -1,0 +1,50 @@
+{{define "title"}}Verlauf {{.E.Title}}{{end}}
+{{define "content"}}
+{{$s := .S}}
+<nav aria-label="breadcrumb"><ul><li><a href="/patienten">Patienten</a></li><li><a href="/patient/{{.P.ID}}#tests">{{.P.Name}}</a></li><li>{{.E.Title}}</li></ul></nav>
+<header class="patient-head">
+  <h2>{{.E.Title}} im Verlauf</h2>
+  <p class="muted">{{.P.Name}}{{with $s.Dir}} · {{.}}{{end}}{{if $s.Max}} · Skala 0–{{$s.Max}}{{end}}</p>
+</header>
+
+{{if not .HasQ}}
+<article><p class="muted">Dieser Test ist kein Punkt-Fragebogen. Einen Summenverlauf gibt es deshalb nicht; einzelne Durchführungen stehen auf der <a href="/patient/{{.P.ID}}#tests">Patientenseite</a>.</p></article>
+{{else if not $s.Has}}
+<article><p class="muted">Noch keine Messung für diesen Test. <a href="/patient/{{.P.ID}}/test/{{.E.ID}}">Jetzt durchführen</a>.</p></article>
+{{else}}
+<article id="verlauf">
+  <div class="chartwrap">{{chart $s 760 240 false}}</div>
+  <div class="chart-meta">
+    {{if gt (len $s.Points) 1}}
+    <p><strong>Letzte Messung:</strong> {{$s.Last}} von {{$s.Max}} ·
+      <span class="{{trendClass $s}}">{{trendLabel $s}}</span>
+      {{if $s.Relevant}}<span class="muted">(als klinisch relevante Änderung markiert; ab {{$s.Threshold}} Punkten)</span>{{end}}</p>
+    <p class="muted">Vorige Messung: {{$s.Prev}} von {{$s.Max}} · {{len $s.Points}} Messungen insgesamt.</p>
+    {{else}}
+    <p><strong>Einzige Messung:</strong> {{$s.Last}} von {{$s.Max}}. Ab der zweiten Messung zeigt sich hier der Trend.</p>
+    {{end}}
+  </div>
+  <div class="tablewrap">
+    <table class="list">
+      <thead><tr><th>Datum</th><th>Summe</th><th>Status</th><th>Änderung</th><th class="hide-sm">Quelle</th><th>Hinweis</th></tr></thead>
+      <tbody>
+      {{range $i, $p := $s.Points}}
+        <tr>
+          <td class="nowrap">{{de $p.Date}}</td>
+          <td><strong>{{$p.Sum}}</strong> von {{$p.Max}}</td>
+          <td>{{if $p.Complete}}<span class="ok">vollständig</span>{{else}}<span class="error">unvollständig</span>{{end}}</td>
+          <td>{{if gt $i 0}}{{deltaOf $s.Points $i}}{{end}}</td>
+          <td class="hide-sm">{{if eq $p.Source "Befund"}}<a href="/befund/{{$p.BefundID}}">Befund</a>{{else}}Test{{end}}</td>
+          <td>{{$p.Note}}</td>
+        </tr>
+      {{end}}
+      </tbody>
+    </table>
+  </div>
+  <div class="actions spaced">
+    <a role="button" href="/patient/{{.P.ID}}/test/{{.E.ID}}">Erneut durchführen</a>
+    <a role="button" class="secondary outline" href="/patient/{{.P.ID}}#tests">Zurück zum Patienten</a>
+  </div>
+</article>
+{{end}}
+{{end}}

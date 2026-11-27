@@ -142,6 +142,10 @@ func (s *Server) createAppointment(w http.ResponseWriter, r *http.Request) {
 			redirect(w, r, "/patient/%d?fehler=%s#termine", pid, urlPathEscape(msg))
 			return
 		}
+		if r.FormValue("back") == "kalender" {
+			redirect(w, r, "/kalender?fehler=%s", urlPathEscape(msg))
+			return
+		}
 		redirect(w, r, "/termine?fehler=%s", urlPathEscape(msg))
 	}
 	if !ok {
@@ -182,6 +186,10 @@ func (s *Server) createAppointment(w http.ResponseWriter, r *http.Request) {
 			redirect(w, r, "/patient/%d#termine", pid)
 			return
 		}
+		if r.FormValue("back") == "kalender" {
+			redirect(w, r, "/kalender?tag=%s&gespeichert=1", startOfDay(items[0].Start).Format("2006-01-02"))
+			return
+		}
 		redirect(w, r, "/termine?von=%s", startOfDay(items[0].Start).Format("2006-01-02"))
 		return
 	}
@@ -205,6 +213,10 @@ func (s *Server) createAppointment(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.FormValue("back") == "patient" {
 		redirect(w, r, "/patient/%d#termine", pid)
+		return
+	}
+	if r.FormValue("back") == "kalender" {
+		redirect(w, r, "/kalender?tag=%s&gespeichert=1", startOfDay(a.Start).Format("2006-01-02"))
 		return
 	}
 	redirect(w, r, "/termine?von=%s", startOfDay(a.Start).Format("2006-01-02"))
@@ -252,8 +264,29 @@ func (s *Server) saveAppointment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	a.ID, a.PatientID, a.Cancelled = id, old.PatientID, r.FormValue("cancelled") == "1"
+	conflicts, err := s.appointmentConflicts(r.Context(), a)
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
+	if len(conflicts) > 0 && r.FormValue("bestaetigen") != "1" {
+		therapists, err := s.st.Therapists(r.Context(), false)
+		if err != nil {
+			s.fail(w, r, err)
+			return
+		}
+		s.render(w, r, "appointment", http.StatusConflict, map[string]any{
+			"A": a, "Therapists": therapists, "Conflicts": conflicts,
+			"Back": r.FormValue("back"), "Error": "Bitte die Überschneidung prüfen.",
+		})
+		return
+	}
 	if err := s.st.UpdateAppointment(r.Context(), a); err != nil {
 		s.fail(w, r, err)
+		return
+	}
+	if r.FormValue("back") == "kalender" {
+		redirect(w, r, "/kalender?tag=%s&gespeichert=1", startOfDay(a.Start).Format("2006-01-02"))
 		return
 	}
 	redirect(w, r, "/patient/%d#termine", a.PatientID)
@@ -280,6 +313,10 @@ func (s *Server) toggleCancel(w http.ResponseWriter, r *http.Request) {
 		redirect(w, r, "/termine?von=%s", startOfDay(a.Start).Format("2006-01-02"))
 		return
 	}
+	if to := r.FormValue("back"); to == "kalender" {
+		redirect(w, r, "/kalender?tag=%s&gespeichert=1", startOfDay(a.Start).Format("2006-01-02"))
+		return
+	}
 	redirect(w, r, "/patient/%d#termine", a.PatientID)
 }
 
@@ -289,9 +326,17 @@ func (s *Server) deleteAppointment(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+	var day string
+	if a, err := s.st.Appointment(r.Context(), id); err == nil {
+		day = startOfDay(a.Start).Format("2006-01-02")
+	}
 	pid, err := s.st.DeleteAppointment(r.Context(), id)
 	if err != nil {
 		s.fail(w, r, err)
+		return
+	}
+	if r.FormValue("back") == "kalender" && day != "" {
+		redirect(w, r, "/kalender?tag=%s&gespeichert=1", day)
 		return
 	}
 	redirect(w, r, "/patient/%d#termine", pid)

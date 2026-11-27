@@ -1,6 +1,6 @@
 {{define "title"}}Wissen{{end}}
 {{define "content"}}
-<form method="get" action="/" role="search" class="search">
+<form method="get" action="/wissen" role="search" class="search">
   <input type="search" name="q" value="{{.Q}}" placeholder="Suchen: Knie, Sehne, Lachman …" aria-label="Suche" autofocus>
   {{if .Art}}<input type="hidden" name="art" value="{{.Art}}">{{end}}
   {{if .Region}}<input type="hidden" name="region" value="{{.Region}}">{{end}}
@@ -8,13 +8,13 @@
 </form>
 
 <nav class="chips" aria-label="Art">
-  <a href="/?q={{.Q}}&amp;region={{.Region}}" {{if not .Art}}aria-current="true"{{end}}>Alle <small>{{.Total}}</small></a>
-  {{range .Kinds}}<a href="/?q={{$.Q}}&amp;art={{.Key}}&amp;region={{$.Region}}" {{if eq $.Art .Key}}aria-current="true"{{end}}>{{.Plural}} <small>{{index $.Counts .Key}}</small></a>{{end}}
+  <a href="/wissen?q={{.Q}}&amp;region={{.Region}}" {{if not .Art}}aria-current="true"{{end}}>Alle <small>{{.Total}}</small></a>
+  {{range .Kinds}}<a href="/wissen?q={{$.Q}}&amp;art={{.Key}}&amp;region={{$.Region}}" {{if eq $.Art .Key}}aria-current="true"{{end}}>{{.Plural}} <small>{{index $.Counts .Key}}</small></a>{{end}}
 </nav>
 {{if .Regions}}
 <nav class="chips regions" aria-label="Körperregion">
-  <a href="/?q={{.Q}}&amp;art={{.Art}}" {{if not .Region}}aria-current="true"{{end}}>Alle Regionen</a>
-  {{range .Regions}}<a href="/?q={{$.Q}}&amp;art={{$.Art}}&amp;region={{.}}" {{if eq $.Region .}}aria-current="true"{{end}}>{{.}}</a>{{end}}
+  <a href="/wissen?q={{.Q}}&amp;art={{.Art}}" {{if not .Region}}aria-current="true"{{end}}>Alle Regionen</a>
+  {{range .Regions}}<a href="/wissen?q={{$.Q}}&amp;art={{$.Art}}&amp;region={{.}}" {{if eq $.Region .}}aria-current="true"{{end}}>{{.}}</a>{{end}}
 </nav>
 {{end}}
 

@@ -16,35 +16,74 @@
 <meta name="application-name" content="{{.Practice}}">
 <script src="/static/befund.js?v={{.Version}}" defer></script>
 <script src="/static/passkey.js?v={{.Version}}" defer></script>
+<script src="/static/sidebar.js?v={{.Version}}" defer></script>
+<script src="/static/calendar.js?v={{.Version}}" defer></script>
 {{if .Demo}}<script src="/static/demo.js?v={{.Version}}" defer></script>{{end}}
 </head>
-<body>
-<header class="container">
-<nav>
-  <ul>
-    <li><a href="/" class="brand"><img src="{{.Logo}}" alt="" class="brand-logo"><strong>{{.Practice}}</strong></a></li>
-  </ul>
-  {{if ne .Path "/login"}}
-  <ul>
-    <li><a href="/"{{if eq .Path "/"}} aria-current="page"{{end}}>Wissen</a></li>
-    <li><a href="/patienten"{{if eq .Path "/patienten"}} aria-current="page"{{end}}>Patienten</a></li>
-    <li><a href="/termine"{{if eq .Path "/termine"}} aria-current="page"{{end}}>Termine</a></li>
-    <li><a href="/handouts"{{if eq .Path "/handouts"}} aria-current="page"{{end}}>Handouts</a></li>
-    <li>
-      <details class="dropdown">
-        <summary>+ Neu</summary>
-        <ul dir="rtl">
-          {{range .Kinds}}<li><a href="/eintrag/neu?art={{.Key}}">{{.Label}}</a></li>{{end}}
-        </ul>
-      </details>
-    </li>
-  </ul>
-  {{end}}
-</nav>
+<body{{if .SidebarCollapsed}} class="sidebar-collapsed"{{end}}>
+{{if .Me}}
+<header class="topbar">
+  <a href="/" class="brand"><img src="{{.Logo}}" alt="" class="brand-logo"><strong>{{.Practice}}</strong></a>
+  <form method="get" action="/wissen" role="search" class="topbar-search">
+    <input type="search" name="q" placeholder="Wissen durchsuchen …" aria-label="Wissen durchsuchen">
+  </form>
+  <form method="post" action="/sidebar/umschalten" class="sidebar-toggle-form">
+    <input type="hidden" name="zurueck" value="{{.Path}}">
+    <button type="submit" class="icon-btn" data-sidebar-toggle aria-controls="sidebar" aria-expanded="{{if .SidebarCollapsed}}false{{else}}true{{end}}" title="Navigation ein-/ausklappen">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      <span class="sr-only">Navigation</span>
+    </button>
+  </form>
 </header>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <nav aria-label="Bereiche">
+      <ul>
+        <li><a href="/"{{if eq .Area "dashboard"}} aria-current="page"{{end}}>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>
+          <span class="label">Übersicht</span></a></li>
+        <li><a href="/patienten"{{if eq .Area "patienten"}} aria-current="page"{{end}}>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 2.7-5 6-5s6 2 6 5"/><path d="M17 11a3 3 0 100-6"/><path d="M21 20c0-2.5-1.8-4-4-4"/></svg>
+          <span class="label">Patienten</span></a></li>
+        <li><a href="/wissen"{{if eq .Area "wissen"}} aria-current="page"{{end}}>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 012-2h12v18H6a2 2 0 01-2-2z"/><path d="M8 7h8M8 11h8"/></svg>
+          <span class="label">Wissen</span></a></li>
+        <li><a href="/wissen?art=test"{{if eq .Area "tests"}} aria-current="page"{{end}}>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5 9a2 2 0 001.8 3h10.4A2 2 0 0019 18l-5-9V3"/></svg>
+          <span class="label">Tests</span></a></li>
+        <li><a href="/kalender"{{if eq .Area "termine"}} aria-current="page"{{end}}>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+          <span class="label">Termine</span></a></li>
+        <li><a href="/handouts"{{if eq .Area "handouts"}} aria-current="page"{{end}}>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg>
+          <span class="label">Handouts</span></a></li>
+        <li><a href="/konto"{{if eq .Area "konto"}} aria-current="page"{{end}}>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>
+          <span class="label">Konto</span></a></li>
+      </ul>
+    </nav>
+    <details class="new-area">
+      <summary>+ Neu</summary>
+      <ul>
+        {{range .Kinds}}<li><a href="/eintrag/neu?art={{.Key}}">{{.Label}}</a></li>{{end}}
+        <li><a href="/patienten#neu">Patient</a></li>
+        <li><a href="/kalender#neu">Termin</a></li>
+      </ul>
+    </details>
+  </aside>
+  <main class="main">
+    {{template "content" .}}
+  </main>
+</div>
+<footer class="site-footer">
+  <span class="muted">PhysioBase {{.Version}}{{if .Demo}} · Demo{{end}}</span>
+  {{with .Me}}<span class="muted">{{.Name}}</span> · <a href="/konto">Konto</a> · {{end}}<form method="post" action="/logout" class="inline"><button type="submit" class="link">Abmelden</button></form>
+</footer>
+{{else}}
 <main class="container">
 {{template "content" .}}
 </main>
+{{end}}
 {{if .Demo}}
 <div id="demo-consent" class="demo-consent" hidden role="dialog" aria-live="polite">
   <div>
@@ -56,12 +95,6 @@
     <button type="button" class="secondary outline" data-demo-consent-leave>Nein, zurück zu meiner Seite</button>
   </div>
 </div>
-{{end}}
-{{if ne .Path "/login"}}
-<footer class="container site-footer">
-  <span class="muted">PhysioBase {{.Version}}{{if .Demo}} · Demo{{end}}</span>
-  {{with .Me}}<span class="muted">{{.Name}}</span> · <a href="/konto">Konto</a> · {{end}}<form method="post" action="/logout" class="inline"><button type="submit" class="link">Abmelden</button></form>
-</footer>
 {{end}}
 </body>
 </html>{{end}}

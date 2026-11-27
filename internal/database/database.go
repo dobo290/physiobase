@@ -350,6 +350,11 @@ CREATE TABLE totp_recovery (
 );
 CREATE INDEX idx_totp_recovery_user ON totp_recovery(user_id);
 `},
+	{12, `
+-- Behandler, der zu einem Benutzer gehoert ("nur meine Spalte" im Kalender).
+ALTER TABLE users ADD COLUMN therapist_id INTEGER REFERENCES therapists(id) ON DELETE SET NULL;
+CREATE INDEX idx_appointments_therapist ON appointments(therapist_id, starts_at);
+`},
 }
 
 func migrate(db *sql.DB) error {

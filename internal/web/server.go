@@ -77,8 +77,8 @@ func New(ctx context.Context, cfg *config.Config, st *store.Store, log *slog.Log
 	s.wa = wa
 	for _, p := range []string{
 		"index", "entry", "edit", "handouts", "handout", "login", "login_2fa", "patients", "patient", "befund", "compare", "summary", "appointments", "appointment", "settings",
-		"admin", "admin_users", "admin_user", "admin_symbols", "account", "setup", "patient_test",
-		"admin", "admin_users", "admin_user", "account", "setup",
+		"admin", "admin_users", "admin_user", "admin_symbols", "account", "setup", "patient_test", "test_history",
+		"calendar", "dashboard",
 	} {
 		t, err := template.New("").Funcs(funcs).ParseFS(physiobase.TemplatesFS, "web/templates/layout.html", "web/templates/partials.html", "web/templates/"+p+".html")
 		if err != nil {
@@ -86,7 +86,7 @@ func New(ctx context.Context, cfg *config.Config, st *store.Store, log *slog.Log
 		}
 		s.pages[p] = t
 	}
-	for _, p := range []string{"print", "befund_print", "summary_print", "appointments_print"} {
+	for _, p := range []string{"print", "befund_print", "summary_print", "appointments_print", "calendar_print"} {
 		t, err := template.New("").Funcs(funcs).ParseFS(physiobase.TemplatesFS, "web/templates/"+p+".html")
 		if err != nil {
 			return nil, fmt.Errorf("template %s: %w", p, err)
@@ -109,7 +109,9 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /login/2fa/abbrechen", s.loginTwoFactorCancel)
 	mux.HandleFunc("POST /logout", s.logout)
 
-	mux.HandleFunc("GET /{$}", s.index)
+	mux.HandleFunc("GET /{$}", s.dashboard)
+	mux.HandleFunc("GET /wissen", s.index)
+	mux.HandleFunc("POST /sidebar/umschalten", s.toggleSidebar)
 	mux.HandleFunc("GET /eintrag/neu", s.newEntry)
 	mux.HandleFunc("POST /eintrag/neu", s.saveEntry)
 	mux.HandleFunc("GET /eintrag/{id}", s.showEntry)
@@ -148,6 +150,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /patient/{id}/befund", s.newBefund)
 	mux.HandleFunc("POST /patient/{id}/test", s.linkPatientTest)
 	mux.HandleFunc("GET /patient/{id}/test/{eid}", s.runTestForm)
+	mux.HandleFunc("GET /patient/{id}/test/{eid}/verlauf", s.testHistoryPage)
 	mux.HandleFunc("POST /patient/{id}/test/{eid}", s.saveTestRun)
 	mux.HandleFunc("POST /patient/{id}/test/{eid}/entfernen", s.removePatientTest)
 	mux.HandleFunc("POST /patient/{id}/verlauf", s.addSession)
@@ -167,6 +170,9 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /zusammenfassung/{id}/druck", s.printSummary)
 	mux.HandleFunc("POST /zusammenfassung/{id}/senden", s.sendSummary)
 
+	mux.HandleFunc("GET /kalender", s.calendarPage)
+	mux.HandleFunc("GET /kalender/druck", s.printCalendar)
+	mux.HandleFunc("POST /termin/{id}/verschieben", s.moveAppointment)
 	mux.HandleFunc("GET /termine", s.listAppointments)
 	mux.HandleFunc("POST /termine", s.createAppointment)
 	mux.HandleFunc("GET /termin/{id}", s.showAppointment)
@@ -329,7 +335,13 @@ var funcs = template.FuncMap{
 	},
 	"isImage": isImage,
 	"isVideo": isVideo,
-	"isPDF":   func(f string) bool { return strings.EqualFold(extOf(f), ".pdf") },
+	// Testverlauf (SVG, serverseitig gerendert)
+	"chart":       chartSVG,
+	"trendLabel":  trendLabel,
+	"trendClass":  trendClass,
+	"deltaOf":     deltaOf,
+	"calendarSVG": calendarSVG,
+	"isPDF":       func(f string) bool { return strings.EqualFold(extOf(f), ".pdf") },
 	// Punkt-Fragebögen
 	"qval": func(f befund.QFill, q befund.Questionnaire, i int) string {
 		if i < len(f.Values) {
@@ -396,6 +408,12 @@ func (s *Server) render(w http.ResponseWriter, r *http.Request, page string, sta
 	data["T"] = s.textMap()
 	data["Kinds"] = store.Kinds
 	data["Path"] = r.URL.Path
+	data["Area"] = areaFor(r)
+	data["SidebarCollapsed"] = sidebarCollapsed(r)
+	data["Mine"] = false
+	if u, ok := currentUser(r); ok {
+		data["Mine"] = u.TherapistID > 0
+	}
 	name := "layout"
 	if strings.HasSuffix(page, "print") {
 		name = page

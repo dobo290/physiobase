@@ -1,0 +1,38 @@
+{{define "calendar_print"}}<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tagesplan – {{day .Cal.Day}}</title>
+<link rel="stylesheet" href="/static/print.css">
+</head>
+<body class="cal-print">
+<p class="hint">Drucken oder als PDF speichern: <kbd>Strg</kbd>+<kbd>P</kbd>. · <a href="/kalender?tag={{.Cal.Day.Format "2006-01-02"}}">zurück zum Kalender</a></p>
+<header>
+  <div>
+    <h1>Tagesplan</h1>
+    <p class="for">{{day .Cal.Day}}{{with .Cal.Filter.Therapist}} · {{range .Cal.Therapists}}{{if eq .ID $.Cal.Filter.Therapist}}{{.Name}}{{end}}{{end}}{{end}}</p>
+  </div>
+  <div class="meta">{{.Practice}}{{with .Address}}<br>{{.}}{{end}}{{with .Contact}}<br>{{.}}{{end}}<br>Stand {{date .Today}}</div>
+</header>
+
+{{if .Cal.Appts}}
+<table class="appt-print">
+  <thead><tr><th>Zeit</th><th>Behandler</th><th>Patient</th><th>Behandlung</th><th>Ort</th><th>Hinweis</th></tr></thead>
+  <tbody>
+  {{range .Cal.Appts}}
+    <tr{{if .Cancelled}} class="cancelled"{{end}}>
+      <td class="nowrap">{{hm .Start}}–{{hm .End}}</td>
+      <td>{{.TherapistName}}</td>
+      <td>{{.PatientName}}</td>
+      <td>{{.Title}}{{if .Cancelled}} – <strong>abgesagt</strong>{{end}}</td>
+      <td>{{.Location}}</td>
+      <td>{{.Note}}</td>
+    </tr>
+  {{end}}
+  </tbody>
+</table>
+{{else}}<p>Keine Termine an diesem Tag.</p>{{end}}
+<footer class="pre">PhysioBase {{.Version}}</footer>
+</body>
+</html>{{end}}

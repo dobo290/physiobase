@@ -141,15 +141,23 @@
   </div>
   {{end}}
   <div class="tablewrap"><table class="list">
-    <thead><tr><th>Test</th><th>Letztes Ergebnis</th><th class="hide-sm">Datum</th><th class="hide-sm">Quelle</th><th></th></tr></thead>
+    <thead><tr><th>Test</th><th>Letztes Ergebnis</th><th class="hide-sm">Verlauf</th><th class="hide-sm">Datum</th><th class="hide-sm">Quelle</th><th></th></tr></thead>
     <tbody>{{range .Tests}}
+      {{$th := index $.TH .EntryID}}
       <tr>
         <td><strong>{{.Title}}</strong></td>
         <td>{{if .Date}}{{if .HasQ}}<strong>{{.Sum}} von {{.Max}}</strong>{{if not .Complete}} <span class="error">unvollständig</span>{{end}}{{else}}durchgeführt{{end}}{{with .Note}} · {{.}}{{end}}{{else}}<span class="muted">noch nicht durchgeführt</span>{{end}}</td>
+        <td class="hide-sm">
+          {{if and $th.Has (gt (len $th.Points) 1)}}
+            <a class="spark" href="/patient/{{$.P.ID}}/test/{{.EntryID}}/verlauf" title="Verlauf anzeigen">{{chart $th 88 26 true}}</a>
+            <span class="trend {{trendClass $th}}">{{trendLabel $th}}</span>
+          {{else if $th.Has}}<span class="muted">1 Messung</span>{{end}}
+        </td>
         <td class="hide-sm">{{if .Date}}{{de .Date}}{{end}}</td>
         <td class="hide-sm">{{if eq .Source "Befund"}}<a href="/befund/{{.BefundID}}">Befund</a>{{else if .Source}}{{.Source}}{{end}}</td>
         <td class="actions">
           <a role="button" class="secondary outline small" href="/patient/{{$.P.ID}}/test/{{.EntryID}}">{{if .Date}}erneut durchführen{{else}}durchführen{{end}}</a>
+          {{if and $th.Has (gt (len $th.Points) 1)}}<a role="button" class="outline small" href="/patient/{{$.P.ID}}/test/{{.EntryID}}/verlauf">Verlauf</a>{{end}}
           <a class="remove-test" href="/patient/{{$.P.ID}}?entfernen={{.EntryID}}#tests" title="Test entfernen" aria-label="{{.Title}} entfernen">✕</a>
         </td>
       </tr>

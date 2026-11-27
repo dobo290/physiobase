@@ -103,6 +103,12 @@ var textDefs = []TextDef{
 		Key: "appt_default_note", Group: "Termine", Label: "Standard-Hinweis für Patienten", Kind: "line",
 		Help: "Wird bei neuen Terminen vorausgefüllt, z. B. „Bitte Handtuch mitbringen“.",
 	},
+	{
+		Key: "calendar_grid", Group: "Termine", Label: "Kalender – Raster (Minuten)", Kind: "number",
+		Help: "5 oder 10 Minuten. Bestimmt die Linien im Tagesplan und das Einrasten beim Ziehen.", Default: "10",
+	},
+	{Key: "calendar_start", Group: "Termine", Label: "Kalender – Tagesplan beginnt", Kind: "time", Default: "08:00"},
+	{Key: "calendar_end", Group: "Termine", Label: "Kalender – Tagesplan endet", Kind: "time", Default: "20:00"},
 
 	{
 		Key: "doc_categories", Group: "Dokumente und Handouts", Label: "Dokument-Kategorien (eine pro Zeile)", Kind: "area",

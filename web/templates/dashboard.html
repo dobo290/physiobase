@@ -1,0 +1,59 @@
+{{define "title"}}Übersicht{{end}}
+{{define "content"}}
+{{$c := .Cal}}
+<header class="dash-head">
+  <div>
+    <h1>Übersicht</h1>
+    <p class="muted">{{day .Today}} · {{.Practice}}</p>
+  </div>
+  <div class="dash-actions">
+    <a role="button" href="/patienten#neu">+ Patient</a>
+    <a role="button" class="secondary" href="/kalender#neu">+ Termin</a>
+    <a role="button" class="secondary outline" href="/eintrag/neu?art=krankheitsbild">+ Eintrag</a>
+  </div>
+</header>
+
+<form method="get" action="/wissen" role="search" class="search dash-search">
+  <input type="search" name="q" placeholder="Wissen durchsuchen: Knie, Sehne, Lachman …" aria-label="Suche" autofocus>
+  <button type="submit">Suchen</button>
+</form>
+
+<article class="dash-cal">
+  <div class="dash-cal-head">
+    <h2>Tagesplan</h2>
+    <a href="/kalender?tag={{$c.Filter.Day.Format "2006-01-02"}}">Im Kalender öffnen →</a>
+  </div>
+  <div class="calwrap">{{calendarSVG $c}}</div>
+  {{if not $c.Appts}}<p class="muted">Heute keine Termine. <a href="/kalender?tag={{$c.Filter.Day.Format "2006-01-02"}}">Termin anlegen</a></p>{{end}}
+</article>
+
+<div class="dash-grid">
+  <article>
+    <h2>Zuletzt gesehen</h2>
+    <p class="muted small">Behandlungen der letzten sieben Tage.</p>
+    {{if .Recent}}
+    <ul class="plain">
+      {{range .Recent}}<li><a href="/patient/{{.PatientID}}">{{.Patient}}</a> <span class="muted">· {{de .Date}}{{with .Goal}} · {{.}}{{end}}</span></li>{{end}}
+    </ul>
+    {{else}}<p class="muted">Noch keine Behandlungen dokumentiert.</p>{{end}}
+  </article>
+
+  <article>
+    <h2>Nachkontrolle fällig</h2>
+    <p class="muted small">Letzte Messung älter als 14 Tage, kein Folgetermin vereinbart.</p>
+    {{if .Open}}
+    <ul class="plain">
+      {{range .Open}}<li><a href="/patient/{{.PatientID}}">{{.Patient}}</a> <span class="muted">· {{.Test}} · {{de .Date}} ({{.Days}} Tage)</span></li>{{end}}
+    </ul>
+    {{else}}<p class="muted">Nichts offen.</p>{{end}}
+  </article>
+
+  <article>
+    <h2>Wissen zuletzt geändert</h2>
+    <p class="muted small">Einträge, die zuletzt bearbeitet wurden.</p>
+    <ul class="plain">
+      {{range .Entries}}<li><span class="kind kind-{{.Kind}}">{{kindLabel .Kind}}</span> <a href="/eintrag/{{.ID}}">{{.Title}}</a> <span class="muted">· {{date .Updated}}</span></li>{{end}}
+    </ul>
+  </article>
+</div>
+{{end}}

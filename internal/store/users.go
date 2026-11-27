@@ -25,6 +25,7 @@ type User struct {
 	LastLogin                           time.Time // Nullzeit = nie
 	Passkeys                            int       // nur in Users()
 	TOTPEnabled                         bool      // Zwei-Faktor-Anmeldung aktiv
+	TherapistID                         int64     // 0 = kein Behandler ("nur meine Spalte" im Kalender)
 }
 
 func (u User) IsAdmin() bool { return u.Role == "admin" }
@@ -46,12 +47,12 @@ type Passkey struct {
 }
 
 const userCols = `id, username, display_name, password_hash, role, active, session_version, webauthn_id, created_at,
-	COALESCE(last_login_at, 0), totp_enabled`
+	COALESCE(last_login_at, 0), totp_enabled, COALESCE(therapist_id, 0)`
 
 func scanUser(sc scanner) (User, error) {
 	var u User
 	var c, l int64
-	err := sc.Scan(&u.ID, &u.Username, &u.DisplayName, &u.PasswordHash, &u.Role, &u.Active, &u.SessionVersion, &u.WebAuthnID, &c, &l, &u.TOTPEnabled)
+	err := sc.Scan(&u.ID, &u.Username, &u.DisplayName, &u.PasswordHash, &u.Role, &u.Active, &u.SessionVersion, &u.WebAuthnID, &c, &l, &u.TOTPEnabled, &u.TherapistID)
 	u.Created = time.Unix(c, 0)
 	if l > 0 {
 		u.LastLogin = time.Unix(l, 0)
@@ -77,7 +78,7 @@ func (s *Store) Users(ctx context.Context) ([]User, error) {
 		var u User
 		var c, l int64
 		if err := rows.Scan(&u.ID, &u.Username, &u.DisplayName, &u.PasswordHash, &u.Role, &u.Active, &u.SessionVersion,
-			&u.WebAuthnID, &c, &l, &u.TOTPEnabled, &u.Passkeys); err != nil {
+			&u.WebAuthnID, &c, &l, &u.TOTPEnabled, &u.TherapistID, &u.Passkeys); err != nil {
 			return nil, err
 		}
 		u.Created = time.Unix(c, 0)
@@ -130,9 +131,9 @@ func (s *Store) activeAdminsExcept(ctx context.Context, id int64) (int, error) {
 	return n, err
 }
 
-// UpdateUser ändert Anzeigename, Rolle und Aktiv-Status. Schützt den letzten Admin.
-// Deaktivieren oder Herabstufen beendet die Sitzungen des Benutzers.
-func (s *Store) UpdateUser(ctx context.Context, id int64, displayName, role string, active bool) error {
+// UpdateUser ändert Anzeigename, Rolle, Aktiv-Status und die Zuordnung zum Behandler.
+// Schützt den letzten Admin. Deaktivieren oder Herabstufen beendet die Sitzungen.
+func (s *Store) UpdateUser(ctx context.Context, id int64, displayName, role string, active bool, therapistID int64) error {
 	old, err := s.User(ctx, id)
 	if err != nil {
 		return err
@@ -153,8 +154,8 @@ func (s *Store) UpdateUser(ctx context.Context, id int64, displayName, role stri
 	if (old.Active && !active) || (old.IsAdmin() && role != "admin") {
 		bump = 1
 	}
-	_, err = s.db.ExecContext(ctx, `UPDATE users SET display_name = ?, role = ?, active = ?, session_version = session_version + ?
-		WHERE id = ?`, strings.TrimSpace(displayName), role, active, bump, id)
+	_, err = s.db.ExecContext(ctx, `UPDATE users SET display_name = ?, role = ?, active = ?, therapist_id = ?,
+		session_version = session_version + ? WHERE id = ?`, strings.TrimSpace(displayName), role, active, nullID(therapistID), bump, id)
 	return err
 }
 

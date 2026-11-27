@@ -6,7 +6,7 @@
     <span class="kind kind-{{$e.Kind}}">{{kindLabel $e.Kind}}</span>{{with $e.Region}} <a class="region" href="/?region={{.}}">{{.}}</a>{{end}}
     <h1>{{$e.Title}}</h1>
     {{with $e.Summary}}<p class="lead">{{.}}</p>{{end}}
-    {{with tags $e.Tags}}<p class="tags">{{range .}}<a href="/?q={{.}}">#{{.}}</a> {{end}}</p>{{end}}
+    {{with tags $e.Tags}}<p class="tags">{{range .}}<a href="/wissen?q={{.}}">#{{.}}</a> {{end}}</p>{{end}}
     <div class="actions">
       <a role="button" class="outline" href="/eintrag/{{$e.ID}}/bearbeiten">Bearbeiten</a>
     </div>
