@@ -15,7 +15,7 @@
   <img src="{{.Logo}}" alt="" class="logo">
   <div class="htext">
     <h1>Physiotherapeutischer Befund</h1>
-    <p><strong>{{.P.Name}}</strong>{{with .P.Dob}} · geb. {{.}}{{end}}</p>
+    <p><strong>{{.P.Name}}</strong>{{with dobLabel .P.Dob}} · {{.}}{{end}}</p>
   </div>
   <div class="meta">{{.B.Title}}<br>{{de .B.Date}}<br>{{.Practice}}{{with .Contact}}<br>{{.}}{{end}}</div>
 </header>
@@ -43,10 +43,12 @@
     </dl>
 
     {{with $p.Table}}{{$t := .}}{{with index $d.Tables $t.Key}}
+    {{$cols := $d.FilledCols $t}}{{if $cols}}
     <table>
-      <thead><tr>{{range $t.Cols}}<th>{{.Label}}</th>{{end}}</tr></thead>
-      <tbody>{{range $row := .}}<tr>{{range $c := $t.Cols}}<td>{{if eq $c.Type "date"}}{{de (index $row $c.Key)}}{{else}}{{index $row $c.Key}}{{end}}</td>{{end}}</tr>{{end}}</tbody>
+      <thead><tr>{{range $cols}}<th>{{.Label}}</th>{{end}}</tr></thead>
+      <tbody>{{range $row := .}}<tr>{{range $c := $cols}}<td>{{if eq $c.Type "date"}}{{de (index $row $c.Key)}}{{else}}{{index $row $c.Key}}{{end}}</td>{{end}}</tr>{{end}}</tbody>
     </table>
+    {{end}}
     {{end}}{{end}}
   {{end}}{{end}}
 </section>

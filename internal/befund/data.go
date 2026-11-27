@@ -197,6 +197,24 @@ func (d Data) FormRows(t *Table) []Row {
 	return d.TableRows(t, 2)
 }
 
+// FilledCols liefert die Spalten einer Tabelle, die in den gespeicherten Zeilen
+// mindestens einen Wert haben. Für Ausdruck und Anzeige: leere Spalten wie
+// "Subtyp (nur nozizeptiv)" verschwinden, das Eingabeformular nutzt weiterhin alle
+// Spalten aus Table.Cols.
+func (d Data) FilledCols(t *Table) []Col {
+	rows := d.Tables[t.Key]
+	out := make([]Col, 0, len(t.Cols))
+	for _, c := range t.Cols {
+		for _, row := range rows {
+			if strings.TrimSpace(row[c.Key]) != "" {
+				out = append(out, c)
+				break
+			}
+		}
+	}
+	return out
+}
+
 // TableRows liefert die Zeilen für das Formular plus leere Zeilen zum Ausfüllen.
 func (d Data) TableRows(t *Table, blank int) []Row {
 	rows := append([]Row{}, d.Tables[t.Key]...)

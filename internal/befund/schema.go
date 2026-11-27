@@ -139,10 +139,11 @@ var Sections = []Section{
 		{Title: "Yellow / Blue Flags (Chronifizierungsrisiko)", Fields: []Field{
 			check("yf_fear", "Angst-Vermeidungsverhalten"),
 			check("yf_cata", "Katastrophisieren"),
-			check("yf_mood", "Niedergeschlagenheit, Angst, Stress"),
+			check("yf_mood", "Depressive/pessimistische Symptomatik"),
 			check("yf_expect", "Geringe Erwartung an Besserung, passive Bewältigung"),
 			check("yf_work", "Arbeitsplatzprobleme, Konflikte, fehlende Unterstützung (Blue Flags)"),
 			wide(ph(text("screen_tool", "Screening-Instrument & Ergebnis"), "z. B. STarT Back: mittleres Risiko · Örebro-Kurzform: 52")),
+			wide(ph(area("yf_action", "Bewertung & Vorgehen"), "z. B. Aufklärung, graduated activity, Verhaltenstherapie-Anbindung – Termin …")),
 		}},
 	}},
 	{ID: "anamnese", Title: "Anamnese", Parts: []Part{
@@ -174,6 +175,7 @@ var Sections = []Section{
 	}},
 	{ID: "inspektion", Title: "Inspektion", Parts: []Part{{Fields: []Field{
 		wide(area("inspection", "Inspektionsbefund (Haltung, Haut, Ödeme, Narben, Atmung etc.)")),
+		wide(ph(area("insp_subj", "Subjektive Wahrnehmung (Suggestiv)"), "Eindruck, den die Schilderung der Patientin/des Patienten nahelegt – getrennt vom objektiven Befund")),
 	}}}},
 	{ID: "bps", Title: "Psychosoziale Anamnese", Parts: []Part{{Fields: []Field{
 		area("bps_family", "Familie/soziales Netz"),
@@ -194,7 +196,7 @@ var Sections = []Section{
 		{Title: "Spezifische Tests", Table: TableTests},
 		{Title: "Assessments & PROMs (Messwerte für den Verlauf)", Table: TableMeasures},
 		{Title: "Ganganalyse", Collapsible: true, Fields: []Field{wide(ph(area("gait", ""), "Gangphase, Spurbreite, Armpendel, Ausweichmechanismen …"))}},
-		{Title: "Assessments – Notizen", Collapsible: true, Fields: []Field{wide(ph(area("assess", ""), "Durchführung, Auffälligkeiten (Werte bitte in die Tabelle oben)"))}},
+		{Title: "Tests/Assessments", Collapsible: true, Fields: []Field{wide(ph(area("assess", ""), "Durchführung, Auffälligkeiten (Werte bitte in die Tabelle oben)"))}},
 		{Title: "Sensibilität/Wahrnehmung", Collapsible: true, Fields: []Field{wide(ph(area("sens", ""), "Reflextests, Dermatome …"))}},
 		{Title: "Neurologische Untersuchung", Collapsible: true, Fields: []Field{
 			area("neuro_derm", "Sensibilität nach Dermatomen"),

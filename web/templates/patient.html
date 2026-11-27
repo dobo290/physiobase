@@ -4,7 +4,7 @@
 <nav aria-label="breadcrumb"><ul><li><a href="/patienten">Patienten</a></li><li>{{$p.Name}}</li></ul></nav>
 <header class="patient-head">
   <h1>{{$p.Name}}{{if $p.Archived}} <small class="muted">(archiviert)</small>{{end}}</h1>
-  <p class="muted">{{with $p.Dob}}geb. {{.}}{{end}}{{with $p.Phone}} · {{.}}{{end}}{{with $p.Email}} · {{.}}{{if not $p.EmailConsent}} (keine E-Mail-Einwilligung){{end}}{{end}}</p>
+  <p class="muted">{{with dobLabel $p.Dob}}{{.}}{{end}}{{with $p.Phone}} · {{.}}{{end}}{{with $p.Email}} · {{.}}{{if not $p.EmailConsent}} (keine E-Mail-Einwilligung){{end}}{{end}}</p>
   {{if or $p.Address $p.Job $p.Insurance $p.Doctor $p.Doctors $p.PayerSelf $p.PayerPrivate $p.PayerBeihilfe $p.PayerBG}}
   <p class="muted">
     {{with $p.Address}}{{.}}<br>{{end}}

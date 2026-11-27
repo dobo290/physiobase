@@ -390,6 +390,15 @@ Guiding principles for every decision:
 
 ## Done
 
+- [x] ~~**Assessment form polish** - section "Assessments - Notizen" renamed to
+      "Tests/Assessments"; the header prints an age entered as "45" as "45 Jahre"
+      (date and year keep the "geb." label, one `dobLabel` helper for screen and
+      print); the printout drops table columns without values (empty "Subtyp (nur
+      nozizeptiv)" disappears, the input form and the comparison keep all columns);
+      inspection gained a field "Subjektive Wahrnehmung (Suggestiv)"; the yellow
+      flag "Niedergeschlagenheit, Angst, Stress" became "Depressive/pessimistische
+      Symptomatik" and the yellow flags gained their own "Bewertung & Vorgehen"
+      field like the red flags (0.13.7)~~
 - [x] ~~**Faster test runs and testable logic** - `t.Parallel()` in all web tests
       plus `-p`/`-parallel` in the pipelines: the suite dropped from ~170 s to ~25 s.
       `patientTests` and `questionnaireHistory` were split into pure functions

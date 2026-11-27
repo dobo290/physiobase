@@ -290,3 +290,19 @@ func (s *Server) serveBranding(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; img-src data:")
 	http.ServeFile(w, r, filepath.Join(s.brandingDir(), name)) //nolint:gosec // G703: Name geprüft
 }
+
+// dobLabel beschriftet das Feld "Geburtsdatum / Alter" passend zum Inhalt:
+// ein Datum und eine Jahreszahl werden als Geburtsdatum ausgegeben, eine kurze Zahl
+// als Alter ("45" -> "45 Jahre"). Ein reines "geb. 45" wäre falsch.
+var dobAgeOnly = regexp.MustCompile(`^\d{1,3}$`)
+
+func dobLabel(dob string) string {
+	dob = strings.TrimSpace(dob)
+	if dob == "" {
+		return ""
+	}
+	if dobAgeOnly.MatchString(dob) {
+		return dob + " Jahre"
+	}
+	return "geb. " + dob
+}

@@ -10,7 +10,7 @@
 
 <form method="post" action="/befund/{{.B.ID}}" id="befund-form" class="befund">
   <div class="befund-head">
-    <div><strong>{{.P.Name}}</strong>{{with .P.Dob}} · geb. {{.}}{{end}}</div>
+    <div><strong>{{.P.Name}}</strong>{{with dobLabel .P.Dob}} · {{.}}{{end}}</div>
     <label>Titel <input name="title" value="{{.B.Title}}" list="dl-titles"></label>
     <label>Datum <input type="date" name="date" value="{{.B.Date}}"></label>
   </div>

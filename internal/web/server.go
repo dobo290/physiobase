@@ -317,6 +317,8 @@ var funcs = template.FuncMap{
 	"cell":    func(t, c string, i int) string { return fmt.Sprintf("t.%s.%d.%s", t, i, c) },
 	"fmtNum":  func(f float64) string { return strconv.FormatFloat(f, 'f', 1, 64) },
 	"isoDate": func(t time.Time) string { return t.Local().Format("2006-01-02") },
+	// Geburtsdatum oder Alter menschengerecht beschriften (siehe dobLabel).
+	"dobLabel": dobLabel,
 	"de": func(iso string) string { // 2025-03-01 → 01.03.2025
 		if t, err := time.Parse("2006-01-02", iso); err == nil {
 			return t.Format("02.01.2006")
