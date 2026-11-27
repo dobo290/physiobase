@@ -134,7 +134,9 @@ func publicPath(p string) bool {
 	// /einrichten/ sind Einmal-Links für neue Benutzer; /passkey/login/ die Passkey-Anmeldung.
 	// /passkey/registrieren/ prüft selbst: angemeldet ODER gültiger Einrichtungs-Link (neue Benutzer).
 	// /login/2fa ist der zweite Schritt der Anmeldung (Einmalcode).
-	return p == "/login" || p == "/healthz" || strings.HasPrefix(p, "/login/2fa") ||
+	// Manifest und Icons braucht der Browser schon auf der Anmeldeseite (Installation).
+	return p == "/login" || p == "/healthz" || p == "/manifest.webmanifest" ||
+		strings.HasPrefix(p, "/pwa/icon/") || strings.HasPrefix(p, "/login/2fa") ||
 		strings.HasPrefix(p, "/static/") || strings.HasPrefix(p, "/kalender/") ||
 		strings.HasPrefix(p, "/branding/") || strings.HasPrefix(p, "/einrichten/") || strings.HasPrefix(p, "/passkey/login/") ||
 		strings.HasPrefix(p, "/passkey/registrieren/")

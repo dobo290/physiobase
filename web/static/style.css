@@ -290,6 +290,9 @@ a.remove-test { display: inline-block; margin-left: .4rem; padding: 0 .3rem; tex
                 color: var(--pico-muted-color); border-radius: .3rem; }
 a.remove-test:hover, a.remove-test:focus { color: var(--pico-del-color); }
 
+/* ---------- Installationshinweis (PWA) ---------- */
+.install-hint { font-size: .85em; margin-top: .8rem; }
+
 /* ---------- Zwei-Faktor-Anmeldung ---------- */
 .tosetup { display: flex; gap: 1.2rem; flex-wrap: wrap; align-items: flex-start; margin: 1rem 0; }
 .tosetup .qr { background: #fff; border: 1px solid var(--pico-muted-border-color); border-radius: var(--pico-border-radius); padding: .4rem; }

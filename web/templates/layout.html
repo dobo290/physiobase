@@ -8,6 +8,12 @@
 <link rel="stylesheet" href="/static/pico.min.css?v={{.Version}}">
 <link rel="stylesheet" href="/static/style.css?v={{.Version}}">
 <link rel="icon" href="{{.Logo}}">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#1f3b57">
+<link rel="apple-touch-icon" href="/pwa/icon/180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="{{.Practice}}">
+<meta name="application-name" content="{{.Practice}}">
 <script src="/static/befund.js?v={{.Version}}" defer></script>
 <script src="/static/passkey.js?v={{.Version}}" defer></script>
 {{if .Demo}}<script src="/static/demo.js?v={{.Version}}" defer></script>{{end}}

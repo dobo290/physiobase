@@ -218,6 +218,9 @@ func (s *Server) Handler() http.Handler {
 		mux.HandleFunc("POST /demo/reset", s.demoResetHandler)
 	}
 	mux.HandleFunc("GET /branding/{file}", s.serveBranding)
+	// PWA: Manifest und generierte Icons (Stage 1, ohne Service Worker)
+	mux.HandleFunc("GET "+pwaManifestPath, s.handleManifest)
+	mux.HandleFunc("GET /pwa/icon/{file}", s.handleIcon)
 	mux.HandleFunc("GET /befund/{id}", s.showBefund)
 	mux.HandleFunc("POST /befund/{id}", s.saveBefund)
 	mux.HandleFunc("POST /befund/{id}/test", s.linkBefundTest)
@@ -256,7 +259,7 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 func (s *Server) securityHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h := w.Header()
-		h.Set("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; media-src 'self'; style-src 'self'; script-src 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; base-uri 'none'")
+		h.Set("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; media-src 'self'; style-src 'self'; script-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; base-uri 'none'")
 		h.Set("X-Content-Type-Options", "nosniff")
 		h.Set("Referrer-Policy", "same-origin")
 		if s.cfg.IsHTTPS() {
