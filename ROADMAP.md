@@ -124,7 +124,7 @@ Guiding principles for every decision:
       - **Migration**: schema keys stay stable, old assessments keep their pinned
         version, and the comparison view compares only fields that exist in both
         versions (showing the rest as "not part of that version").
-- [ ] **Assessment search** - full text search- [ ] **Assessment search** - full text search across assessments (diagnosis,
+- [ ] **Assessment search** - full text search across assessments (diagnosis,
       notes), not only across the knowledge base *(next)*
 - [ ] **Report export** - medical report / summary as a clean PDF with practice
       logo and header *(next)*
